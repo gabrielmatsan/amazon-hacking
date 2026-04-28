@@ -1,0 +1,47 @@
+# Dependencies
+**/node_modules/
+.pnpm-store/
+
+# Build outputs
+**/dist/
+**/build/
+**/.next/
+**/.turbo/
+
+# Environment files
+.env.local
+.env.development
+.env.test
+
+# Logs
+*.log
+logs/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+._*
+Thumbs.db
+
+# Git
+.git/
+
+# Documentation
+*.md
+
+# Test files
+**/coverage/
+**/.nyc_output/
+
+# Cache directories
+.cache/
+.temp/
+.tmp/
+
+# Terraform
+terraform/

@@ -1,0 +1,10 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "apps/server/Dockerfile"
+
+[deploy]
+startCommand = "bun run src/app.ts"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3

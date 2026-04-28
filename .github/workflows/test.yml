@@ -1,0 +1,83 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+env:
+  NODE_ENV: test
+  DATABASE_URL: postgresql://test:test@localhost:5433/app_test
+  BACKEND_URL: http://localhost:8080
+  FRONTEND_URL: http://localhost:3000
+  AWS_REGION: us-east-1
+  DEFAULT_FROM_EMAIL: test@example.com
+  JWT_SECRET: test-jwt-secret-key-for-testing
+  REDIS_URL: redis://localhost:6380
+  REDIS_TLS: false
+  OTEL_ENABLED: false
+  OTEL_SERVICE_NAME: my-api
+  S3_PUBLIC_BUCKET_NAME: test-storage
+  S3_PUBLIC_BUCKET_URL: https://test-storage.s3.amazonaws.com
+  CLOUDFRONT_URL: https://test.cloudfront.net
+  METRICS_ENABLED: false
+  METRICS_PREFIX: my_api
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres-app:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: app_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run migrations
+        run: pnpm --filter server db:migrate
+
+      - name: Run tests
+        run: pnpm --filter server test
