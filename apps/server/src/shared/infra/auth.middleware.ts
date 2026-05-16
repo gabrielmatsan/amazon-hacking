@@ -52,7 +52,7 @@ export const authMiddleware = new Elysia({
 
         const token =
           authHeader?.replace("Bearer ", "") ||
-          getTokenFromCookies(request, "accessToken");
+          getTokenFromCookies(request, "access_token");
 
         if (!token) {
           throw new UnauthorizedError("Token not found");
