@@ -3,9 +3,9 @@ import { t } from "elysia";
 import { createController, errorResponse } from "@/shared/infra/base.controller";
 import { requireAdmin } from "@/shared/infra/require-admin.middleware";
 
+import { uploadImageInput, uploadImageOutput, uploadImageUseCase } from "@/teams/applications/upload-image.usecase";
 import { createTeamUseCase } from "../../teams/applications/create-team.usecase";
 import { updateTeamUseCase } from "../../teams/applications/update-team.usecase";
-import { uploadTeamLogoUseCase } from "../../teams/applications/upload-team-logo.usecase";
 import { createTeamBody, teamType, updateTeamBody } from "../../teams/domain/teams.type";
 
 export const adminController = createController({ prefix: "/admin", normalize: false })
@@ -39,29 +39,18 @@ export const adminController = createController({ prefix: "/admin", normalize: f
     },
     detail: { tags: ["Admin", "Teams"], summary: "Update team (admin only)" },
   })
-  .post("/teams/:id/logo", async ({ params, body }) => {
-    const file = body.logo;
-    const buffer = Buffer.from(await file.arrayBuffer());
+  .post("/images", async ({ body }) => {
+    const image = await uploadImageUseCase(body);
 
-    return uploadTeamLogoUseCase({
-      teamId: params.id,
-      file: {
-        buffer,
-        contentType: file.type,
-        size: file.size,
-      },
-    });
+    return { data: image };
   }, {
-    params: t.Object({ id: t.String() }),
-    body: t.Object({ logo: t.File() }),
-    type: "multipart/form-data",
+    body: uploadImageInput,
     response: {
-      200: t.Object({ logoUrl: t.String() }),
+      200: t.Object({ data: uploadImageOutput }),
       400: errorResponse,
       401: errorResponse,
       403: errorResponse,
-      404: errorResponse,
       422: errorResponse,
     },
-    detail: { tags: ["Admin", "Teams"], summary: "Upload team logo (admin only)" },
-  });
+    detail: { tags: ["Admin", "Images"], summary: "Upload image (admin only)" },
+  })
