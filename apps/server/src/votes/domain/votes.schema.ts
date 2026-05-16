@@ -17,7 +17,6 @@ export const votesSchema = pgTable(
     teamId: varchar("team_id", { length: 34 }).references(() => teamsSchema.id).notNull(),
 
     status: voteStatus("status").notNull().default("valid"),
-    source: voteSources("source").notNull().default("user"),
 
     ipAddress: text("ip_address"),
     ipCountry: text("ip_country"),

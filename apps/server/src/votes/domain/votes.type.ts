@@ -1,9 +1,9 @@
 import { t, type Static } from "elysia";
 
-export const voteSources = {
-  user: "user",
-  mentor: "mentor",
-} as const;
+// export const voteSources = {
+//   user: "user",
+//   mentor: "mentor",
+// } as const;
 
 export const voteStatus = {
   valid: "valid",
@@ -17,7 +17,6 @@ export const voteType = t.Object({
   userId: t.String(),
   teamId: t.String(),
   status: t.Enum(voteStatus),
-  source: t.Enum(voteSources),
   ipAddress: t.Nullable(t.String()),
   ipCountry: t.Nullable(t.String()),
   userAgent: t.Nullable(t.String()),
@@ -28,4 +27,4 @@ export const voteType = t.Object({
 
 export type VoteType = Static<typeof voteType>;
 export type VoteStatusType = VoteType["status"];
-export type VoteSourceType = VoteType["source"];
+//export type VoteSourceType = VoteType["source"];

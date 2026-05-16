@@ -36,6 +36,7 @@ export const voteForTimeByIdUseCase = async (input: VoteForTimeByIdInput) => {
     ipCountry: input.ipCountry,
     userAgent: input.userAgent,
     metadata: input.metadata,
+    status: "valid",
   });
 
   if (!vote) throw new ConflictError("User already voted");
