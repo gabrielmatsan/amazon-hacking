@@ -2,6 +2,7 @@ import { ValidationError } from "elysia";
 import { logger } from "../observability";
 import { BadRequestError } from "./bad-error-request";
 import { ConflictError } from "./conflict-error";
+import { ForbiddenError } from "./forbidden-error";
 import { NotFoundError } from "./not-found-error";
 import { UnauthorizedError } from "./unauthorized-error";
 
@@ -44,6 +45,11 @@ export function globalErrorHandler(error: any): ErrorResponse {
   if (error instanceof UnauthorizedError) {
     logger.warn({ error: error.message }, "Unauthorized error");
     return { message: error.message, code: 401 };
+  }
+
+  if (error instanceof ForbiddenError) {
+    logger.warn({ error: error.message }, "Forbidden error");
+    return { message: error.message, code: 403 };
   }
 
   if (error instanceof NotFoundError) {
