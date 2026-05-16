@@ -29,7 +29,7 @@ const envSchema = z.object({
   // S3
   S3_PUBLIC_BUCKET_URL: z.string().default("https://my-storage.s3.amazonaws.com"),
   S3_PUBLIC_BUCKET_NAME: z.string().default("my-storage"),
-  CLOUDFRONT_URL: z.string().url().default("https://your-cloudfront-url.cloudfront.net"),
+  S3_PUBLIC_URL: z.string().url().default("https://your-cloudfront-url.cloudfront.net"),
 
   // Email
   DEFAULT_FROM_EMAIL: z.string().email(),

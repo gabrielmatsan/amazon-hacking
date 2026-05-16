@@ -3,7 +3,6 @@ export interface GeneratePresignedUrlParams {
   contentType: string;
   expireInSeconds: number;
 }
-
 export interface IS3Service {
   generatePresignedUrl(params: GeneratePresignedUrlParams): Promise<string>;
   deleteFile(key: string): Promise<void>;

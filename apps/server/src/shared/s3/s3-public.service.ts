@@ -11,15 +11,12 @@ import type { GeneratePresignedUrlParams, IS3Service } from "./s3.interface";
 
 export class S3PublicService implements IS3Service {
   private readonly bucketName: string;
-  private readonly region: string;
 
   constructor(
     private readonly s3Client: S3Client,
     bucketName: string,
-    region: string
   ) {
     this.bucketName = bucketName;
-    this.region = region;
   }
 
   async generatePresignedUrl(params: GeneratePresignedUrlParams): Promise<string> {
@@ -68,14 +65,13 @@ export class S3PublicService implements IS3Service {
   }
 
   getPublicUrl(key: string): string {
-    return `${env.CLOUDFRONT_URL}/${key}`;
+    return `${env.S3_PUBLIC_URL}/${key}`;
   }
 
   static getInstance(): S3PublicService {
     return new S3PublicService(
       new S3Client({ region: env.AWS_REGION }),
       env.S3_PUBLIC_BUCKET_NAME,
-      env.AWS_REGION,
     );
   }
 }
