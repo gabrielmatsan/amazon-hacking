@@ -1,5 +1,5 @@
 {
-  "id": "c898d8da-6400-4582-9d4a-b7689ec4e4e9",
+  "id": "3907454b-8677-4647-86bf-a36498b2b94a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -174,13 +174,13 @@
           "name": "user_id",
           "type": "varchar(34)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "team_id": {
           "name": "team_id",
           "type": "varchar(34)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "status": {
           "name": "status",
@@ -189,14 +189,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'valid'"
-        },
-        "source": {
-          "name": "source",
-          "type": "vote_sources",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'user'"
         },
         "ip_address": {
           "name": "ip_address",
@@ -236,7 +228,23 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "votes_user_id_unique": {
+          "name": "votes_user_id_unique",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "votes_user_id_users_id_fk": {
           "name": "votes_user_id_users_id_fk",

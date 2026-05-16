@@ -30,10 +30,9 @@ CREATE TABLE "users" (
 --> statement-breakpoint
 CREATE TABLE "votes" (
 	"id" varchar(34) PRIMARY KEY NOT NULL,
-	"user_id" varchar(34),
-	"team_id" varchar(34),
+	"user_id" varchar(34) NOT NULL,
+	"team_id" varchar(34) NOT NULL,
 	"status" "vote_status" DEFAULT 'valid' NOT NULL,
-	"source" "vote_sources" DEFAULT 'user' NOT NULL,
 	"ip_address" text,
 	"ip_country" text,
 	"user_agent" text,
@@ -43,4 +42,5 @@ CREATE TABLE "votes" (
 );
 --> statement-breakpoint
 ALTER TABLE "votes" ADD CONSTRAINT "votes_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "votes" ADD CONSTRAINT "votes_team_id_teams_id_fk" FOREIGN KEY ("team_id") REFERENCES "public"."teams"("id") ON DELETE no action ON UPDATE no action;
+ALTER TABLE "votes" ADD CONSTRAINT "votes_team_id_teams_id_fk" FOREIGN KEY ("team_id") REFERENCES "public"."teams"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+CREATE UNIQUE INDEX "votes_user_id_unique" ON "votes" USING btree ("user_id");
