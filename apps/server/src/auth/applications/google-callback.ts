@@ -2,8 +2,8 @@ import { UsersRepository } from "@/users/infra/users.repository";
 import { signAccessToken, signRefreshToken } from "../infra/jwt.service";
 import { RefreshTokenRepository } from "../infra/refresh.repository";
 
-interface googleCallbackInput {
-  accessToken: string;
+interface GoogleCallbackInput {
+  googleAccessToken: string;
 }
 
 interface GoogleUser {
@@ -26,11 +26,11 @@ export interface GoogleCallbackResult {
   googleUser: GoogleUser;
 }
 
-export async function googleCallback({ accessToken }: googleCallbackInput): Promise<GoogleCallbackResult> {
+export async function googleCallback({ googleAccessToken }: GoogleCallbackInput): Promise<GoogleCallbackResult> {
 
   const userResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
     headers: {
-      Authorization: `Bearer ${accessToken}`
+      Authorization: `Bearer ${googleAccessToken}`
     }
   });
 

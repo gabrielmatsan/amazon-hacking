@@ -2,34 +2,37 @@ import { oauth2 } from "elysia-oauth2";
 
 import { createController } from "@/shared/infra/base.controller";
 import { env } from "@/shared/infra/env/env";
+import { NotFoundError } from "@/shared/infra/errors/not-found-error";
 import { UnauthorizedError } from "@/shared/infra/errors/unauthorized-error";
 import { getCookieDomain } from "@/shared/utils/get-cookie-domain";
+import { UsersRepository } from "@/users/infra/users.repository";
 import { t } from "elysia";
 import { googleCallback } from "../applications/google-callback";
 import { logoutUseCase } from "../applications/logout.usecase";
 import { refreshUseCase } from "../applications/refresh.usecase";
 import { verifyAccessToken } from "../infra/jwt.service";
 
-function sanitizeReturnTo(raw: string | undefined): string {
-  if (typeof raw !== "string" || raw.length === 0) return "/";
-  if (!raw.startsWith("/")) return "/";
-  if (raw.startsWith("//")) return "/";
-  return raw;
-}
-
 const isProduction = env.NODE_ENV === "production";
 const cookieDomain = getCookieDomain();
+const ACCESS_TOKEN_MAX_AGE = 60 * 15; // 15 minutes in seconds
+const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 7; // 7 days in seconds
+
 const cookieOptions = {
   httpOnly: true,
   secure: isProduction,
-  sameSite: isProduction ? "lax" as const : "lax" as const,
+  sameSite: "lax" as const,
   domain: cookieDomain,
   path: "/",
 };
 
+type TokenCookies = {
+  access_token: { set: (opts: Record<string, unknown>) => void };
+  refresh_token: { set: (opts: Record<string, unknown>) => void };
+};
+
 function setTokenCookies(
-  cookies: { access_token: any; refresh_token: any },
-  tokens: { accessToken: string; refreshToken: string }
+  cookies: TokenCookies,
+  tokens: { accessToken: string; refreshToken: string },
 ) {
   cookies.access_token.set({
     ...cookieOptions,
@@ -44,14 +47,10 @@ function setTokenCookies(
   });
 }
 
-function clearTokenCookies(cookies: { access_token: any; refresh_token: any }) {
+function clearTokenCookies(cookies: TokenCookies) {
   cookies.access_token.set({ ...cookieOptions, value: "", maxAge: 0 });
   cookies.refresh_token.set({ ...cookieOptions, value: "", maxAge: 0 });
 }
-
-
-const ACCESS_TOKEN_MAX_AGE = 60 * 15; // 15 minutes in seconds
-const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 7; // 7 days in seconds
 
 export const authController = createController({ prefix: "/auth" })
   .use(
@@ -92,9 +91,9 @@ export const authController = createController({ prefix: "/auth" })
 
     try {
       const oauthToken = await oauth2.authorize("Google");
-      const accessToken = oauthToken.accessToken();
+      const googleAccessToken = oauthToken.accessToken();
 
-      if (!accessToken) {
+      if (!googleAccessToken) {
         set.status = 400;
         return {
           error: "failed",
@@ -102,7 +101,7 @@ export const authController = createController({ prefix: "/auth" })
         };
       }
 
-      result = await googleCallback({ accessToken });
+      result = await googleCallback({ googleAccessToken });
     }
     catch {
       set.status = 400;
@@ -166,16 +165,29 @@ export const authController = createController({ prefix: "/auth" })
     }
   )
   .get(
-    '/me',
+    "/me",
     async ({ cookie: { access_token } }) => {
-
       if (!access_token.value) {
         throw new UnauthorizedError("Access token not found");
       }
 
-      const { sub, role, email } = await verifyAccessToken(access_token.value);
+      let sub: string;
+      try {
+        ({ sub } = await verifyAccessToken(access_token.value));
+      }
+      catch {
+        throw new UnauthorizedError("Invalid access token");
+      }
 
-      return { id: sub, role, email, authenticated: true };
+      const user = await UsersRepository.findById(sub);
+      if (!user) throw new NotFoundError("User not found");
+
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      };
     },
     {
       cookie: t.Cookie({
