@@ -53,6 +53,16 @@ export const TeamsRepository = {
     return team;
   },
 
+  async updateLogoUrl(id: string, logoUrl: string): Promise<Team | null> {
+    const [team] = await db
+      .update(teamsSchema)
+      .set({ logoUrl, updatedAt: new Date() })
+      .where(eq(teamsSchema.id, id))
+      .returning();
+
+    return team ?? null;
+  },
+
   async update(id: string, data: UpdateTeamData): Promise<Team | null> {
     const values: Record<string, unknown> = { updatedAt: new Date() };
     if (data.name !== undefined) values.name = data.name;
