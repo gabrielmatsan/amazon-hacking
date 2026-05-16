@@ -10,6 +10,12 @@ const envSchema = z.object({
 
   // Auth
   JWT_SECRET: z.string().min(1),
+  JWT_REFRESH_SECRET: z.string().min(1),
+
+  // Google OAuth
+  GOOGLE_CLIENT_ID: z.string().min(1),
+  GOOGLE_CLIENT_SECRET: z.string().min(1),
+  GOOGLE_REDIRECT_URI: z.string().url(),
 
   // Redis
   REDIS_URL: z.string().url().default("redis://localhost:6379"),

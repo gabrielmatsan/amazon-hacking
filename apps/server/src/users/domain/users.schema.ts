@@ -19,6 +19,4 @@ export const usersRelations = relations(usersSchema, ({ many }) => ({
   votes: many(votesSchema),
 }))
 
-export type User = typeof usersSchema.$inferSelect;
 export type NewUser = typeof usersSchema.$inferInsert;
-export type UserRole = User["role"];

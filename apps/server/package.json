@@ -46,6 +46,7 @@
     "bullmq": "^5.71.0",
     "drizzle-orm": "^0.44.6",
     "elysia": "latest",
+    "elysia-oauth2": "^2.1.0",
     "elysia-rate-limit": "^4.5.1",
     "ioredis": "^5.10.0",
     "jose": "^6.2.2",
