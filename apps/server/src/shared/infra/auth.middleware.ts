@@ -68,7 +68,7 @@ export const authMiddleware = new Elysia({
           return {
             id: payload.sub,
             email: payload.email as string,
-            role: (payload.role as string) || "user",
+            role: payload.role as string || "user",
           };
         } catch (error) {
           if (error instanceof UnauthorizedError) throw error;
