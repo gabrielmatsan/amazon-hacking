@@ -9,6 +9,11 @@ export const UsersRepository = {
     return user;
   },
 
+  async findById(id: string): Promise<User | null> {
+    const [user] = await db.select().from(usersSchema).where(eq(usersSchema.id, id));
+    return user;
+  },
+
   async create(data: NewUser): Promise<User> {
     const [user] = await db.insert(usersSchema).values(data).returning();
     return user;
