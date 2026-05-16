@@ -1,4 +1,3 @@
-import type { MaybePromise } from 'elysia';
 import type { Context, Options } from 'elysia-rate-limit';
 import { redis } from '../databases/redis';
 

@@ -20,6 +20,7 @@ import { RateLimitContext } from "./shared/infra/rate-limiting/rate-limit";
 import { initializeSES } from "./shared/mail/ses/ses-setup";
 
 const app = new Elysia({
+  normalize: "typebox",
   serve: {
     idleTimeout: 255,
     hostname: "0.0.0.0",

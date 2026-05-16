@@ -39,3 +39,8 @@ export const votesRelations = relations(votesSchema, ({ one }) => ({
     references: [teamsSchema.id],
   }),
 }))
+
+export type Vote = typeof votesSchema.$inferSelect;
+export type NewVote = typeof votesSchema.$inferInsert;
+export type VoteSource = Vote["source"];
+export type VoteStatus = Vote["status"];

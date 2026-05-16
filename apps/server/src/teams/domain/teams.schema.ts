@@ -28,3 +28,6 @@ export const teamsSchema = pgTable("teams", {
 export const teamsRelations = relations(teamsSchema, ({ many }) => ({
   votes: many(votesSchema),
 }))
+
+export type Team = typeof teamsSchema.$inferSelect;
+export type NewTeam = typeof teamsSchema.$inferInsert;

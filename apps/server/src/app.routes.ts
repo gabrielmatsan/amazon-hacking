@@ -1,5 +1,5 @@
 import Elysia from "elysia";
-import { itemsController } from "./items/controller/items.controller";
+import { teamsController } from "./teams/controller/teams.controller";
 
-export const appRoutes = new Elysia()
-  .use(itemsController);
+export const appRoutes = new Elysia({ normalize: "typebox" })
+  .use(teamsController);

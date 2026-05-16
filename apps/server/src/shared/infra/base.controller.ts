@@ -11,7 +11,7 @@ export const errorResponse = t.Object({
 });
 
 export const createController = (options?: ConstructorParameters<typeof Elysia>[0]) =>
-  new Elysia(options)
+  new Elysia({ normalize: "typebox", ...options })
     .onError(({ error, set }) => {
       const { message, code } = globalErrorHandler(error);
 
