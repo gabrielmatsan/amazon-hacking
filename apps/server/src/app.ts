@@ -28,30 +28,30 @@ const app = new Elysia({
 })
   .onRequest(onRequestHandler)
   .onAfterResponse(onAfterResponseHandler)
-  .use(rateLimit({
-    context: new RateLimitContext(),
-    duration: 1000 * 60 * 1 + 1000 * 30,
-    max: 100,
-    generator: (request: Request) => {
-      return (
-        request.headers.get("cf-connecting-ip") ??
-        request.headers.get("x-forwarded-for") ??
-        request.headers.get("x-real-ip") ??
-        "unknown"
-      );
-    },
-    skip: (request: Request) => {
-      if (env.NODE_ENV === "development") return true;
-      return request.url.includes("/health") || request.url.includes("/metrics") || request.url.includes("/docs");
-    },
-    errorResponse: new Response(JSON.stringify({
-      error: "failed",
-      message: "Rate limit exceeded",
-    }), {
-      status: 429,
-      headers: { "content-type": "application/json" }
-    })
-  }))
+  // .use(rateLimit({
+  //   context: new RateLimitContext(),
+  //   duration: 1000 * 60 * 1 + 1000 * 30,
+  //   max: 100,
+  //   generator: (request: Request) => {
+  //     return (
+  //       request.headers.get("cf-connecting-ip") ??
+  //       request.headers.get("x-forwarded-for") ??
+  //       request.headers.get("x-real-ip") ??
+  //       "unknown"
+  //     );
+  //   },
+  //   skip: (request: Request) => {
+  //     if (env.NODE_ENV === "development") return true;
+  //     return request.url.includes("/health") || request.url.includes("/metrics") || request.url.includes("/docs");
+  //   },
+  //   errorResponse: new Response(JSON.stringify({
+  //     error: "failed",
+  //     message: "Rate limit exceeded",
+  //   }), {
+  //     status: 429,
+  //     headers: { "content-type": "application/json" }
+  //   })
+  // }))
   .use(
     cors({
       credentials: true,

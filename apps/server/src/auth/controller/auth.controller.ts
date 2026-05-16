@@ -84,6 +84,7 @@ export const authController = createController({ prefix: "/auth" })
       secure: env.NODE_ENV === "production",
     });
 
+    console.log("url", url.href);
     return redirect(url.href);
   })
   .get("/google/callback", async ({ oauth2, set, cookie: { access_token, refresh_token }, redirect }) => {
