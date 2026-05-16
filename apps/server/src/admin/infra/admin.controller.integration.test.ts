@@ -8,6 +8,7 @@ import { IntegrationTestHelper } from "@/shared/utils/test-helpers/integration-t
 import { teamsSchema } from "@/teams/domain/teams.schema";
 import { usersSchema } from "@/users/domain/users.schema";
 import type { UserRole } from "@/users/domain/users.type";
+import { votesSchema } from "@/votes/domain/votes.schema";
 
 import { adminController } from "./admin.controller";
 
@@ -350,6 +351,66 @@ describe("Admin teams controller (integration)", () => {
       );
 
       expect(response.status).toBe(201);
+    });
+  });
+
+  describe("GET /admin/votes/count", () => {
+    it("returns valid votes count grouped by team for admin users", async () => {
+      const { accessToken } = await seedUser("admin");
+
+      const [firstTeam, secondTeam] = await db
+        .insert(teamsSchema)
+        .values([
+          { name: "Equipe Alpha" },
+          { name: "Equipe Beta" },
+        ])
+        .returning();
+
+      const users = await db
+        .insert(usersSchema)
+        .values([
+          { name: "Voter 1", email: IntegrationTestHelper.generateTestEmail() },
+          { name: "Voter 2", email: IntegrationTestHelper.generateTestEmail() },
+          { name: "Voter 3", email: IntegrationTestHelper.generateTestEmail() },
+          { name: "Voter 4", email: IntegrationTestHelper.generateTestEmail() },
+        ])
+        .returning();
+
+      await db.insert(votesSchema).values([
+        { userId: users[0].id, teamId: firstTeam.id, status: "valid" },
+        { userId: users[1].id, teamId: firstTeam.id, status: "valid" },
+        { userId: users[2].id, teamId: secondTeam.id, status: "valid" },
+        { userId: users[3].id, teamId: secondTeam.id, status: "invalidated" },
+      ]);
+
+      const response = await app.handle(
+        new Request("http://localhost/admin/votes/count", {
+          method: "GET",
+          headers: {
+            cookie: authCookie(accessToken),
+          },
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      const { data } = await response.json();
+
+      expect(
+        data.toSorted((a: { teamName: string }, b: { teamName: string }) =>
+          a.teamName.localeCompare(b.teamName),
+        ),
+      ).toEqual([
+        {
+          teamId: firstTeam.id,
+          teamName: "Equipe Alpha",
+          votesCount: 2,
+        },
+        {
+          teamId: secondTeam.id,
+          teamName: "Equipe Beta",
+          votesCount: 1,
+        },
+      ]);
     });
   });
 });

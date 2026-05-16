@@ -4,6 +4,7 @@ import { createController, errorResponse } from "@/shared/infra/base.controller"
 import { requireAdmin } from "@/shared/infra/require-admin.middleware";
 
 import { uploadImageInput, uploadImageOutput, uploadImageUseCase } from "@/teams/applications/upload-image.usecase";
+import { checkVotesOutput, checkVotesUseCase } from "@/votes/application/check-votes.usecase";
 import { createTeamUseCase } from "../../teams/applications/create-team.usecase";
 import { updateTeamUseCase } from "../../teams/applications/update-team.usecase";
 import { createTeamBody, teamType, updateTeamBody } from "../../teams/domain/teams.type";
@@ -54,3 +55,12 @@ export const adminController = createController({ prefix: "/admin", normalize: f
     },
     detail: { tags: ["Admin", "Images"], summary: "Upload image (admin only)" },
   })
+  .get("/votes/count", async () => {
+    const votes = await checkVotesUseCase();
+    return { data: votes };
+  }, {
+    response: {
+      200: t.Object({ data: checkVotesOutput }),
+    },
+    detail: { tags: ["Admin", "Votes"], summary: "Check votes (admin only)" },
+  });
