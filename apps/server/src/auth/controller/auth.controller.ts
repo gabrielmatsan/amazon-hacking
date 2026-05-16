@@ -171,13 +171,9 @@ export const authController = createController({ prefix: "/auth" })
         throw new UnauthorizedError("Access token not found");
       }
 
-      let sub: string;
-      try {
-        ({ sub } = await verifyAccessToken(access_token.value));
-      }
-      catch {
-        throw new UnauthorizedError("Invalid access token");
-      }
+      const { sub } = await verifyAccessToken(access_token.value);
+      if (!sub) throw new UnauthorizedError("Invalid access token");
+
 
       const user = await UsersRepository.findById(sub);
       if (!user) throw new NotFoundError("User not found");
