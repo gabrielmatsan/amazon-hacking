@@ -41,4 +41,5 @@ export const votesController = createController({ prefix: "/votes", normalize: f
       409: errorResponse,
       422: errorResponse,
     },
+    detail: { tags: ["Votes"], summary: "Vote for a team" },
   })
