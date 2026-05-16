@@ -2,18 +2,8 @@ import { votesSchema } from "@/votes/domain/votes.schema";
 import { createId } from "@paralleldrive/cuid2";
 import { relations } from "drizzle-orm";
 import { jsonb, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import type { TeamMember } from "./teams.type";
 
-export type TeamMember = {
-  name: string;
-  role: string;
-  email?: string;
-  imageUrl?: string;
-  links?: {
-    website?: string;
-    linkedin?: string;
-    github?: string;
-  }
-}
 
 export const teamsSchema = pgTable("teams", {
   id: varchar("id", { length: 34 }).primaryKey().$defaultFn(() => createId()),
@@ -28,6 +18,3 @@ export const teamsSchema = pgTable("teams", {
 export const teamsRelations = relations(teamsSchema, ({ many }) => ({
   votes: many(votesSchema),
 }))
-
-export type Team = typeof teamsSchema.$inferSelect;
-export type NewTeam = typeof teamsSchema.$inferInsert;

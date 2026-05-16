@@ -1,11 +1,12 @@
 import { desc, eq } from "drizzle-orm";
 
 import { db } from "@/shared/infra/databases/postgres";
-import { teamsSchema, type Team } from "@/teams/domain/teams.schema";
+import { teamsSchema } from "../domain/teams.schema";
+import type { Team } from "../domain/teams.type";
 
 export const TeamsRepository = {
   async findAllPublic(): Promise<Pick<Team, "id" | "name" | "description" | "logoUrl">[]> {
-    return db
+    const teams = await db
       .select({
         id: teamsSchema.id,
         name: teamsSchema.name,
@@ -14,6 +15,8 @@ export const TeamsRepository = {
       })
       .from(teamsSchema)
       .orderBy(desc(teamsSchema.createdAt));
+
+    return teams
   },
 
   async findById(id: string): Promise<Team | null> {
@@ -21,6 +24,7 @@ export const TeamsRepository = {
       .select()
       .from(teamsSchema)
       .where(eq(teamsSchema.id, id));
+      
     return team;
   },
 };
