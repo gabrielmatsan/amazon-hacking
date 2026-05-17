@@ -108,10 +108,10 @@ app.use(appRoutes);
 app.listen(env.PORT);
 
 // Initialize email service
-initializeSES();
-logger.info("Email service initialized");
-startEmailWorker();
-logger.info("Email worker started");
+// initializeSES();
+// logger.info("Email service initialized");
+// startEmailWorker();
+// logger.info("Email worker started");
 
 export type App = typeof app;
 
@@ -146,11 +146,11 @@ const shutdown = async (signal: string) => {
 
   logger.info({ signal }, "Received signal, shutting down gracefully...");
 
-  await stopEmailWorker();
-  logger.info("Email worker stopped");
+  // await stopEmailWorker();
+  // logger.info("Email worker stopped");
 
-  await stopEmailQueue();
-  logger.info("Email queue stopped");
+  // await stopEmailQueue();
+  // logger.info("Email queue stopped");
 
   await shutdownPools();
   logger.info("Database pools closed");
