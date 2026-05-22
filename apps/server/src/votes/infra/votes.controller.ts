@@ -34,17 +34,12 @@ export const votesController = createController({ prefix: "/votes", normalize: f
         headers: { "content-type": "application/json" }
       })
   }))
-  .post("/", async ({ body, validateToken, request, set, validateXApiToken }) => {
-
-    // 1. Apenas permite que quem tenha o token da API possa votar, (Server Actions)
-    const isApiTokenValid = await validateXApiToken(request);
-    if (!isApiTokenValid) throw new UnauthorizedError("Unauthorized");
-
-    // 2. Valida o token do usuário
+  .post("/", async ({ body, validateToken, request, set }) => {
+    // 1. Valida o token do usuário
     const user = await validateToken(request);
     if (!user) throw new UnauthorizedError("Unauthorized");
 
-    // 3. Pega o User Agent e o IP do usuário
+    // 2. Pega o User Agent e o IP do usuário
     const userAgent = request.headers.get("user-agent") ?? undefined;
 
     const ipAddress = getIpClient(request);
@@ -69,6 +64,7 @@ export const votesController = createController({ prefix: "/votes", normalize: f
     };
 
   }, {
+    requireApiToken: true, // apenas permite que quem tenha o token da API possa votar, (Server Actions)
     body: t.Pick(voteForTimeByIdInput, ["teamId"]),
     response: {
       200: t.Object({ message: t.String() }),

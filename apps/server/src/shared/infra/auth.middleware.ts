@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import * as jose from "jose";
 
+import { resolve } from "bun";
 import { env } from "./env/env";
 import { UnauthorizedError } from "./errors/unauthorized-error";
 
@@ -45,6 +46,16 @@ export const authMiddleware = new Elysia({
         };
     }
   })
+  .macro({
+    requireApiToken: {
+      resolve: ({ request }) => {
+        const token = request.headers.get('x-api-token');
+        if (!token || token !== env.X_API_TOKEN) {
+          throw new UnauthorizedError('Invalid API token');
+        }
+      }
+    },
+  })
   .derive({ as: "global" }, () => {
     return {
       validateToken: async (request: Request): Promise<AuthUser> => {
@@ -74,18 +85,6 @@ export const authMiddleware = new Elysia({
           if (error instanceof UnauthorizedError) throw error;
           throw new UnauthorizedError();
         }
-      },
-
-      validateXApiToken: async (request: Request): Promise<Boolean> => {
-
-        const xApiToken = request.headers.get("x-api-token");
-
-        if (!xApiToken) throw new UnauthorizedError("Unathorized");
-
-
-        if (xApiToken !== env.X_API_TOKEN) throw new UnauthorizedError("Invalid API token");
-
-        return true;
-      },
+      }
     };
   });
