@@ -1,22 +1,31 @@
 import type { Context, Options } from 'elysia-rate-limit';
+import { randomUUID } from 'node:crypto';
 import { redis } from '../databases/redis';
 
 export class RateLimitContext implements Context {
 
-  private readonly PREFIX_KEY = '{rt}';
-  private durationMs: number = 1000 * 60 * 1;
+  private readonly PREFIX_KEY = 'rt';
+  private durationMs: number | undefined = 1000 * 60 * 1;
 
   init(options: Omit<Options, 'context'>): void {
-    this.durationMs = options.duration;
+    this.durationMs = typeof options.duration === 'function' ? undefined : options.duration;
   }
 
-  async increment(key: string): Promise<{ count: number; nextReset: Date; }> {
-    const redisKey = `${this.PREFIX_KEY}:${key}`;
-    const now = Date.now();
-    const windowStart = now - this.durationMs;
-    const ttlSeconds = Math.ceil(this.durationMs / 1000);
+  async increment(
+    key: string,
+    duration?: number,
+    requestTime?: number,
+  ): Promise<{ count: number; nextReset: Date; start: number }> {
+    const effectiveDuration = duration ?? this.durationMs;
+    if (effectiveDuration === undefined) {
+      throw new Error('RateLimitContext.increment: duration is required when options.duration is a function but no per-call duration was provided');
+    }
 
-    const member = `${now}:${Math.random().toString(36).slice(2, 8)}`;
+    const redisKey = `${this.PREFIX_KEY}:${key}`;
+    const now = requestTime ?? Date.now();
+    const windowStart = now - effectiveDuration;
+    const ttlSeconds = Math.ceil(effectiveDuration / 1000);
+    const member = `${now}:${randomUUID()}`;
 
     const results = await redis
       .pipeline()
@@ -24,23 +33,28 @@ export class RateLimitContext implements Context {
       .zadd(redisKey, now, member)
       .zcard(redisKey)
       .expire(redisKey, ttlSeconds)
+      .zrange(redisKey, 0, 0, 'WITHSCORES')
       .exec();
 
-    const count = results?.[2]?.[1] as number;
+    if (!results) {
+      throw new Error('Redis pipeline returned no results');
+    }
 
-    const oldest = await redis.zrange(redisKey, 0, 0, 'WITHSCORES');
+    for (const [err] of results) {
+      if (err) throw err;
+    }
+
+    const count = results[2][1] as number;
+    const oldest = results[4][1] as string[];
     const oldestTimestamp = oldest.length >= 2 ? Number(oldest[1]) : now;
-    const nextReset = new Date(oldestTimestamp + this.durationMs);
+    const nextReset = new Date(oldestTimestamp + effectiveDuration);
 
-    return { count, nextReset };
+    return { count, nextReset, start: oldestTimestamp };
   }
 
   async decrement(key: string): Promise<void> {
     const redisKey = `${this.PREFIX_KEY}:${key}`;
-    const latest = await redis.zrange(redisKey, -1, -1);
-    if (latest.length > 0) {
-      await redis.zrem(redisKey, latest[0]);
-    }
+    await redis.zpopmax(redisKey);
   }
 
   async reset(key?: string): Promise<void> {
@@ -49,10 +63,23 @@ export class RateLimitContext implements Context {
       return;
     }
 
-    const keys = await redis.keys(`${this.PREFIX_KEY}:*`);
-    if (keys.length > 0) {
-      await redis.del(...keys);
-    }
+    await new Promise<void>((resolve, reject) => {
+      const stream = redis.scanStream({ match: `${this.PREFIX_KEY}:*`, count: 100 });
+      const pipeline = redis.pipeline();
+      let pending = 0;
+
+      stream.on('data', (keys: string[]) => {
+        for (const k of keys) {
+          pipeline.del(k);
+          pending++;
+        }
+      });
+      stream.on('end', () => {
+        if (pending === 0) return resolve();
+        pipeline.exec().then(() => resolve()).catch(reject);
+      });
+      stream.on('error', reject);
+    });
   }
 
   async kill(): Promise<void> {
