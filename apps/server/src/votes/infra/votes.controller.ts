@@ -8,12 +8,15 @@ import { voteForTimeByIdInput, voteForTimeByIdUseCase } from "../application/vot
 export const votesController = createController({ prefix: "/votes", normalize: false })
   .post("/", async ({ body, validateToken, request, set, validateXApiToken }) => {
 
+    // 1. Apenas permite que quem tenha o token da API possa votar, (Server Actions)
     const isApiTokenValid = await validateXApiToken(request);
     if (!isApiTokenValid) throw new UnauthorizedError("Unauthorized");
 
+    // 2. Valida o token do usuário
     const user = await validateToken(request);
     if (!user) throw new UnauthorizedError("Unauthorized");
 
+    // 3. Pega o User Agent e o IP do usuário
     const userAgent = request.headers.get("user-agent") ?? undefined;
 
     const ipAddress = getIpClient(request);

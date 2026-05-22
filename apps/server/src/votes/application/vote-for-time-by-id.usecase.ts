@@ -18,17 +18,21 @@ type VoteForTimeByIdInput = Static<typeof voteForTimeByIdInput>;
 
 
 export const voteForTimeByIdUseCase = async (input: VoteForTimeByIdInput) => {
+  // 1. Pega o usuário e a equipe
   const [user, team] = await Promise.all([
     UsersRepository.findById(input.userId),
     TeamsRepository.findById(input.teamId),
   ]);
 
+  // 2. Valida se o usuário e a equipe existem
   if (!user) throw new NotFoundError("User not found");
   if (!team) throw new NotFoundError("Team not found");
 
+  // 3. Valida se o usuário já votou
   const thisUserAlreadyVoted = await VotesRepository.findByUserId(input.userId);
   if (thisUserAlreadyVoted) throw new ConflictError("User already voted");
 
+  // 4. Cria o voto
   const vote = await VotesRepository.create({
     userId: input.userId,
     teamId: input.teamId,
