@@ -52,6 +52,9 @@ const envSchema = z.object({
   // Metrics
   METRICS_ENABLED: z.string().transform(v => v === "true").default("true"),
   METRICS_PREFIX: z.string().default("my_api"),
+
+  // X-API-Token
+  X_API_TOKEN: z.string().min(1).default("B#^$Pj&%u8*qK5VGHmgofk77wn4&@A"),
 });
 
 const parsedEnv = envSchema.parse(process.env);

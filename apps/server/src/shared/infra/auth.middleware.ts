@@ -75,5 +75,17 @@ export const authMiddleware = new Elysia({
           throw new UnauthorizedError();
         }
       },
+
+      validateXApiToken: async (request: Request): Promise<Boolean> => {
+
+        const xApiToken = request.headers.get("x-api-token");
+
+        if (!xApiToken) throw new UnauthorizedError("Unathorized");
+
+
+        if (xApiToken !== env.X_API_TOKEN) throw new UnauthorizedError("Invalid API token");
+
+        return true;
+      },
     };
   });

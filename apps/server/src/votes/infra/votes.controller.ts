@@ -6,7 +6,10 @@ import { t } from "elysia";
 import { voteForTimeByIdInput, voteForTimeByIdUseCase } from "../application/vote-for-time-by-id.usecase";
 
 export const votesController = createController({ prefix: "/votes", normalize: false })
-  .post("/", async ({ body, validateToken, request, set }) => {
+  .post("/", async ({ body, validateToken, request, set, validateXApiToken }) => {
+
+    const isApiTokenValid = await validateXApiToken(request);
+    if (!isApiTokenValid) throw new UnauthorizedError("Unauthorized");
 
     const user = await validateToken(request);
     if (!user) throw new UnauthorizedError("Unauthorized");
@@ -27,6 +30,8 @@ export const votesController = createController({ prefix: "/votes", normalize: f
         ipLocation,
       },
     })
+
+    set.status = 201;
 
     return {
       message: "Vote created successfully",
