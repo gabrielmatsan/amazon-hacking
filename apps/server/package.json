@@ -50,6 +50,7 @@
     "elysia-oauth2": "^2.1.0",
     "elysia-rate-limit": "^4.5.1",
     "ioredis": "^5.10.0",
+    "libphonenumber-js": "^1.13.3",
     "nodemailer": "^7.0.10",
     "pg": "^8.16.3",
     "pino": "^10.3.1",

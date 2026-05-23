@@ -377,10 +377,10 @@ describe("Admin teams controller (integration)", () => {
         .returning();
 
       await db.insert(votesSchema).values([
-        { userId: users[0].id, teamId: firstTeam.id, status: "valid" },
-        { userId: users[1].id, teamId: firstTeam.id, status: "valid" },
-        { userId: users[2].id, teamId: secondTeam.id, status: "valid" },
-        { userId: users[3].id, teamId: secondTeam.id, status: "invalidated" },
+        { userId: users[0].id, teamId: firstTeam.id, status: "valid", phoneNumber: "+5511900000001" },
+        { userId: users[1].id, teamId: firstTeam.id, status: "valid", phoneNumber: "+5511900000002" },
+        { userId: users[2].id, teamId: secondTeam.id, status: "valid", phoneNumber: "+5511900000003" },
+        { userId: users[3].id, teamId: secondTeam.id, status: "invalidated", phoneNumber: "+5511900000004" },
       ]);
 
       const response = await app.handle(

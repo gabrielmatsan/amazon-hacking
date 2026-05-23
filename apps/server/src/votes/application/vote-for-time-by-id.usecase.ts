@@ -1,51 +1,83 @@
+import { createHash } from "crypto";
+
+import { db } from "@/shared/infra/databases/postgres";
+import { env } from "@/shared/infra/env/env";
 import { ConflictError } from "@/shared/infra/errors/conflict-error";
 import { NotFoundError } from "@/shared/infra/errors/not-found-error";
-import { UsersRepository } from "@/users/infra/users.repository";
+import { UnauthorizedError } from "@/shared/infra/errors/unauthorized-error";
 import { TeamsRepository } from "@/teams/infra/teams.repository";
+import { UsersRepository } from "@/users/infra/users.repository";
+import { VoteTokensRepository } from "@/votes-token/infra/votes-tokens.repository";
 import { t, type Static } from "elysia";
+
 import { VotesRepository } from "../infra/votes.repository";
 
 export const voteForTimeByIdInput = t.Object({
   teamId: t.String(),
+  token: t.String({ minLength: 6, maxLength: 6 }),
   userId: t.String(),
   ipAddress: t.Optional(t.String()),
   ipCountry: t.Optional(t.String()),
   userAgent: t.Optional(t.String()),
   metadata: t.Optional(t.Any()),
-})
+});
 
 type VoteForTimeByIdInput = Static<typeof voteForTimeByIdInput>;
 
+function sha256(value: string): string {
+  return createHash("sha256").update(value).digest("hex");
+}
 
 export const voteForTimeByIdUseCase = async (input: VoteForTimeByIdInput) => {
-  // 1. Pega o usuário e a equipe
   const [user, team] = await Promise.all([
     UsersRepository.findById(input.userId),
     TeamsRepository.findById(input.teamId),
   ]);
 
-  // 2. Valida se o usuário e a equipe existem
   if (!user) throw new NotFoundError("User not found");
   if (!team) throw new NotFoundError("Team not found");
 
-  // 3. Valida se o usuário já votou
-  const thisUserAlreadyVoted = await VotesRepository.findByUserId(input.userId);
-  if (thisUserAlreadyVoted) throw new ConflictError("User already voted");
+  const existingVote = await VotesRepository.findByUserId(input.userId);
+  if (existingVote) throw new ConflictError("User already voted");
 
-  // 4. Cria o voto
-  const vote = await VotesRepository.create({
-    userId: input.userId,
-    teamId: input.teamId,
-    ipAddress: input.ipAddress,
-    ipCountry: input.ipCountry,
-    userAgent: input.userAgent,
-    metadata: input.metadata,
-    status: "valid",
+  const tokenHash = sha256(input.token);
+
+  const validToken = await VoteTokensRepository.findValidByUserAndHash(
+    input.userId,
+    tokenHash,
+  );
+
+  if (!validToken) {
+    // Outside a transaction so the attempt count persists even when we throw.
+    const latest = await VoteTokensRepository.findLatestValidByUser(input.userId);
+    if (latest) {
+      const attempts = await VoteTokensRepository.incrementAttempts(latest.id);
+      if (attempts >= env.VOTE_TOKEN_MAX_ATTEMPTS) {
+        await VoteTokensRepository.markAsUsed(latest.id);
+      }
+    }
+    throw new UnauthorizedError("Invalid verification code");
+  }
+
+  return db.transaction(async (tx) => {
+    await VoteTokensRepository.markAsUsed(validToken.id, tx);
+
+    const vote = await VotesRepository.create(
+      {
+        userId: input.userId,
+        teamId: input.teamId,
+        phoneNumber: validToken.phoneNumber,
+        ipAddress: input.ipAddress,
+        ipCountry: input.ipCountry,
+        userAgent: input.userAgent,
+        metadata: input.metadata,
+        status: "valid",
+      },
+      tx,
+    );
+
+    if (!vote) throw new ConflictError("User already voted");
+
+    return { message: "Vote created successfully" };
   });
-
-  if (!vote) throw new ConflictError("User already voted");
-
-  return {
-    message: "Vote created successfully",
-  };
-}
+};

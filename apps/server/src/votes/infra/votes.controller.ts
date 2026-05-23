@@ -49,6 +49,7 @@ export const votesController = createController({ prefix: "/votes", normalize: f
       userId: user.id,
       teamId: body.teamId,
       ipAddress: ipAddress,
+      token: body.token,
       ipCountry: ipLocation?.country ?? undefined,
       userAgent,
       metadata: {
@@ -65,7 +66,7 @@ export const votesController = createController({ prefix: "/votes", normalize: f
 
   }, {
     requireApiToken: true, // apenas permite que quem tenha o token da API possa votar, (Server Actions)
-    body: t.Pick(voteForTimeByIdInput, ["teamId"]),
+    body: t.Pick(voteForTimeByIdInput, ["teamId", "token"]),
     response: {
       200: t.Object({ message: t.String() }),
       401: errorResponse,

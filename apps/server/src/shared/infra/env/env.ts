@@ -51,6 +51,16 @@ const envSchema = z.object({
 
   // X-API-Token
   X_API_TOKEN: z.string().min(1).default("B#^$Pj&%u8*qK5VGHmgofk77wn4&@A"),
+
+  // Messaging (WhatsApp via Evolution API)
+  MESSAGE_SENDER: z.enum(["evolution", "mock"]).default("evolution"),
+  EVOLUTION_URL: z.string().url().optional(),
+  EVOLUTION_API_KEY: z.string().optional(),
+  EVOLUTION_INSTANCE: z.string().optional(),
+  VOTE_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(300),
+  VOTE_TOKEN_RATE_LIMIT_COUNT: z.coerce.number().int().positive().default(3),
+  VOTE_TOKEN_RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().positive().default(600),
+  VOTE_TOKEN_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
 });
 
 const parsedEnv = envSchema.parse(process.env);

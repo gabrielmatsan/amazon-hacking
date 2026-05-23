@@ -15,6 +15,7 @@ export const votesSchema = pgTable(
 
     userId: varchar("user_id", { length: 34 }).references(() => usersSchema.id).notNull(),
     teamId: varchar("team_id", { length: 34 }).references(() => teamsSchema.id).notNull(),
+    phoneNumber: varchar("phone_number", { length: 20 }).notNull().unique(),
 
     status: voteStatus("status").notNull().default("valid"),
 
