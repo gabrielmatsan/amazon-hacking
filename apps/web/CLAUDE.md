@@ -173,17 +173,22 @@ deploy`. Requires repo secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID
 from the "Edit Cloudflare Workers" template; static-assets cache needs no R2/KV scopes).
 
 **Manual deploy** (from a local machine): `pnpm run deploy` runs
-`opennextjs-cloudflare build && opennextjs-cloudflare deploy`. (Use `pnpm run deploy`, not
-`pnpm deploy` — the latter hits pnpm's built-in command.)
+`opennextjs-cloudflare build && opennextjs-cloudflare deploy -- --keep-vars`. (Use `pnpm run
+deploy`, not `pnpm deploy` — the latter hits pnpm's built-in command. `--keep-vars` stops a
+deploy from wiping runtime vars/secrets set in the dashboard.)
 
 - Worker name: `amazon-hacking-web` (`wrangler.jsonc`). Live at
   `https://amazon-hacking-web.tucupytech.workers.dev`.
 - Manual-deploy auth: `wrangler login` (OAuth) or `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`.
-- **Incremental cache = static-assets** (`open-next.config.ts`). The site is 100%
-  prerendered with no revalidation, so pages are served from the Workers ASSETS binding —
-  no R2/KV needed. Without this, every app route 404s (serves the prerendered not-found).
+- **Incremental cache = static-assets** + `enableCacheInterception` (`open-next.config.ts`).
+  The site is 100% prerendered with no revalidation, so pages serve from the Workers ASSETS
+  binding — no R2/KV needed. Without a cache, every app route 404s (prerendered not-found).
+- **Image optimization** uses the Cloudflare `IMAGES` binding (`wrangler.jsonc`). Without it,
+  `/_next/image` is a no-op passthrough (ships originals at full size). Keep source images in
+  `public/` reasonably small anyway — the binding fetches the origin before transforming.
 - **No middleware.** See the i18n section — locale routing is `next.config` rewrites, not
   `proxy.ts`. Next 16 proxy is Node-only and the worker can't run it.
+- `SITE_URL` (`lib/site.ts`) reads `NEXT_PUBLIC_SITE_URL`, falling back to the prod domain.
 - The only dynamic route is `opengraph-image`; everything else is SSG.
 
 ## Conventions (also enforced by global CLAUDE.md + skills)
