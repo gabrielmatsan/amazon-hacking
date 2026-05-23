@@ -1,9 +1,11 @@
 import { UsersRepository } from "@/users/infra/users.repository";
-import { signAccessToken, signRefreshToken } from "../infra/jwt.service";
-import { RefreshTokenRepository } from "../infra/refresh.repository";
+
+import { SessionRepository } from "../infra/session.repository";
 
 interface GoogleCallbackInput {
   googleAccessToken: string;
+  ipAddress?: string;
+  userAgent?: string;
 }
 
 interface GoogleUser {
@@ -13,12 +15,10 @@ interface GoogleUser {
   picture: string;
 }
 
-
 export interface GoogleCallbackResult {
-  type: 'existing_user' | 'new_user';
-  accessToken: string;
-  refreshToken: string;
-  user?: {
+  type: "existing_user" | "new_user";
+  sid: string;
+  user: {
     id: string;
     email: string;
     name: string;
@@ -26,14 +26,16 @@ export interface GoogleCallbackResult {
   googleUser: GoogleUser;
 }
 
-export async function googleCallback({ googleAccessToken }: GoogleCallbackInput): Promise<GoogleCallbackResult> {
-
+export async function googleCallback({
+  googleAccessToken,
+  ipAddress,
+  userAgent,
+}: GoogleCallbackInput): Promise<GoogleCallbackResult> {
   const userResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
     headers: {
-      Authorization: `Bearer ${googleAccessToken}`
-    }
+      Authorization: `Bearer ${googleAccessToken}`,
+    },
   });
-
 
   if (!userResponse.ok) {
     throw new Error("Failed to fetch user information from Google");
@@ -42,66 +44,26 @@ export async function googleCallback({ googleAccessToken }: GoogleCallbackInput)
   const googleUser: GoogleUser = await userResponse.json();
 
   const existing = await UsersRepository.findByEmail(googleUser.email);
+  const user = existing ??
+    (await UsersRepository.create({
+      email: googleUser.email,
+      name: googleUser.name,
+      role: "user",
+    }));
 
-  if (existing) {
-    const [userAccessToken, { token: userRefreshToken, jti }] = await Promise.all([
-      signAccessToken({
-        sub: existing.id,
-        email: existing.email,
-        role: existing.role,
-      }),
-      signRefreshToken({
-        sub: existing.id,
-        email: existing.email,
-        role: existing.role,
-      }),
-    ]);
-    await RefreshTokenRepository.set(existing.id, jti, userRefreshToken);
-
-    return {
-      type: "existing_user",
-      accessToken: userAccessToken,
-      refreshToken: userRefreshToken,
-      user: {
-        id: existing.id,
-        email: existing.email,
-        name: existing.name,
-      },
-      googleUser,
-    }
-  }
-
-  const newUser = await UsersRepository.create({
-    email: googleUser.email,
-    name: googleUser.name,
-    role: "user",
-  });
-
-
-  const [userAccessToken, { token: userRefreshToken, jti }] = await Promise.all([
-    signAccessToken({
-      sub: newUser.id,
-      email: newUser.email,
-      role: newUser.role,
-    }),
-    signRefreshToken({
-      sub: newUser.id,
-      email: newUser.email,
-      role: newUser.role,
-    }),
-  ]);
-
-  await RefreshTokenRepository.set(newUser.id, jti, userRefreshToken);
+  const sid = await SessionRepository.create(
+    { id: user.id, email: user.email, role: user.role },
+    { ip: ipAddress, ua: userAgent },
+  );
 
   return {
-    type: "new_user",
-    accessToken: userAccessToken,
-    refreshToken: userRefreshToken,
+    type: existing ? "existing_user" : "new_user",
+    sid,
     user: {
-      id: newUser.id,
-      email: newUser.email,
-      name: newUser.name,
+      id: user.id,
+      email: user.email,
+      name: user.name,
     },
     googleUser,
-  }
+  };
 }

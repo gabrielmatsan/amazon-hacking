@@ -1,13 +1,6 @@
-import { verifyRefreshToken } from "../infra/jwt.service";
-import { RefreshTokenRepository } from "../infra/refresh.repository";
+import { SessionRepository } from "../infra/session.repository";
 
-export async function logoutUseCase(refreshToken: string | undefined): Promise<void> {
-  if (!refreshToken) return;
-
-  try {
-    const payload = await verifyRefreshToken(refreshToken);
-    if (payload.jti) await RefreshTokenRepository.delete(payload.sub, payload.jti);
-  } catch {
-    // Invalid or expired token — cleanup best-effort
-  }
+export async function logoutUseCase(sid: string | undefined): Promise<void> {
+  if (!sid) return;
+  await SessionRepository.destroy(sid);
 }

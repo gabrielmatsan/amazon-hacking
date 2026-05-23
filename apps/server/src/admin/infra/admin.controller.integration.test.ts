@@ -2,7 +2,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "bun:test";
 import { eq } from "drizzle-orm";
 import { Elysia } from "elysia";
 
-import { signAccessToken } from "@/auth/infra/jwt.service";
+import { SessionRepository } from "@/auth/infra/session.repository";
 import { db } from "@/shared/infra/databases/postgres";
 import { IntegrationTestHelper } from "@/shared/utils/test-helpers/integration-test-helper";
 import { teamsSchema } from "@/teams/domain/teams.schema";
@@ -22,16 +22,16 @@ async function seedUser(role: UserRole = "user") {
     })
     .returning();
 
-  const accessToken = await signAccessToken({
-    sub: user.id,
+  const sid = await SessionRepository.create({
+    id: user.id,
     email: user.email,
     role: user.role,
   });
 
-  return { user, accessToken };
+  return { user, sid };
 }
 
-const authCookie = (token: string) => `access_token=${token}`;
+const authCookie = (sid: string) => `session_id=${sid}`;
 
 describe("Admin teams controller (integration)", () => {
   const app = new Elysia({ normalize: "typebox" }).use(adminController);
@@ -58,14 +58,14 @@ describe("Admin teams controller (integration)", () => {
     });
 
     it("returns 403 when authenticated user has role 'user'", async () => {
-      const { accessToken } = await seedUser("user");
+      const { sid } = await seedUser("user");
 
       const response = await app.handle(
         new Request("http://localhost/admin/teams", {
           method: "POST",
           headers: {
             "content-type": "application/json",
-            cookie: authCookie(accessToken),
+            cookie: authCookie(sid),
           },
           body: JSON.stringify({ name: "Equipe X" }),
         }),
@@ -75,14 +75,14 @@ describe("Admin teams controller (integration)", () => {
     });
 
     it("returns 403 when authenticated user has role 'mentor'", async () => {
-      const { accessToken } = await seedUser("mentor");
+      const { sid } = await seedUser("mentor");
 
       const response = await app.handle(
         new Request("http://localhost/admin/teams", {
           method: "POST",
           headers: {
             "content-type": "application/json",
-            cookie: authCookie(accessToken),
+            cookie: authCookie(sid),
           },
           body: JSON.stringify({ name: "Equipe X" }),
         }),
@@ -94,14 +94,14 @@ describe("Admin teams controller (integration)", () => {
 
   describe("POST /admin/teams", () => {
     it("creates a team and returns 201 with the entity", async () => {
-      const { accessToken } = await seedUser("admin");
+      const { sid } = await seedUser("admin");
 
       const response = await app.handle(
         new Request("http://localhost/admin/teams", {
           method: "POST",
           headers: {
             "content-type": "application/json",
-            cookie: authCookie(accessToken),
+            cookie: authCookie(sid),
           },
           body: JSON.stringify({
             name: "Equipe Alpha",
@@ -123,14 +123,14 @@ describe("Admin teams controller (integration)", () => {
     });
 
     it("creates a team with only name (description and teamMembers optional)", async () => {
-      const { accessToken } = await seedUser("admin");
+      const { sid } = await seedUser("admin");
 
       const response = await app.handle(
         new Request("http://localhost/admin/teams", {
           method: "POST",
           headers: {
             "content-type": "application/json",
-            cookie: authCookie(accessToken),
+            cookie: authCookie(sid),
           },
           body: JSON.stringify({ name: "Equipe Mínima" }),
         }),
@@ -144,14 +144,14 @@ describe("Admin teams controller (integration)", () => {
     });
 
     it("rejects empty name with 422", async () => {
-      const { accessToken } = await seedUser("admin");
+      const { sid } = await seedUser("admin");
 
       const response = await app.handle(
         new Request("http://localhost/admin/teams", {
           method: "POST",
           headers: {
             "content-type": "application/json",
-            cookie: authCookie(accessToken),
+            cookie: authCookie(sid),
           },
           body: JSON.stringify({ name: "" }),
         }),
@@ -161,14 +161,14 @@ describe("Admin teams controller (integration)", () => {
     });
 
     it("rejects teamMember without role with 422", async () => {
-      const { accessToken } = await seedUser("admin");
+      const { sid } = await seedUser("admin");
 
       const response = await app.handle(
         new Request("http://localhost/admin/teams", {
           method: "POST",
           headers: {
             "content-type": "application/json",
-            cookie: authCookie(accessToken),
+            cookie: authCookie(sid),
           },
           body: JSON.stringify({
             name: "Equipe Quebrada",
@@ -181,14 +181,14 @@ describe("Admin teams controller (integration)", () => {
     });
 
     it("ignores logoUrl in body (logoUrl vem do slice de upload, não persiste)", async () => {
-      const { accessToken } = await seedUser("admin");
+      const { sid } = await seedUser("admin");
 
       const response = await app.handle(
         new Request("http://localhost/admin/teams", {
           method: "POST",
           headers: {
             "content-type": "application/json",
-            cookie: authCookie(accessToken),
+            cookie: authCookie(sid),
           },
           body: JSON.stringify({
             name: "Equipe Com Logo",
@@ -205,7 +205,7 @@ describe("Admin teams controller (integration)", () => {
 
   describe("PUT /admin/teams/:id", () => {
     it("updates an existing team and returns 200", async () => {
-      const { accessToken } = await seedUser("admin");
+      const { sid } = await seedUser("admin");
       const [team] = await db
         .insert(teamsSchema)
         .values({ name: "Original", description: "antigo" })
@@ -216,7 +216,7 @@ describe("Admin teams controller (integration)", () => {
           method: "PUT",
           headers: {
             "content-type": "application/json",
-            cookie: authCookie(accessToken),
+            cookie: authCookie(sid),
           },
           body: JSON.stringify({
             name: "Atualizada",
@@ -235,7 +235,7 @@ describe("Admin teams controller (integration)", () => {
     });
 
     it("accepts partial updates (only name)", async () => {
-      const { accessToken } = await seedUser("admin");
+      const { sid } = await seedUser("admin");
       const [team] = await db
         .insert(teamsSchema)
         .values({ name: "Original", description: "preserva" })
@@ -246,7 +246,7 @@ describe("Admin teams controller (integration)", () => {
           method: "PUT",
           headers: {
             "content-type": "application/json",
-            cookie: authCookie(accessToken),
+            cookie: authCookie(sid),
           },
           body: JSON.stringify({ name: "Só nome" }),
         }),
@@ -259,14 +259,14 @@ describe("Admin teams controller (integration)", () => {
     });
 
     it("returns 404 when team does not exist", async () => {
-      const { accessToken } = await seedUser("admin");
+      const { sid } = await seedUser("admin");
 
       const response = await app.handle(
         new Request("http://localhost/admin/teams/nonexistent-id", {
           method: "PUT",
           headers: {
             "content-type": "application/json",
-            cookie: authCookie(accessToken),
+            cookie: authCookie(sid),
           },
           body: JSON.stringify({ name: "X" }),
         }),
@@ -276,7 +276,7 @@ describe("Admin teams controller (integration)", () => {
     });
 
     it("ignores logoUrl in body and preserves existing logo_url in DB", async () => {
-      const { accessToken } = await seedUser("admin");
+      const { sid } = await seedUser("admin");
       const [team] = await db
         .insert(teamsSchema)
         .values({ name: "Original", logoUrl: "https://cdn.example.com/original.png" })
@@ -287,7 +287,7 @@ describe("Admin teams controller (integration)", () => {
           method: "PUT",
           headers: {
             "content-type": "application/json",
-            cookie: authCookie(accessToken),
+            cookie: authCookie(sid),
           },
           body: JSON.stringify({
             name: "Atualizado",
@@ -303,7 +303,7 @@ describe("Admin teams controller (integration)", () => {
     });
 
     it("returns 403 for non-admin user trying to edit", async () => {
-      const { accessToken } = await seedUser("user");
+      const { sid } = await seedUser("user");
       const [team] = await db
         .insert(teamsSchema)
         .values({ name: "Original" })
@@ -314,7 +314,7 @@ describe("Admin teams controller (integration)", () => {
           method: "PUT",
           headers: {
             "content-type": "application/json",
-            cookie: authCookie(accessToken),
+            cookie: authCookie(sid),
           },
           body: JSON.stringify({ name: "Tentando" }),
         }),
@@ -333,8 +333,8 @@ describe("Admin teams controller (integration)", () => {
         .set({ role: "admin" })
         .where(eq(usersSchema.id, user.id));
 
-      const newToken = await signAccessToken({
-        sub: user.id,
+      const newSid = await SessionRepository.create({
+        id: user.id,
         email: user.email,
         role: "admin",
       });
@@ -344,7 +344,7 @@ describe("Admin teams controller (integration)", () => {
           method: "POST",
           headers: {
             "content-type": "application/json",
-            cookie: authCookie(newToken),
+            cookie: authCookie(newSid),
           },
           body: JSON.stringify({ name: "Pós-promoção" }),
         }),
@@ -356,7 +356,7 @@ describe("Admin teams controller (integration)", () => {
 
   describe("GET /admin/votes/count", () => {
     it("returns valid votes count grouped by team for admin users", async () => {
-      const { accessToken } = await seedUser("admin");
+      const { sid } = await seedUser("admin");
 
       const [firstTeam, secondTeam] = await db
         .insert(teamsSchema)
@@ -387,7 +387,7 @@ describe("Admin teams controller (integration)", () => {
         new Request("http://localhost/admin/votes/count", {
           method: "GET",
           headers: {
-            cookie: authCookie(accessToken),
+            cookie: authCookie(sid),
           },
         }),
       );

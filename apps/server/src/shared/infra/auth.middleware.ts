@@ -1,7 +1,7 @@
 import { Elysia } from "elysia";
-import * as jose from "jose";
 
-import { resolve } from "bun";
+import { SessionRepository } from "@/auth/infra/session.repository";
+
 import { env } from "./env/env";
 import { UnauthorizedError } from "./errors/unauthorized-error";
 
@@ -11,25 +11,19 @@ export interface AuthUser {
   role: string;
 }
 
-function getTokenFromCookies(request: Request, cookieName: string): string | undefined {
-  const cookieHeader = request.headers.get("cookie");
-  if (!cookieHeader) return undefined;
+function getCookie(request: Request, name: string): string | undefined {
+  const header = request.headers.get("cookie");
+  if (!header) return undefined;
 
-  const cookies = cookieHeader.split(";").reduce(
-    (acc, cookie) => {
-      const [key, value] = cookie.trim().split("=");
-      if (key && value) {
-        acc[key] = value;
-      }
-      return acc;
-    },
-    {} as Record<string, string>
-  );
-
-  return cookies[cookieName];
+  for (const part of header.split(";")) {
+    const trimmed = part.trim();
+    const eqIdx = trimmed.indexOf("=");
+    if (eqIdx === -1) continue;
+    if (trimmed.slice(0, eqIdx) !== name) continue;
+    return trimmed.slice(eqIdx + 1);
+  }
+  return undefined;
 }
-
-const jwtSecret = new TextEncoder().encode(env.JWT_SECRET);
 
 export const authMiddleware = new Elysia({
   name: "authMiddleware",
@@ -49,42 +43,32 @@ export const authMiddleware = new Elysia({
   .macro({
     requireApiToken: {
       resolve: ({ request }) => {
-        const token = request.headers.get('x-api-token');
+        const token = request.headers.get("x-api-token");
         if (!token || token !== env.X_API_TOKEN) {
-          throw new UnauthorizedError('Invalid API token');
+          throw new UnauthorizedError("Invalid API token");
         }
-      }
+      },
     },
   })
   .derive({ as: "global" }, () => {
     return {
       validateToken: async (request: Request): Promise<AuthUser> => {
-        const authHeader = request.headers.get("authorization");
+        const sid = getCookie(request, "session_id");
+        if (!sid) throw new UnauthorizedError("Session not found");
 
-        const token =
-          authHeader?.replace("Bearer ", "") ||
-          getTokenFromCookies(request, "access_token");
+        const session = await SessionRepository.get(sid);
+        if (!session) throw new UnauthorizedError("Invalid session");
 
-        if (!token) {
-          throw new UnauthorizedError("Token not found");
-        }
+        void SessionRepository.touch(sid).catch(() => {
+          console.error("Error renewing session TTL", { sid });
+          // se der erro, nao vai dar problema, apenas nao vai renovar o TTL
+        });
 
-        try {
-          const { payload } = await jose.jwtVerify(token, jwtSecret);
-
-          if (!payload.sub) {
-            throw new UnauthorizedError();
-          }
-
-          return {
-            id: payload.sub,
-            email: payload.email as string,
-            role: payload.role as string || "user",
-          };
-        } catch (error) {
-          if (error instanceof UnauthorizedError) throw error;
-          throw new UnauthorizedError();
-        }
-      }
+        return {
+          id: session.userId,
+          email: session.email,
+          role: session.role,
+        };
+      },
     };
   });
