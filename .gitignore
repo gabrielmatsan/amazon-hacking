@@ -25,6 +25,21 @@ out/
 build
 dist
 
+# Cloudflare / OpenNext build artifacts
+.wrangler/
+.open-next/
+
+# Paraglide generated output (regenerate with `pnpm i18n`)
+apps/web/lib/paraglide/
+
+# Unused large assets — kept on disk, excluded from git history
+apps/web/public/illustrations/Hero-Bg.png
+apps/web/public/illustrations/Cotijuba_Island.png
+apps/web/public/illustrations/CotijubaMB.svg
+apps/web/public/illustrations/CotijubaMD.svg
+apps/web/public/photos/hero-amazon-river.jpg
+apps/web/docs/*.pdf
+
 # Debug
 npm-debug.log*
 
