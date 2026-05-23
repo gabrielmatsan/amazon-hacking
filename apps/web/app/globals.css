@@ -50,6 +50,9 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Brand blue behind the page so the mobile overscroll/safe-area (and the
+       browser chrome that samples it) is brand-colored, never white. */
+    background-color: var(--color-primary-100);
   }
   body {
     background-color: var(--background);
