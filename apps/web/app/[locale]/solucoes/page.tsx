@@ -7,13 +7,23 @@ import { SolutionsGallery } from "@/components/solutions/solutions-gallery";
 import { TucupyCta } from "@/components/site/tucupy-cta";
 import { winners } from "@/lib/content/winners";
 import { setRequestLocale } from "@/lib/i18n";
+import { pageMetadata, resolveLocale, solutionsCopy } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Soluções",
-  description:
-    "Galeria de soluções construídas no Amazon Hacking — projetos de impacto para as comunidades amazônicas.",
-  robots: { index: false, follow: true },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const locale = resolveLocale((await params).locale);
+  const copy = solutionsCopy[locale];
+  return pageMetadata({
+    locale,
+    path: "/solucoes",
+    title: copy.title,
+    description: copy.description,
+    robots: { index: false, follow: true },
+  });
+}
 
 export default async function SolutionsPage({
   params,
