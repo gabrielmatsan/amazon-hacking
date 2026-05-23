@@ -28,10 +28,10 @@ export async function generateMetadata({
 }
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#0165b7" },
-    { media: "(prefers-color-scheme: dark)", color: "#00335b" },
-  ],
+  // Single, unconditional brand blue: the site is light-only, and a media-only
+  // theme-color is ignored by some browsers (notably iOS Safari), which then
+  // fall back to white. Keep it in sync with the html background in globals.css.
+  themeColor: "#0165b7",
   colorScheme: "light",
   width: "device-width",
   initialScale: 1,
