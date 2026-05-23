@@ -15,6 +15,17 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react", "motion"],
   },
+  // Base locale (pt-br) is served at the root. We can't use middleware/proxy on
+  // Cloudflare (Next 16 forces proxy onto the Node runtime, which OpenNext's
+  // worker doesn't support), so the root paths are mapped to the prerendered
+  // /pt-br routes via rewrites, and /pt-br/* is redirected to keep URLs canonical.
+  async rewrites() {
+    return [
+      { source: "/", destination: "/pt-br" },
+      { source: "/solucoes", destination: "/pt-br/solucoes" },
+      { source: "/privacy-policy", destination: "/pt-br/privacy-policy" },
+    ];
+  },
   async redirects() {
     return [
       { source: "/pt-br", destination: "/", permanent: true },

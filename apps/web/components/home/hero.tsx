@@ -22,7 +22,7 @@ export function Hero({ locale }: { locale: Locale }) {
       className="relative isolate flex min-h-[100svh] items-center overflow-hidden bg-primary-400 px-0 pt-28 pb-16 md:pt-32 md:pb-24"
     >
       <Image
-        src="/photos/Hero-Bg.png"
+        src="/photos/Hero-Bg.jpg"
         alt=""
         fill
         priority

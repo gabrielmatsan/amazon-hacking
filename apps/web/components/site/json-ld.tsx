@@ -1,4 +1,4 @@
-const SITE_URL = "https://amazonhacking.com.br";
+import { SITE_URL } from "@/lib/site";
 
 type Json = Record<string, unknown>;
 

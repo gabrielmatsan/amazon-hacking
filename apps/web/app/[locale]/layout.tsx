@@ -5,6 +5,7 @@ import { locales, isLocale } from "@/lib/paraglide/runtime";
 import { setRequestLocale } from "@/lib/i18n";
 import { UmamiScript } from "@/components/site/umami-script";
 import { cn } from "@/lib/utils";
+import { SITE_URL } from "@/lib/site";
 import "../globals.css";
 
 const gilroy = localFont({
@@ -16,8 +17,6 @@ const gilroy = localFont({
   variable: "--font-gilroy",
   display: "swap",
 });
-
-const SITE_URL = "https://amazonhacking.com.br";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 import { locales } from "@/lib/paraglide/runtime";
-
-const SITE_URL = "https://amazonhacking.com.br";
+import { SITE_URL } from "@/lib/site";
 
 const routes = ["/", "/privacy-policy"];
 
