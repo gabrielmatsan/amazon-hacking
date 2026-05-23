@@ -1,23 +1,83 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --color-primary-100: #0165b7;
+  --color-primary-200: #005194;
+  --color-primary-300: #014780;
+  --color-primary-400: #00335b;
+
+  --color-secondary-100: #059177;
+  --color-secondary-200: #0ae7bd;
+  --color-secondary-300: #70bae9;
+  --color-secondary-400: #633cff;
+
+  --color-neutrals-100: #ffffff;
+  --color-neutrals-200: #e7e7e7;
+  --color-neutrals-300: #b1b1b1;
+  --color-neutrals-400: #8d8d8d;
+  --color-neutrals-500: #595959;
+  --color-neutrals-600: #222222;
+  --color-neutrals-700: #0a0a0a;
+
+  --color-primary: var(--color-primary-100);
+  --color-primary-foreground: #ffffff;
+  --color-accent: var(--color-secondary-100);
+
+  --font-sans: var(--font-gilroy);
+  --font-display: var(--font-gilroy);
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+
+  --background-image-symbol: url("/illustrations/symbol.svg");
 }
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0a0a0a;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    color-scheme: light;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+  }
+  ::selection {
+    background-color: var(--color-primary-100);
+    color: #ffffff;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+.horizontal-snap {
+  scroll-snap-type: x mandatory;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.horizontal-snap::-webkit-scrollbar {
+  display: none;
+}
+.horizontal-snap > * {
+  scroll-snap-align: center;
 }
