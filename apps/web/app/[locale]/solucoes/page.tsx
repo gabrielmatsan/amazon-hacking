@@ -35,7 +35,7 @@ export default async function SolutionsPage({
 
   return (
     <>
-      <Header locale={resolved} />
+      <Header locale={resolved} variant="inner" />
       <main>
         {/* Intro */}
         <section className="bg-white pt-32 pb-12 text-center md:pt-40">
