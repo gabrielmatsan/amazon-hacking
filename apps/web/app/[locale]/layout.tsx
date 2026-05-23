@@ -5,7 +5,7 @@ import { locales, isLocale } from "@/lib/paraglide/runtime";
 import { setRequestLocale } from "@/lib/i18n";
 import { UmamiScript } from "@/components/site/umami-script";
 import { cn } from "@/lib/utils";
-import { SITE_URL } from "@/lib/site";
+import { HTML_LANG, resolveLocale, rootMetadata } from "@/lib/seo";
 import "../globals.css";
 
 const gilroy = localFont({
@@ -18,79 +18,23 @@ const gilroy = localFont({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: "Amazon Hacking",
-    template: "%s · Amazon Hacking",
-  },
-  description:
-    "Programa de formação do CESUPA que conecta universitários, comunidades amazônicas e empresas em prol do desenvolvimento bioeconômico da região.",
-  applicationName: "Amazon Hacking",
-  manifest: "/site.webmanifest",
-  category: "Education",
-  keywords: [
-    "Amazon Hacking",
-    "CESUPA",
-    "Amazônia",
-    "Bioeconomia",
-    "Inovação",
-    "COP 30",
-    "Computação Amostra",
-    "Vila Jutaí",
-    "Moju",
-  ],
-  authors: [{ name: "CESUPA" }],
-  creator: "CESUPA",
-  publisher: "CESUPA",
-  alternates: {
-    canonical: SITE_URL,
-    languages: {
-      "pt-BR": SITE_URL,
-      "en-US": `${SITE_URL}/en`,
-      "es-ES": `${SITE_URL}/es`,
-    },
-  },
-  openGraph: {
-    type: "website",
-    locale: "pt_BR",
-    alternateLocale: ["en_US", "es_ES"],
-    url: SITE_URL,
-    siteName: "Amazon Hacking",
-    title: "Amazon Hacking",
-    description:
-      "Programa de formação do CESUPA que conecta universitários, comunidades amazônicas e empresas em prol do desenvolvimento bioeconômico da região.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    site: "@cesupaonline",
-    creator: "@cesupaonline",
-    title: "Amazon Hacking",
-    description: "Programa de formação do CESUPA.",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-      "max-video-preview": -1,
-    },
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return rootMetadata(resolveLocale(locale));
+}
 
 export const viewport: Viewport = {
-  themeColor: "#0165B7",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#0165b7" },
+    { media: "(prefers-color-scheme: dark)", color: "#00335b" },
+  ],
+  colorScheme: "light",
   width: "device-width",
   initialScale: 1,
-};
-
-const htmlLangByLocale: Record<string, string> = {
-  "pt-br": "pt-BR",
-  en: "en",
-  es: "es",
 };
 
 export function generateStaticParams() {
@@ -108,10 +52,10 @@ export default async function LocaleLayout({
 }>) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  setRequestLocale(locale);
+  const resolved = setRequestLocale(locale);
 
   return (
-    <html lang={htmlLangByLocale[locale] ?? "pt-BR"} className={cn(gilroy.variable)}>
+    <html lang={HTML_LANG[resolved]} className={cn(gilroy.variable)}>
       <head>
         <UmamiScript />
       </head>
