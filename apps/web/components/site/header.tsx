@@ -16,9 +16,16 @@ const anchors = [
   { href: "#parceiros", key: "partners" },
 ] as const;
 
-export function Header({ locale }: { locale: Locale }) {
+export function Header({
+  locale,
+  variant = "home",
+}: {
+  locale: Locale;
+  variant?: "home" | "inner";
+}) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const isInner = variant === "inner";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY >= 60);
@@ -41,12 +48,18 @@ export function Header({ locale }: { locale: Locale }) {
     partners: m.nav_partners({}, { locale }),
   };
   const solutionsLabel = m.nav_solutions({}, { locale });
+  const backHomeLabel = m.nav_back_home({}, { locale });
+  const solid = isInner || scrolled;
 
   return (
     <header
       className={cn(
         "fixed inset-x-0 top-0 z-50 rounded-b-[30px] transition-colors duration-500",
-        scrolled ? "bg-neutrals-700/95 backdrop-blur-sm shadow-lg" : "bg-transparent",
+        open
+          ? "bg-neutrals-700 shadow-lg"
+          : solid
+            ? "bg-neutrals-700/95 backdrop-blur-sm shadow-lg"
+            : "bg-transparent",
       )}
     >
       <div className="mx-auto flex h-20 max-w-screen-2xl items-center justify-between px-6 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:px-12">
@@ -66,24 +79,36 @@ export function Header({ locale }: { locale: Locale }) {
         </Link>
 
         <nav aria-label="Principal" className="hidden justify-self-center lg:block">
-          <ul className="flex items-center gap-8 text-sm font-bold tracking-wide text-white uppercase">
-            {anchors.map((item) => (
-              <li key={item.href}>
-                <a href={item.href} className="opacity-90 transition hover:opacity-100">
-                  {labels[item.key]}
-                </a>
-              </li>
-            ))}
-          </ul>
+          {isInner ? (
+            <Link
+              href={localizeHref("/")}
+              className="inline-flex items-center gap-2 text-sm font-bold tracking-wide text-white uppercase opacity-90 transition hover:opacity-100"
+            >
+              <BackArrow />
+              {backHomeLabel}
+            </Link>
+          ) : (
+            <ul className="flex items-center gap-8 text-sm font-bold tracking-wide text-white uppercase">
+              {anchors.map((item) => (
+                <li key={item.href}>
+                  <a href={item.href} className="opacity-90 transition hover:opacity-100">
+                    {labels[item.key]}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
         </nav>
 
         <div className="flex items-center gap-3 justify-self-end">
-          <Link
-            href={localizeHref("/solucoes")}
-            className="hidden rounded-full bg-primary-100 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-primary-200 lg:inline-flex"
-          >
-            {solutionsLabel}
-          </Link>
+          {!isInner && (
+            <Link
+              href={localizeHref("/solucoes")}
+              className="hidden rounded-full bg-primary-100 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-primary-200 lg:inline-flex"
+            >
+              {solutionsLabel}
+            </Link>
+          )}
           <div className="hidden lg:block">
             <LocaleSwitch />
           </div>
@@ -131,35 +156,60 @@ export function Header({ locale }: { locale: Locale }) {
             className="rounded-b-[30px] border-t border-white/10 bg-neutrals-700 shadow-lg lg:hidden"
           >
             <ul className="flex flex-col items-center gap-1 px-6 py-6 text-base font-bold tracking-wide text-white uppercase">
-              {anchors.map((item) => (
-                <li key={item.href} className="w-full">
-                  <a
-                    href={item.href}
+              {isInner ? (
+                <li className="w-full">
+                  <Link
+                    href={localizeHref("/")}
                     onClick={() => setOpen(false)}
-                    className="block py-3 text-center opacity-90 transition hover:opacity-100"
+                    className="flex items-center justify-center gap-2 py-3 opacity-90 transition hover:opacity-100"
                   >
-                    {labels[item.key]}
-                  </a>
+                    <BackArrow />
+                    {backHomeLabel}
+                  </Link>
                 </li>
-              ))}
+              ) : (
+                anchors.map((item) => (
+                  <li key={item.href} className="w-full">
+                    <a
+                      href={item.href}
+                      onClick={() => setOpen(false)}
+                      className="block py-3 text-center opacity-90 transition hover:opacity-100"
+                    >
+                      {labels[item.key]}
+                    </a>
+                  </li>
+                ))
+              )}
             </ul>
             <div className="flex flex-col items-center gap-4 border-t border-white/10 px-6 py-6">
-              <Link
-                href={localizeHref("/solucoes")}
-                onClick={() => setOpen(false)}
-                className="inline-flex rounded-full bg-primary-100 px-8 py-3 text-sm font-bold text-white transition hover:bg-primary-200"
-              >
-                {solutionsLabel}
-              </Link>
-              <LocaleSwitch
-                variant="mobile"
-                onNavigate={() => setOpen(false)}
-                className="max-w-xs"
-              />
+              {!isInner && (
+                <Link
+                  href={localizeHref("/solucoes")}
+                  onClick={() => setOpen(false)}
+                  className="inline-flex rounded-full bg-primary-100 px-8 py-3 text-sm font-bold text-white transition hover:bg-primary-200"
+                >
+                  {solutionsLabel}
+                </Link>
+              )}
+              <LocaleSwitch variant="mobile" onNavigate={() => setOpen(false)} />
             </div>
           </motion.nav>
         )}
       </AnimatePresence>
     </header>
+  );
+}
+
+function BackArrow() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M10 3.5L5.5 8l4.5 4.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

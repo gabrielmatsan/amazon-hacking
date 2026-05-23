@@ -72,7 +72,7 @@ export function LocaleSwitch({
   const isMobile = variant === "mobile";
 
   return (
-    <div ref={ref} className={cn("relative", isMobile && "w-full", className)}>
+    <div ref={ref} className={cn("relative", className)}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -82,7 +82,7 @@ export function LocaleSwitch({
         className={cn(
           "flex items-center gap-1.5 rounded-full border border-white/30 font-bold tracking-[0.12em] text-white uppercase transition hover:border-white/60",
           isMobile
-            ? "w-full justify-center px-5 py-3 text-sm"
+            ? "px-6 py-3 text-sm"
             : "px-3 py-1.5 text-xs",
         )}
       >
@@ -103,7 +103,7 @@ export function LocaleSwitch({
           role="menu"
           className={cn(
             "absolute z-50 mt-2 overflow-hidden rounded-xl bg-white py-1 shadow-xl ring-1 ring-black/10",
-            isMobile ? "inset-x-0" : "right-0 w-40",
+            isMobile ? "left-1/2 w-56 -translate-x-1/2" : "right-0 w-40",
           )}
         >
           {locales.map((locale) => {
