@@ -52,9 +52,15 @@ reintroduce them.
 
 **URL model.** `pt-br` is the base locale and lives at the **root** (`/`, `/solucoes`).
 `en` and `es` are prefixed (`/en`, `/es/solucoes`). Strategy: `url cookie baseLocale`.
-- `proxy.ts` rewrites prefix-less public URLs onto the `app/[locale]` routes
-  (`/` → `/pt-br` internally, `/en` → `/en`).
-- `next.config.mjs` redirects `/pt-br` → `/` so the canonical home has no prefix.
+- All locales (incl. pt-br) are prerendered under `app/[locale]` → `/pt-br`, `/en`, `/es`.
+- `next.config.mjs` **rewrites** the root paths onto the pt-br routes (`/` → `/pt-br`,
+  `/solucoes` → `/pt-br/solucoes`, `/privacy-policy` → `/pt-br/privacy-policy`) and
+  **redirects** `/pt-br/*` → `/*` so the canonical pt-br URL has no prefix.
+- **No middleware/proxy.** Next 16 forces middleware (`proxy.ts`) onto the Node runtime,
+  which the Cloudflare/OpenNext worker can't run — so locale routing is done with
+  next.config rewrites instead. **Adding a new pt-br page at the root means adding a
+  matching rewrite here.** (Trade-off: there's no server-side cookie auto-redirect; the
+  language switcher handles changes explicitly.)
 
 **SSG per locale.** `app/[locale]/layout.tsx` has `generateStaticParams` (returns all
 locales) + `export const dynamicParams = false`. Every locale of every page is
@@ -99,7 +105,9 @@ app/
   globals.css            # Tailwind v4 @theme tokens (design system)
   sitemap.ts robots.ts opengraph-image.tsx icon.png apple-icon.png
   fonts/Gilroy-*.ttf
-proxy.ts                 # locale rewrite middleware (Next 16 renamed middleware.ts -> proxy.ts)
+next.config.mjs          # locale rewrites/redirects, image hosts (no middleware — see i18n)
+open-next.config.ts      # Cloudflare adapter (static-assets incremental cache)
+wrangler.jsonc           # Cloudflare Worker config (name, assets, compat flags)
 lib/
   i18n.ts                # setRequestLocale bridge (see above)
   paraglide/             # GENERATED — never edit
@@ -157,6 +165,22 @@ Tucupy CTA card).
 - Remote images are allow-listed in `next.config.mjs` (`*.r2.dev`, YouTube thumb hosts).
   Add a `remotePatterns` entry before using a new image host.
 
+## Deployment (Cloudflare Workers)
+
+Deployed via OpenNext for Cloudflare + Wrangler. `pnpm run deploy` runs
+`opennextjs-cloudflare build && opennextjs-cloudflare deploy`. (Use `pnpm run deploy`, not
+`pnpm deploy` — the latter hits pnpm's built-in command.)
+
+- Worker name: `amazon-hacking-web` (`wrangler.jsonc`). Live at
+  `https://amazon-hacking-web.tucupytech.workers.dev`.
+- Auth: `wrangler login` (OAuth) or `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`.
+- **Incremental cache = static-assets** (`open-next.config.ts`). The site is 100%
+  prerendered with no revalidation, so pages are served from the Workers ASSETS binding —
+  no R2/KV needed. Without this, every app route 404s (serves the prerendered not-found).
+- **No middleware.** See the i18n section — locale routing is `next.config` rewrites, not
+  `proxy.ts`. Next 16 proxy is Node-only and the worker can't run it.
+- The only dynamic route is `opengraph-image`; everything else is SSG.
+
 ## Conventions (also enforced by global CLAUDE.md + skills)
 
 - e2e type-safety. **Never `any`, avoid `as`.** Let inference work. `types` over `interfaces`.
@@ -171,6 +195,7 @@ Tucupy CTA card).
 
 - [ ] New client component renders text? Give it a `locale` prop and use `m.x({}, { locale })`.
 - [ ] New page/route? Call `setRequestLocale(locale)` first; thread `resolved` down.
+- [ ] New pt-br page at the root? Add a matching rewrite in `next.config.mjs` `rewrites()`.
 - [ ] New string? Added to all 3 `messages/*.json` and ran `pnpm i18n`.
 - [ ] Removed a string? Removed from all 3 files and all usages.
 - [ ] New section color? `WaveDivider` `from`/`to` match the adjacent section hexes.

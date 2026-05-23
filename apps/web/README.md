@@ -50,13 +50,14 @@ pnpm dev                # http://localhost:3000
 | `pnpm i18n` | Compile `messages/*.json` → `lib/paraglide` |
 | `pnpm test` / `pnpm test:e2e` | Vitest unit tests / Playwright e2e |
 | `pnpm lint` | ESLint |
-| `pnpm deploy` | Build + deploy to Cloudflare |
+| `pnpm run deploy` | Build + deploy to Cloudflare (live: `amazon-hacking-web.tucupytech.workers.dev`) |
 
 ## Project structure
 
 ```
 app/              # App Router: passthrough root + app/[locale] (home, solucoes, privacy-policy)
-proxy.ts          # locale rewrite middleware (root = pt-br, /en, /es)
+next.config.mjs   # locale rewrites/redirects (root = pt-br, /en, /es) + image hosts
+open-next.config.ts # Cloudflare adapter config (static-assets cache)
 lib/i18n.ts       # per-request locale bridge for Paraglide
 lib/content/      # typed site content (winners, editions, partners)
 components/        # home/ sections, site/ chrome, solutions/, winners/, ui/
