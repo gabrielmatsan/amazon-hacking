@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { localizeHref, type Locale } from "@/lib/paraglide/runtime";
@@ -48,7 +49,7 @@ export function Header({ locale }: { locale: Locale }) {
         scrolled ? "bg-neutrals-700/95 backdrop-blur-sm shadow-lg" : "bg-transparent",
       )}
     >
-      <div className="mx-auto grid h-20 max-w-screen-2xl grid-cols-[1fr_auto_1fr] items-center px-6 lg:px-12">
+      <div className="mx-auto flex h-20 max-w-screen-2xl items-center justify-between px-6 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:px-12">
         <Link
           href={localizeHref("/")}
           aria-label="Amazon Hacking"
@@ -118,36 +119,47 @@ export function Header({ locale }: { locale: Locale }) {
       </div>
 
       {/* Mobile menu */}
-      {open && (
-        <nav
-          aria-label="Mobile"
-          className="rounded-b-[30px] border-t border-white/10 bg-neutrals-700 lg:hidden"
-        >
-          <ul className="flex flex-col gap-1 px-6 py-4 text-base font-bold tracking-wide text-white uppercase">
-            {anchors.map((item) => (
-              <li key={item.href}>
-                <a
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                  className="block py-3 opacity-90 hover:opacity-100"
-                >
-                  {labels[item.key]}
-                </a>
-              </li>
-            ))}
-          </ul>
-          <div className="flex flex-col gap-4 border-t border-white/10 px-6 py-5">
-            <Link
-              href={localizeHref("/solucoes")}
-              onClick={() => setOpen(false)}
-              className="inline-flex w-fit rounded-full bg-primary-100 px-6 py-3 text-sm font-bold text-white"
-            >
-              {solutionsLabel}
-            </Link>
-            <LocaleSwitch variant="inline" onNavigate={() => setOpen(false)} />
-          </div>
-        </nav>
-      )}
+      <AnimatePresence>
+        {open && (
+          <motion.nav
+            key="mobile-menu"
+            aria-label="Mobile"
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+            className="rounded-b-[30px] border-t border-white/10 bg-neutrals-700 shadow-lg lg:hidden"
+          >
+            <ul className="flex flex-col items-center gap-1 px-6 py-6 text-base font-bold tracking-wide text-white uppercase">
+              {anchors.map((item) => (
+                <li key={item.href} className="w-full">
+                  <a
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className="block py-3 text-center opacity-90 transition hover:opacity-100"
+                  >
+                    {labels[item.key]}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <div className="flex flex-col items-center gap-4 border-t border-white/10 px-6 py-6">
+              <Link
+                href={localizeHref("/solucoes")}
+                onClick={() => setOpen(false)}
+                className="inline-flex rounded-full bg-primary-100 px-8 py-3 text-sm font-bold text-white transition hover:bg-primary-200"
+              >
+                {solutionsLabel}
+              </Link>
+              <LocaleSwitch
+                variant="mobile"
+                onNavigate={() => setOpen(false)}
+                className="max-w-xs"
+              />
+            </div>
+          </motion.nav>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
