@@ -46,7 +46,7 @@ export function LocaleSwitch({
   onNavigate,
 }: {
   className?: string;
-  variant?: "popover" | "inline";
+  variant?: "popover" | "mobile";
   onNavigate?: () => void;
 }) {
   const pathname = usePathname() || "/";
@@ -54,33 +54,6 @@ export function LocaleSwitch({
   const active = currentLocale(pathname);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-
-  if (variant === "inline") {
-    return (
-      <div className={cn("flex items-center gap-2", className)} aria-label="Idioma">
-        {locales.map((locale) => {
-          const isActive = locale === active;
-          return (
-            <Link
-              key={locale}
-              href={hrefFor(locale, basePath)}
-              hrefLang={locale}
-              aria-current={isActive ? "true" : undefined}
-              onClick={onNavigate}
-              className={cn(
-                "rounded-full px-4 py-2 text-sm font-bold tracking-[0.12em] uppercase transition",
-                isActive
-                  ? "bg-white text-primary-100"
-                  : "border border-white/30 text-white/70 hover:text-white",
-              )}
-            >
-              {labels[locale]}
-            </Link>
-          );
-        })}
-      </div>
-    );
-  }
 
   useEffect(() => {
     if (!open) return;
@@ -96,17 +69,24 @@ export function LocaleSwitch({
     };
   }, [open]);
 
+  const isMobile = variant === "mobile";
+
   return (
-    <div ref={ref} className={cn("relative", className)}>
+    <div ref={ref} className={cn("relative", isMobile && "w-full", className)}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="Idioma"
-        className="flex items-center gap-1.5 rounded-full border border-white/30 px-3 py-1.5 text-xs font-bold tracking-[0.12em] text-white uppercase transition hover:border-white/60"
+        className={cn(
+          "flex items-center gap-1.5 rounded-full border border-white/30 font-bold tracking-[0.12em] text-white uppercase transition hover:border-white/60",
+          isMobile
+            ? "w-full justify-center px-5 py-3 text-sm"
+            : "px-3 py-1.5 text-xs",
+        )}
       >
-        {labels[active]}
+        {isMobile ? fullLabels[active] : labels[active]}
         <svg
           width="10"
           height="10"
@@ -121,7 +101,10 @@ export function LocaleSwitch({
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-xl bg-white py-1 shadow-xl ring-1 ring-black/10"
+          className={cn(
+            "absolute z-50 mt-2 overflow-hidden rounded-xl bg-white py-1 shadow-xl ring-1 ring-black/10",
+            isMobile ? "inset-x-0" : "right-0 w-40",
+          )}
         >
           {locales.map((locale) => {
             const isActive = locale === active;
@@ -131,7 +114,11 @@ export function LocaleSwitch({
                 href={hrefFor(locale, basePath)}
                 hrefLang={locale}
                 role="menuitem"
-                onClick={() => setOpen(false)}
+                aria-current={isActive ? "true" : undefined}
+                onClick={() => {
+                  setOpen(false);
+                  onNavigate?.();
+                }}
                 className={cn(
                   "flex items-center justify-between px-4 py-2.5 text-sm transition",
                   isActive
