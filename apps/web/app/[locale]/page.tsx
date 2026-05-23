@@ -24,12 +24,13 @@ export default async function HomePage({
   const resolved = setRequestLocale(locale);
   return (
     <>
-      <OrganizationJsonLd />
+      <OrganizationJsonLd locale={resolved} />
       <EventJsonLd
         year={edition2026.year}
         number={edition2026.number}
-        theme={edition2026.theme["pt-br"]}
+        theme={edition2026.theme[resolved]}
         location={edition2026.location}
+        locale={resolved}
       />
       <Header locale={resolved} />
       <main>
