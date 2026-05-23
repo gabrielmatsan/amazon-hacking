@@ -5,4 +5,6 @@ import staticAssetsIncrementalCache from "@opennextjs/cloudflare/overrides/incre
 // cached pages straight from the Workers static assets — no R2/KV binding needed.
 export default defineCloudflareConfig({
   incrementalCache: staticAssetsIncrementalCache,
+  // Serve cached routes without booting NextServer — faster cold starts.
+  enableCacheInterception: true,
 });
