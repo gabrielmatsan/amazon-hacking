@@ -167,13 +167,20 @@ Tucupy CTA card).
 
 ## Deployment (Cloudflare Workers)
 
-Deployed via OpenNext for Cloudflare + Wrangler. `pnpm run deploy` runs
+**Automatic deploys** run on Cloudflare **Workers Builds** (Git integration): on push to
+`main`, Cloudflare builds + deploys the Worker itself — no GitHub secrets, with per-branch
+preview URLs. Build config (dashboard → Worker → Settings → Builds): root directory
+`apps/web`, build command `npx opennextjs-cloudflare build`, deploy command
+`npx opennextjs-cloudflare deploy`. GitHub Actions (`.github/workflows/ci-web.yml`) only
+runs typecheck + tests on PRs — it does **not** deploy.
+
+**Manual deploy** (from a local machine): `pnpm run deploy` runs
 `opennextjs-cloudflare build && opennextjs-cloudflare deploy`. (Use `pnpm run deploy`, not
 `pnpm deploy` — the latter hits pnpm's built-in command.)
 
-- Worker name: `amazon-hacking-web` (`wrangler.jsonc`). Live at
-  `https://amazon-hacking-web.tucupytech.workers.dev`.
-- Auth: `wrangler login` (OAuth) or `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`.
+- Worker name: `amazon-hacking-web` (`wrangler.jsonc`) — **must match** the Worker name in
+  the dashboard for Workers Builds. Live at `https://amazon-hacking-web.tucupytech.workers.dev`.
+- Manual-deploy auth: `wrangler login` (OAuth) or `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`.
 - **Incremental cache = static-assets** (`open-next.config.ts`). The site is 100%
   prerendered with no revalidation, so pages are served from the Workers ASSETS binding —
   no R2/KV needed. Without this, every app route 404s (serves the prerendered not-found).
