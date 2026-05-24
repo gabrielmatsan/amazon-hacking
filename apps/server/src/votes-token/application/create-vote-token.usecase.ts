@@ -11,6 +11,9 @@ import { logger } from "@/shared/infra/observability";
 import { VotesRepository } from "@/votes/infra/votes.repository";
 import { t, type Static } from "elysia";
 
+import { NotFoundError } from "@/shared/infra/errors/not-found-error";
+import { sendEmail, type EmailData } from "@/shared/mail/ses/send-email";
+import { UsersRepository } from "@/users/infra/users.repository";
 import { VoteTokensRepository } from "../infra/votes-tokens.repository";
 
 export const createVoteTokenInput = t.Object({
@@ -47,6 +50,10 @@ export async function createVoteTokenUseCase(
 ): Promise<CreateVoteTokenResult> {
   const phoneNumber = normalizePhone(input.phoneNumber);
 
+
+  const user = await UsersRepository.findById(userId);
+  if (!user) throw new NotFoundError("User not found");
+
   const existingVote = await VotesRepository.findByUserId(userId);
   if (existingVote) throw new ConflictError("User already voted");
 
@@ -79,32 +86,62 @@ export async function createVoteTokenUseCase(
 
   const sender = getMessageSender();
 
-  try {
-    await db.transaction(async (tx) => {
-      await VoteTokensRepository.supersedePreviousValidByUser(userId, tx);
 
-      await VoteTokensRepository.create(
-        { userId, phoneNumber, tokenHash, expiresAt },
-        tx,
-      );
+  await db.transaction(async (tx) => {
+    await VoteTokensRepository.supersedePreviousValidByUser(userId, tx);
 
-      // Send inside the transaction so a delivery failure rolls back the insert.
+    await VoteTokensRepository.create(
+      { userId, phoneNumber, tokenHash, expiresAt },
+      tx,
+    );
+
+    // Send inside the transaction so a delivery failure rolls back the insert.
+    try {
       await sender.send(
         phoneNumber,
         `Seu codigo de verificacao e ${code}. Expira em ${Math.round(
           env.VOTE_TOKEN_TTL_SECONDS / 60,
         )} min.`,
       );
-    });
-  } catch (err) {
-    if (err instanceof MessageSendError) {
-      logger.warn({ err, phoneNumber }, "Failed to deliver vote token");
-      throw new BadRequestError(
-        "Could not deliver the verification code, check the phone number",
-      );
+    } catch (err) {
+      // nao conseguiu enviar para o celular, enviar um email alertando os administradores
+
+      if (err instanceof MessageSendError) {
+        logger.error({ err, phoneNumber }, "Failed to deliver vote token");
+        throw new BadRequestError(
+          "Could not deliver the verification code, check the phone number",
+        );
+      }
+
+      const emailsToSend: EmailData[] = [
+        {
+          to: ['gabrielmatsan@hotmail.com', 'ryan@tucupy.com'],
+          subject: 'Erro ao enviar codigo de verificacao para o celular',
+          template: `
+            <p>Nao foi possivel enviar o codigo de verificacao para o celular ${phoneNumber} para o usuario ${user.name} (${user.email}).</p>
+            <p>Codigo: ${code}</p>
+            <p>Expira em ${Math.round(env.VOTE_TOKEN_TTL_SECONDS / 60)} min.</p>
+          `
+        },
+        {
+          to: user.email,
+          subject: 'Erro ao enviar codigo de verificacao para o celular',
+          template: `
+            <p>Nao foi possivel enviar o codigo de verificacao para o celular ${phoneNumber} para o usuario ${user.name} (${user.email}).</p>
+            <p>Codigo: ${code}</p>
+            <p>Expira em ${Math.round(env.VOTE_TOKEN_TTL_SECONDS / 60)} min.</p>
+          `
+        }
+      ]
+
+      await Promise.all(emailsToSend.map(email => sendEmail({
+        to: email.to,
+        subject: email.subject,
+        template: email.template,
+      })));
     }
-    throw err;
-  }
+  });
+
 
   return { message: "Verification code sent", expiresAt };
 }
