@@ -1,5 +1,6 @@
 import { createController, errorResponse } from "@/shared/infra/base.controller";
 import { env } from "@/shared/infra/env/env";
+import { NotFoundError } from "@/shared/infra/errors/not-found-error";
 import { UnauthorizedError } from "@/shared/infra/errors/unauthorized-error";
 import { RateLimitContext } from "@/shared/infra/rate-limiting/rate-limit";
 import { getIpClient } from "@/shared/utils/get-ip-client";
@@ -7,6 +8,7 @@ import { getIpLocation } from "@/shared/utils/get-ip-location";
 import { t } from "elysia";
 import { rateLimit } from "elysia-rate-limit";
 import { voteForTimeByIdInput, voteForTimeByIdUseCase } from "../application/vote-for-time-by-id.usecase";
+import { VotesRepository } from "./votes.repository";
 
 export const votesController = createController({ prefix: "/votes", normalize: false })
   .use(rateLimit({
@@ -34,6 +36,32 @@ export const votesController = createController({ prefix: "/votes", normalize: f
         headers: { "content-type": "application/json" }
       })
   }))
+  .get("/me", async ({ validateToken, request }) => {
+    const user = await validateToken(request);
+    if (!user) throw new UnauthorizedError("Unauthorized");
+
+    const vote = await VotesRepository.findByUserId(user.id);
+    if (!vote) throw new NotFoundError("Vote not found");
+
+    return {
+      data: {
+        teamId: vote.teamId,
+        createdAt: vote.createdAt,
+      },
+    };
+  }, {
+    response: {
+      200: t.Object({
+        data: t.Object({
+          teamId: t.String(),
+          createdAt: t.Date(),
+        }),
+      }),
+      401: errorResponse,
+      404: errorResponse,
+    },
+    detail: { tags: ["Votes"], summary: "Get current user vote" },
+  })
   .post("/", async ({ body, validateToken, request, set }) => {
     // 1. Valida o token do usuário
     const user = await validateToken(request);
