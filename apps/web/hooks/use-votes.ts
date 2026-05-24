@@ -1,7 +1,15 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { requestVoteToken, voteForTeam } from "@/lib/api/votes";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getMyVote, requestVoteToken, voteForTeam } from "@/lib/api/votes";
+
+export function useMyVote() {
+  return useQuery({
+    queryKey: ["votes", "me"],
+    queryFn: getMyVote,
+    retry: false,
+  });
+}
 
 export function useRequestVoteToken() {
   return useMutation({
@@ -16,7 +24,7 @@ export function useVoteForTeam() {
     mutationFn: ({ teamId, token }: { teamId: string; token: string }) =>
       voteForTeam(teamId, token),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["teams"] });
+      queryClient.invalidateQueries({ queryKey: ["votes", "me"] });
     },
   });
 }

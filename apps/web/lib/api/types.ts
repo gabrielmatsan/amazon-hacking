@@ -50,6 +50,11 @@ export type AuthUser = {
   role: "user" | "mentor" | "admin";
 };
 
+export type MyVoteResponse = {
+  teamId: string;
+  createdAt: string;
+};
+
 export type VoteResponse = {
   message: string;
 };

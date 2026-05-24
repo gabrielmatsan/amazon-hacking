@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { YouTubeEmbed } from "@next/third-parties/google";
 import { m } from "@/lib/paraglide/messages";
 import type { Locale } from "@/lib/paraglide/runtime";
 import { useTeamBySlug } from "@/hooks/use-teams";
+import { useMyVote } from "@/hooks/use-votes";
 import type { SolutionPillar } from "@/lib/api/types";
 
 function pillarLabel(pillar: SolutionPillar, locale: Locale): string {
@@ -47,16 +47,9 @@ function backHref(locale: Locale): string {
 
 export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
   const { data: team, isLoading, error } = useTeamBySlug(slug);
-  const [votedId, setVotedId] = useState<string | null>(null);
+  const { data: myVote } = useMyVote();
 
-  useEffect(() => {
-    setVotedId(localStorage.getItem("ah-voted-solution"));
-  }, []);
-
-  const vote = (id: string) => {
-    localStorage.setItem("ah-voted-solution", id);
-    setVotedId(id);
-  };
+  const hasVoted = !!myVote;
 
   if (isLoading) {
     return (
@@ -178,26 +171,25 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
         <p className="mt-1 text-sm leading-relaxed text-neutrals-500 text-pretty">
           {m.vote_description({}, { locale })}
         </p>
-        {votedId === team.id ? (
-          <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-secondary-100 px-5 py-3 text-sm font-semibold text-white">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-              <path d="M3 8.5l3.5 3.5L13 4.5" stroke="currentColor" strokeWidth="2" />
-            </svg>
-            {m.vote_voted({}, { locale })}
-          </div>
+        {hasVoted ? (
+          <>
+            <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-secondary-100 px-5 py-3 text-sm font-semibold text-white">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                <path d="M3 8.5l3.5 3.5L13 4.5" stroke="currentColor" strokeWidth="2" />
+              </svg>
+              {m.vote_voted({}, { locale })}
+            </div>
+            <p className="mt-3 text-xs text-neutrals-400">
+              {m.vote_thanks({}, { locale })}
+            </p>
+          </>
         ) : (
           <button
             type="button"
-            onClick={() => vote(team.id)}
             className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary-100 px-6 py-3 text-sm font-semibold text-white hover:bg-primary-200"
           >
             {m.vote_button({}, { locale })}
           </button>
-        )}
-        {votedId === team.id && (
-          <p className="mt-3 text-xs text-neutrals-400">
-            {m.vote_thanks({}, { locale })}
-          </p>
         )}
       </div>
     </div>
