@@ -1,14 +1,24 @@
+import type { Locale } from "@/lib/paraglide/runtime";
+import { HREFLANG } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 
 type Json = Record<string, unknown>;
 
-export function OrganizationJsonLd() {
+const orgDescription: Record<Locale, string> = {
+  "pt-br":
+    "Programa de formação do CESUPA conectando ciência, tecnologia e saberes amazônicos.",
+  en: "A CESUPA education program connecting science, technology and Amazonian knowledge.",
+  es: "Programa de formación del CESUPA que conecta ciencia, tecnología y saberes amazónicos.",
+};
+
+export function OrganizationJsonLd({ locale }: { locale: Locale }) {
   const data: Json = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "Amazon Hacking",
     url: SITE_URL,
     logo: `${SITE_URL}/icon.png`,
+    inLanguage: HREFLANG[locale],
     sameAs: [
       "https://www.instagram.com/amazon.hacking/",
       "https://www.youtube.com/@CESUPAonline",
@@ -18,11 +28,26 @@ export function OrganizationJsonLd() {
       name: "CESUPA",
       url: "https://www.cesupa.br",
     },
-    description:
-      "Programa de formação do CESUPA conectando ciência, tecnologia e saberes amazônicos.",
+    description: orgDescription[locale],
   };
 
   return <JsonLd data={data} />;
+}
+
+function eventDescription(
+  locale: Locale,
+  number: number,
+  year: number,
+  theme: string,
+): string {
+  switch (locale) {
+    case "en":
+      return `Amazon Hacking ${year} (edition ${number}) — ${theme}`;
+    case "es":
+      return `${number}ª edición del Amazon Hacking — ${theme}`;
+    default:
+      return `${number}ª edição do Amazon Hacking — ${theme}`;
+  }
 }
 
 export function EventJsonLd({
@@ -30,17 +55,20 @@ export function EventJsonLd({
   number,
   theme,
   location,
+  locale,
 }: {
   year: number;
   number: number;
   theme: string;
   location: string;
+  locale: Locale;
 }) {
   const data: Json = {
     "@context": "https://schema.org",
     "@type": "Event",
     name: `Amazon Hacking ${year}`,
-    description: `${number}ª edição do Amazon Hacking — ${theme}`,
+    description: eventDescription(locale, number, year, theme),
+    inLanguage: HREFLANG[locale],
     startDate: `${year}-01-01`,
     location: { "@type": "Place", name: location, address: location },
     organizer: { "@type": "Organization", name: "CESUPA", url: "https://www.cesupa.br" },

@@ -3,11 +3,23 @@ import { Header } from "@/components/site/header";
 import { Footer } from "@/components/site/footer";
 import { Container } from "@/components/site/container";
 import { setRequestLocale } from "@/lib/i18n";
+import { pageMetadata, privacyCopy, resolveLocale } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Política de Privacidade",
-  robots: { index: true, follow: false },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const locale = resolveLocale((await params).locale);
+  const copy = privacyCopy[locale];
+  return pageMetadata({
+    locale,
+    path: "/privacy-policy",
+    title: copy.title,
+    description: copy.description,
+    robots: { index: true, follow: false },
+  });
+}
 
 const lastUpdated = "2026-01-15";
 
