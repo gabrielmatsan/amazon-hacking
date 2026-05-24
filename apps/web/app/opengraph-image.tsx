@@ -16,6 +16,7 @@ export default async function OpengraphImage() {
           width: "100%",
           height: "100%",
           padding: "64px 80px",
+          backgroundColor: "#00335b",
           backgroundImage:
             "radial-gradient(120% 80% at 75% 25%, #0165b7 0%, transparent 60%), radial-gradient(80% 80% at 15% 90%, #059177 0%, transparent 55%), linear-gradient(135deg, #00335b 0%, #014780 100%)",
           color: "#ffffff",

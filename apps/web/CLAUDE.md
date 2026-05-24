@@ -155,10 +155,23 @@ Tucupy CTA card).
 
 ## SEO & observability
 
-- Metadata + `alternates.languages` + OpenGraph in `[locale]/layout.tsx`; per-page
-  `metadata` overrides as needed (`/solucoes` is `robots: { index: false }`).
-- Structured data via `components/site/json-ld.tsx` (Organization + Event).
-- `sitemap.ts`, `robots.ts`, `opengraph-image.tsx`.
+- **Metadata is per-locale.** All copy + builders live in `lib/seo.ts` (`rootMetadata`,
+  `pageMetadata`, hreflang/OG-locale maps, `localeUrl`). Routes call them from
+  `generateMetadata({ params })` (NOT a static `metadata` const) so title, description,
+  canonical, hreflang and OpenGraph are dynamic by language. `canonical` is per-locale
+  (pt-br → root, en/es → prefixed); `languages` includes `x-default`. Per-page overrides
+  pass `robots` (`/solucoes` is noindex; `/privacy-policy` is index+nofollow).
+- The root OG image (`app/opengraph-image.tsx`) is referenced explicitly via
+  `/opengraph-image` in `lib/seo.ts` — a localized `openGraph` config would otherwise drop
+  the file-based image inherited from the root segment. Don't move the file under `[locale]`
+  (the `/pt-br` redirect would 404 its URL). Root `app/layout.tsx` sets `metadataBase` for
+  routes outside `[locale]` (not-found, root OG image).
+- Web manifest is the `app/manifest.ts` file convention (served at `/manifest.webmanifest`,
+  link auto-injected); `background_color`/`theme_color` drive the PWA splash, and the
+  viewport sets light/dark `theme-color`.
+- Structured data via `components/site/json-ld.tsx` (Organization + Event), localized by the
+  `locale` prop passed from the home page.
+- `sitemap.ts` (shares `languageAlternates` with metadata), `robots.ts`, `opengraph-image.tsx`.
 - Sentry wired through `instrumentation.ts` + `sentry.{client,server,edge}.config.ts`.
 - Umami via `components/site/umami-script.tsx` (env-gated, cookieless).
 - Env: see `.env.example` (`NEXT_PUBLIC_*` for site URL / Umami, `SENTRY_DSN`).
