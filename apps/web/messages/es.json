@@ -76,5 +76,13 @@
   "vote_description": "Cada voto destaca las ideas más prometedoras e inspiradoras. ¡Apoyá la creatividad y la innovación amazónica!",
   "vote_button": "Votar por esta solución",
   "vote_voted": "Voto registrado",
-  "vote_thanks": "¡Gracias por votar! (demostración)"
+  "vote_thanks": "¡Gracias por votar! (demostración)",
+  "pillar_all": "Todos",
+  "pillar_digital_agriculture": "Agricultura",
+  "pillar_bioeconomy": "Bioeconomía",
+  "pillar_logistics": "Logística",
+  "pillar_education": "Educación",
+  "pillar_health": "Salud",
+  "pillar_default": "Otros",
+  "solutions_teams_count": "{count} equipos"
 }
