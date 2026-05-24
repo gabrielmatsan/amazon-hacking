@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { locales, isLocale } from "@/lib/paraglide/runtime";
 import { setRequestLocale } from "@/lib/i18n";
 import { UmamiScript } from "@/components/site/umami-script";
+import { QueryProvider } from "@/providers/query-provider";
 import { cn } from "@/lib/utils";
 import { HTML_LANG, resolveLocale, rootMetadata } from "@/lib/seo";
 import "../globals.css";
@@ -59,7 +60,9 @@ export default async function LocaleLayout({
       <head>
         <UmamiScript />
       </head>
-      <body>{children}</body>
+      <body>
+          <QueryProvider>{children}</QueryProvider>
+        </body>
     </html>
   );
 }

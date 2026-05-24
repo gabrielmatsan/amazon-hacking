@@ -171,6 +171,9 @@ importers:
       '@inlang/paraglide-js':
         specifier: ^2.18.0
         version: 2.18.1(typescript@5.9.3)
+      '@next/third-parties':
+        specifier: ^16.2.6
+        version: 16.2.6(next@16.2.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)
       '@opennextjs/cloudflare':
         specifier: ^1.19.10
         version: 1.19.11(next@16.2.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(wrangler@4.94.0)
@@ -183,6 +186,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.90.12
         version: 5.100.10(react@19.2.6)
+      axios:
+        specifier: ^1.16.1
+        version: 1.16.1
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1907,6 +1913,12 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@next/third-parties@16.2.6':
+    resolution: {integrity: sha512-PDPIPVj1NX6Taxsl8OJteAUJ7iwR+QrokwWig68eh0cOmuNjC6MBL+ZzBjO8Bv0n/HOSqjGArZpM5KMSUxm+MQ==}
+    peerDependencies:
+      next: ^13.0.0 || ^14.0.0 || ^15.0.0 || ^16.0.0-beta.0
+      react: ^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0
+
   '@noble/ciphers@1.3.0':
     resolution: {integrity: sha512-2I0gnIVPtfnMw9ee9h1dJG7tp81+8Ob3OJb3Mv37rx5L40/b0i7djjCVvGOVqc9AEIQyvyu1i6ypKdFw8R8gQw==}
     engines: {node: ^14.21.3 || >=16}
@@ -3556,6 +3568,9 @@ packages:
   aws4fetch@1.0.20:
     resolution: {integrity: sha512-/djoAN709iY65ETD6LKCtyyEI04XIBP5xVvfmNxsEP0uJB5tyaGBztSryRr4HqMStr9R06PisQE7m9zDTXKu6g==}
 
+  axios@1.16.1:
+    resolution: {integrity: sha512-caYkukvroVPO8KrzuJEb50Hm07KwfBZPEC3VeFHTsqWHvKTsy54hjJz9BS/cdaypROE2rH6xvm9mHX4fgWkr3A==}
+
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
@@ -4382,6 +4397,15 @@ packages:
 
   flatted@3.4.2:
     resolution: {integrity: sha512-PjDse7RzhcPkIJwy5t7KPWQSZ9cAbzQXcafsetQoD7sOJRQlGikNbx7yZp2OotDnJyrDcbyRq3Ttb18iYOqkxA==}
+
+  follow-redirects@1.16.0:
+    resolution: {integrity: sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
 
   for-each@0.3.5:
     resolution: {integrity: sha512-dKx12eRCVIzqCxFGplyFKJMPvLEWgmNtUrpTiJIR5u97zEhRG8ySrtboPHZXx7daLxQVrl643cTzbab2tkQjxg==}
@@ -5421,6 +5445,10 @@ packages:
   proxy-from-env@1.1.0:
     resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
 
+  proxy-from-env@2.1.0:
+    resolution: {integrity: sha512-cJ+oHTW1VAEa8cJslgmUZrc+sjRKgAKl3Zyse6+PV38hZe/V6Z14TbCuXcan9F9ghlz4QrFr2c92TNF82UkYHA==}
+    engines: {node: '>=10'}
+
   pump@3.0.4:
     resolution: {integrity: sha512-VS7sjc6KR7e1ukRFhQSY5LM2uBWAUPiOPa/A3mkKmiMwSmRFUITt0xuj+/lesgnCv+dPIEYlkzrcyXgquIHMcA==}
 
@@ -5894,6 +5922,9 @@ packages:
     resolution: {integrity: sha512-J/9An6vs9Us6wKRriSFXBWdRZapREHqFzdNUKk0pmu804EMR6dr6winwo7e5JDxN4xahxQsuysyYFwlwj4XN/Q==}
     engines: {node: '>=10'}
     hasBin: true
+
+  third-party-capital@1.0.20:
+    resolution: {integrity: sha512-oB7yIimd8SuGptespDAZnNkzIz+NWaJCu2RMsbs4Wmp9zSDUM8Nhi3s2OOcqYuv3mN4hitXc8DVx+LyUmbUDiA==}
 
   thread-stream@4.2.0:
     resolution: {integrity: sha512-e2zZ96wSChazBsbENf/Pcm/4swHt2cEKQ92rhUjkL9GCKiTDJIaTBenjE/m9DXi0QBmTMDkFDdOomUy20A1tDQ==}
@@ -7906,6 +7937,12 @@ snapshots:
   '@next/swc-win32-x64-msvc@16.2.6':
     optional: true
 
+  '@next/third-parties@16.2.6(next@16.2.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)':
+    dependencies:
+      next: 16.2.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      react: 19.2.6
+      third-party-capital: 1.0.20
+
   '@noble/ciphers@1.3.0': {}
 
   '@noble/curves@1.9.7':
@@ -9768,6 +9805,16 @@ snapshots:
 
   aws4fetch@1.0.20: {}
 
+  axios@1.16.1:
+    dependencies:
+      follow-redirects: 1.16.0
+      form-data: 4.0.5
+      https-proxy-agent: 5.0.1
+      proxy-from-env: 2.1.0
+    transitivePeerDependencies:
+      - debug
+      - supports-color
+
   balanced-match@1.0.2: {}
 
   balanced-match@4.0.4: {}
@@ -10725,6 +10772,8 @@ snapshots:
       keyv: 4.5.4
 
   flatted@3.4.2: {}
+
+  follow-redirects@1.16.0: {}
 
   for-each@0.3.5:
     dependencies:
@@ -11711,6 +11760,8 @@ snapshots:
 
   proxy-from-env@1.1.0: {}
 
+  proxy-from-env@2.1.0: {}
+
   pump@3.0.4:
     dependencies:
       end-of-stream: 1.4.5
@@ -12260,6 +12311,8 @@ snapshots:
       acorn: 8.16.0
       commander: 2.20.3
       source-map-support: 0.5.21
+
+  third-party-capital@1.0.20: {}
 
   thread-stream@4.2.0:
     dependencies:
