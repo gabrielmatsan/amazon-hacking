@@ -84,5 +84,17 @@
   "pillar_education": "Educação",
   "pillar_health": "Saúde",
   "pillar_default": "Outros",
-  "solutions_teams_count": "{count} equipes"
+  "solutions_teams_count": "{count} equipes",
+  "vote_login_prompt": "Entre com sua conta Google para votar nesta solução.",
+  "vote_login_button": "Entrar com Google",
+  "vote_phone_label": "Informe seu telefone para receber o código de verificação",
+  "vote_phone_placeholder": "(91) 98888-7777",
+  "vote_phone_submit": "Enviar código",
+  "vote_code_sent_whatsapp": "Código enviado para seu WhatsApp.",
+  "vote_code_sent_email": "Não conseguimos enviar via WhatsApp. O código foi enviado para seu email.",
+  "vote_code_label": "Digite o código de 6 dígitos",
+  "vote_code_placeholder": "000000",
+  "vote_code_submit": "Confirmar voto",
+  "vote_error_generic": "Algo deu errado. Tente novamente.",
+  "vote_sending": "Enviando..."
 }

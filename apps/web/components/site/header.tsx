@@ -4,9 +4,13 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { localizeHref, type Locale } from "@/lib/paraglide/runtime";
 import { m } from "@/lib/paraglide/messages";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
+import { getGoogleLoginUrl, logout } from "@/lib/api/auth";
+import { useQueryClient } from "@tanstack/react-query";
 import { LocaleSwitch } from "./locale-switch";
 
 const anchors = [
@@ -19,6 +23,16 @@ const anchors = [
 export function Header({ locale }: { locale: Locale }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const { data: user } = useAuth();
+  const queryClient = useQueryClient();
+  const loginUrl = getGoogleLoginUrl(pathname);
+
+  const handleLogout = async () => {
+    await logout();
+    queryClient.clear();
+    window.location.reload();
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY >= 60);
@@ -84,6 +98,29 @@ export function Header({ locale }: { locale: Locale }) {
           >
             {solutionsLabel}
           </Link>
+          <div className="hidden lg:block">
+            {user ? (
+              <div className="flex items-center gap-2">
+                <span className="flex size-8 items-center justify-center rounded-full bg-primary-100 text-xs font-semibold text-white">
+                  {user.name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="text-xs font-medium text-white/70 hover:text-white"
+                >
+                  Sair
+                </button>
+              </div>
+            ) : (
+              <a
+                href={loginUrl}
+                className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/20"
+              >
+                Entrar
+              </a>
+            )}
+          </div>
           <div className="hidden lg:block">
             <LocaleSwitch />
           </div>
@@ -151,6 +188,26 @@ export function Header({ locale }: { locale: Locale }) {
               >
                 {solutionsLabel}
               </Link>
+              {user ? (
+                <button
+                  type="button"
+                  onClick={() => { handleLogout(); setOpen(false); }}
+                  className="inline-flex items-center gap-2 text-sm font-medium text-white/70 hover:text-white"
+                >
+                  <span className="flex size-7 items-center justify-center rounded-full bg-primary-100 text-xs font-semibold text-white">
+                    {user.name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
+                  </span>
+                  Sair
+                </button>
+              ) : (
+                <a
+                  href={loginUrl}
+                  onClick={() => setOpen(false)}
+                  className="inline-flex items-center gap-2 rounded-full bg-white/10 px-6 py-3 text-sm font-semibold text-white hover:bg-white/20"
+                >
+                  Entrar
+                </a>
+              )}
               <LocaleSwitch
                 variant="mobile"
                 onNavigate={() => setOpen(false)}

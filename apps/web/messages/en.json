@@ -84,5 +84,17 @@
   "pillar_education": "Education",
   "pillar_health": "Health",
   "pillar_default": "Other",
-  "solutions_teams_count": "{count} teams"
+  "solutions_teams_count": "{count} teams",
+  "vote_login_prompt": "Sign in with your Google account to vote for this solution.",
+  "vote_login_button": "Sign in with Google",
+  "vote_phone_label": "Enter your phone number to receive the verification code",
+  "vote_phone_placeholder": "(91) 98888-7777",
+  "vote_phone_submit": "Send code",
+  "vote_code_sent_whatsapp": "Code sent to your WhatsApp.",
+  "vote_code_sent_email": "We couldn't send via WhatsApp. The code was sent to your email.",
+  "vote_code_label": "Enter the 6-digit code",
+  "vote_code_placeholder": "000000",
+  "vote_code_submit": "Confirm vote",
+  "vote_error_generic": "Something went wrong. Please try again.",
+  "vote_sending": "Sending..."
 }
