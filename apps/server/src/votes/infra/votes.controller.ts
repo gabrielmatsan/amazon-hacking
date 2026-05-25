@@ -99,6 +99,7 @@ export const votesController = createController({ prefix: "/votes", normalize: f
     response: {
       200: t.Object({ message: t.String() }),
       401: errorResponse,
+      403: errorResponse,
       404: errorResponse,
       409: errorResponse,
       422: errorResponse,

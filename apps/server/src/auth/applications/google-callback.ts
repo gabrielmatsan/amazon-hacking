@@ -1,3 +1,4 @@
+import { normalizeEmail } from "@/shared/utils/normalize-email";
 import { UsersRepository } from "@/users/infra/users.repository";
 
 import { SessionRepository } from "../infra/session.repository";
@@ -47,6 +48,7 @@ export async function googleCallback({
   const user = existing ??
     (await UsersRepository.create({
       email: googleUser.email,
+      normalizedEmail: normalizeEmail(googleUser.email),
       name: googleUser.name,
       role: "user",
     }));

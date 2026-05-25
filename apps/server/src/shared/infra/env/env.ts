@@ -63,6 +63,7 @@ const envSchema = z.object({
   VOTE_TOKEN_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
   VOTE_TOKEN_IP_RATE_LIMIT_COUNT: z.coerce.number().int().positive().default(5),
   VOTE_TOKEN_IP_RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().positive().default(600),
+  MAX_VOTES_PER_NORMALIZED_EMAIL: z.coerce.number().int().positive().default(5),
   RESEND_API_KEY: z.string().min(1),
 
   // Proxy API

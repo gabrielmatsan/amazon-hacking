@@ -11,7 +11,10 @@ import { logger } from "@/shared/infra/observability";
 import { VotesRepository } from "@/votes/infra/votes.repository";
 import { t, type Static } from "elysia";
 
+import { ForbiddenError } from "@/shared/infra/errors/forbidden-error";
 import { NotFoundError } from "@/shared/infra/errors/not-found-error";
+import { proxyApiClient } from "@/shared/infra/proxy-api/proxy-api-client";
+import { normalizeEmail } from "@/shared/utils/normalize-email";
 import { resendEmailClient } from "@/shared/mail/resend";
 import { UsersRepository } from "@/users/infra/users.repository";
 import { VoteTokensRepository } from "../infra/votes-tokens.repository";
@@ -59,6 +62,12 @@ export async function createVoteTokenUseCase(
   const existingVote = await VotesRepository.findByUserId(userId);
   if (existingVote) throw new ConflictError("User already voted");
 
+  const normalized = normalizeEmail(user.email);
+  const votesByEmail = await VotesRepository.countByNormalizedEmail(normalized);
+  if (votesByEmail >= env.MAX_VOTES_PER_NORMALIZED_EMAIL) {
+    throw new ForbiddenError("Vote limit reached for this email");
+  }
+
   const existingVoteByPhone = await VotesRepository.findByPhoneNumber(phoneNumber);
   if (existingVoteByPhone) throw new ConflictError("Phone number is already used");
 
@@ -69,6 +78,13 @@ export async function createVoteTokenUseCase(
     );
     if (recentByIp >= env.VOTE_TOKEN_IP_RATE_LIMIT_COUNT) {
       throw new ConflictError("Too many token requests from this network, try again later");
+    }
+
+
+    const riskAssessment = await proxyApiClient.assessRisk(ipAddress);
+    if (riskAssessment?.isSuspicious) {
+      logger.warn({ userId, ipAddress, riskAssessment }, "Vote token blocked: suspicious IP");
+      throw new ForbiddenError("Voting is not allowed from this network");
     }
   }
 

@@ -1,0 +1,1 @@
+ALTER TABLE "users" ALTER COLUMN "normalized_email" SET NOT NULL;

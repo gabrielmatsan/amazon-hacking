@@ -5,6 +5,8 @@ const TEST_IPS = [
   { ip: "1.1.1.1", label: "Cloudflare DNS (datacenter)" },
   { ip: "185.220.101.1", label: "Tor exit node" },
   { ip: "104.238.170.1", label: "VPN provider range" },
+  { ip: "104.28.166.17", label: "Cloudflare Warp" },
+  { ip:"177.134.161.4", label: "ip minha casa"}
 ];
 
 async function main() {
