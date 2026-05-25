@@ -1,3 +1,4 @@
+import axios from "axios";
 import { api } from "./client";
 import type { MyVoteResponse, VoteTokenResponse } from "./types";
 
@@ -7,7 +8,7 @@ export async function getMyVote() {
 }
 
 export async function requestVoteToken(phoneNumber: string) {
-  const { data } = await api.post<VoteTokenResponse>("/votes-token/request", {
+  const { data } = await axios.post<VoteTokenResponse>("/api/vote-token", {
     phoneNumber,
   });
   return data;

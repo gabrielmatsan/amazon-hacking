@@ -63,7 +63,7 @@ export const votesTokensController = createController({
       };
     },
     {
-     // requireApiToken: true,
+      requireApiToken: true,
       body: createVoteTokenInput,
       response: {
         201: t.Object({
