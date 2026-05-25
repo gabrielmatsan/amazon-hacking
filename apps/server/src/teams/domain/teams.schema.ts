@@ -22,6 +22,7 @@ export const teamsSchema = pgTable("teams", {
   teamMembers: jsonb("team_members").$type<TeamMember[]>(),
   solutionPillar: solutionPillarEnum("solution_pillar").notNull().default("default"),
   videoUrl: varchar("video_url", { length: 500 }),
+  secondaryVideoUrl: varchar("secondary_video_url", { length: 500 }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 })

@@ -134,6 +134,21 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
         );
       })()}
 
+      {team.secondaryVideoUrl && (() => {
+        const videoId = extractVideoId(team.secondaryVideoUrl!);
+        if (!videoId) return null;
+        return (
+          <div className="mt-10">
+            <h2 className="mb-3 text-xs font-semibold tracking-[0.16em] text-primary-100 uppercase">
+              {m.solution_pitch_en({}, { locale })}
+            </h2>
+            <div className="overflow-hidden rounded-2xl">
+              <YouTubeEmbed videoid={videoId} params="rel=0" />
+            </div>
+          </div>
+        );
+      })()}
+
       {team.description && (
         <div className="mt-10">
           <p className="text-base leading-relaxed text-neutrals-600 text-pretty md:text-lg">
