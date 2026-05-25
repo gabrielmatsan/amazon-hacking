@@ -24,6 +24,7 @@ export const voteType = t.Object({
   teamId: t.String(),
   phoneNumber: t.Nullable(t.String()),
   channel: t.Enum(voteTokenChannelType),
+  fingerprint: t.Nullable(t.String()),
   status: t.Enum(voteStatus),
   ipAddress: t.Nullable(t.String()),
   ipCountry: t.Nullable(t.String()),

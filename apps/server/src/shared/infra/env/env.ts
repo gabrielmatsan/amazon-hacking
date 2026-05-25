@@ -64,6 +64,9 @@ const envSchema = z.object({
   VOTE_TOKEN_IP_RATE_LIMIT_COUNT: z.coerce.number().int().positive().default(5),
   VOTE_TOKEN_IP_RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().positive().default(600),
   RESEND_API_KEY: z.string().min(1),
+
+  // Proxy API
+  PROXY_API_KEY: z.string().min(1),
 });
 
 const parsedEnv = envSchema.parse(process.env);
