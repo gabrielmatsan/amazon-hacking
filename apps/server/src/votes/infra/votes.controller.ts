@@ -62,7 +62,7 @@ export const votesController = createController({ prefix: "/votes", normalize: f
     },
     detail: { tags: ["Votes"], summary: "Get current user vote" },
   })
-  .post("/", async ({ body, validateToken, request, set }) => {
+  .post("/", async ({ body, validateToken, request, set, server }) => {
     // 1. Valida o token do usuário
     const user = await validateToken(request);
     if (!user) throw new UnauthorizedError("Unauthorized");
@@ -70,7 +70,7 @@ export const votesController = createController({ prefix: "/votes", normalize: f
     // 2. Pega o User Agent e o IP do usuário
     const userAgent = request.headers.get("user-agent") ?? undefined;
 
-    const ipAddress = getIpClient(request);
+    const ipAddress = getIpClient(request, server);
     const ipLocation = await getIpLocation(ipAddress);
 
     await voteForTimeByIdUseCase({
