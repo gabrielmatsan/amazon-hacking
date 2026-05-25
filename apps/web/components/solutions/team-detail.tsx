@@ -124,30 +124,11 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
         </div>
       </div>
 
-      {team.videoUrl && (() => {
-        const videoId = extractVideoId(team.videoUrl!);
-        if (!videoId) return null;
-        return (
-          <div className="mt-10 overflow-hidden rounded-2xl">
-            <YouTubeEmbed videoid={videoId} params="rel=0" />
-          </div>
-        );
-      })()}
-
-      {team.secondaryVideoUrl && (() => {
-        const videoId = extractVideoId(team.secondaryVideoUrl!);
-        if (!videoId) return null;
-        return (
-          <div className="mt-10">
-            <h2 className="mb-3 text-xs font-semibold tracking-[0.16em] text-primary-100 uppercase">
-              {m.solution_pitch_en({}, { locale })}
-            </h2>
-            <div className="overflow-hidden rounded-2xl">
-              <YouTubeEmbed videoid={videoId} params="rel=0" />
-            </div>
-          </div>
-        );
-      })()}
+      <VideoSection
+        videoUrl={team.videoUrl}
+        secondaryVideoUrl={team.secondaryVideoUrl}
+        locale={locale}
+      />
 
       {team.description && (
         <div className="mt-10">
@@ -351,5 +332,59 @@ function VoteFlow({ teamId, locale }: { teamId: string; locale: Locale }) {
         ← {m.vote_phone_submit({}, { locale })}
       </button>
     </form>
+  );
+}
+
+function VideoSection({
+  videoUrl,
+  secondaryVideoUrl,
+  locale,
+}: {
+  videoUrl: string | null;
+  secondaryVideoUrl: string | null;
+  locale: Locale;
+}) {
+  const primaryId = videoUrl ? extractVideoId(videoUrl) : null;
+  const secondaryId = secondaryVideoUrl ? extractVideoId(secondaryVideoUrl) : null;
+  const hasBoth = !!primaryId && !!secondaryId;
+  const [active, setActive] = useState<"primary" | "secondary">("primary");
+
+  if (!primaryId && !secondaryId) return null;
+
+  const activeId = active === "primary" ? primaryId : secondaryId;
+  if (!activeId) return null;
+
+  return (
+    <div className="mt-10">
+      {hasBoth && (
+        <div className="mb-3 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setActive("primary")}
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+              active === "primary"
+                ? "bg-primary-100 text-white"
+                : "bg-neutrals-100 text-neutrals-500 ring-1 ring-black/5 hover:bg-neutrals-200"
+            }`}
+          >
+            {m.solution_pitch({}, { locale })}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActive("secondary")}
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+              active === "secondary"
+                ? "bg-primary-100 text-white"
+                : "bg-neutrals-100 text-neutrals-500 ring-1 ring-black/5 hover:bg-neutrals-200"
+            }`}
+          >
+            {m.solution_pitch_en({}, { locale })}
+          </button>
+        </div>
+      )}
+      <div className="overflow-hidden rounded-2xl">
+        <YouTubeEmbed videoid={activeId} params="rel=0" />
+      </div>
+    </div>
   );
 }
