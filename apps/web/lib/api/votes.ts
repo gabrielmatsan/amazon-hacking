@@ -1,14 +1,9 @@
 import { api } from "./client";
-import type { MyVoteResponse, VoteResponse, VoteTokenResponse } from "./types";
+import type { MyVoteResponse, VoteTokenResponse } from "./types";
 
 export async function getMyVote() {
   const { data } = await api.get<{ data: MyVoteResponse }>("/votes/me");
   return data.data;
-}
-
-export async function voteForTeam(teamId: string, token: string) {
-  const { data } = await api.post<VoteResponse>("/votes", { teamId, token });
-  return data;
 }
 
 export async function requestVoteToken(phoneNumber: string) {

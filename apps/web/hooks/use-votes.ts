@@ -1,7 +1,8 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getMyVote, requestVoteToken, voteForTeam } from "@/lib/api/votes";
+import axios from "axios";
+import { getMyVote, requestVoteToken } from "@/lib/api/votes";
 
 export function useMyVote() {
   return useQuery({
@@ -21,8 +22,10 @@ export function useVoteForTeam() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ teamId, token }: { teamId: string; token: string }) =>
-      voteForTeam(teamId, token),
+    mutationFn: async ({ teamId, token }: { teamId: string; token: string }) => {
+      const { data } = await axios.post("/api/vote", { teamId, token });
+      return data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["votes", "me"] });
     },

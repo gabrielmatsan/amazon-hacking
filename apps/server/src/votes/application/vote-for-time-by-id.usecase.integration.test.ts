@@ -12,11 +12,10 @@ import { usersSchema } from "@/users/domain/users.schema";
 import { createVoteTokenUseCase } from "@/votes-token/application/create-vote-token.usecase";
 import { votesTokensSchema } from "@/votes-token/domain/votes-tokens.schema";
 
-import type { resendEmailClient } from "@/shared/mail/resend";
 import { votesSchema } from "../domain/votes.schema";
 import { voteForTimeByIdUseCase } from "./vote-for-time-by-id.usecase";
 
-mock.module("@/shared/mail/resend/index", () => ({
+mock.module("@/shared/mail/resend", () => ({
   resendEmailClient: {
     sendEmail: mock(() => Promise.resolve({ success: true })),
   },
