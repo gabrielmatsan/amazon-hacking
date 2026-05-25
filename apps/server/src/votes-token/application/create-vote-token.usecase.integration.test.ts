@@ -13,8 +13,9 @@ import { teamsSchema } from "@/teams/domain/teams.schema";
 import { createVoteTokenUseCase } from "./create-vote-token.usecase";
 
 const mockSendEmail = mock(() => Promise.resolve({ success: true }));
-mock.module("@/shared/mail/ses/send-email", () => ({
-  sendEmail: mockSendEmail,
+
+mock.module("@/shared/mail/resend", () => ({
+  resendEmailClient: { sendEmail: mockSendEmail },
 }));
 
 describe("createVoteTokenUseCase (integration)", () => {
