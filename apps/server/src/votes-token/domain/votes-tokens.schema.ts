@@ -17,6 +17,11 @@ export const voteTokenStatus = pgEnum("vote_token_status", [
   "superseded",
 ]);
 
+export const voteTokenChannel = pgEnum("vote_token_channel", [
+  "whatsapp",
+  "email",
+]);
+
 export const votesTokensSchema = pgTable(
   "votes_tokens",
   {
@@ -25,7 +30,8 @@ export const votesTokensSchema = pgTable(
       .references(() => usersSchema.id)
       .notNull(),
     tokenHash: varchar("token_hash", { length: 64 }).notNull(),
-    phoneNumber: varchar("phone_number", { length: 20 }).notNull(),
+    phoneNumber: varchar("phone_number", { length: 20 }),
+    channel: voteTokenChannel("channel").notNull().default("whatsapp"),
     status: voteTokenStatus("status").notNull().default("valid"),
     attempts: integer("attempts").notNull().default(0),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),

@@ -3,6 +3,7 @@ import { usersSchema } from "@/users/domain/users.schema";
 import { createId } from "@paralleldrive/cuid2";
 import { relations } from "drizzle-orm";
 import { jsonb, pgEnum, pgTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/pg-core";
+import { voteTokenChannel } from "@/votes-token/domain/votes-tokens.schema";
 
 // marcar se voto veio de um usuário ou de um mentor
 export const voteSources = pgEnum("vote_sources", ["user", "mentor"]);
@@ -15,7 +16,8 @@ export const votesSchema = pgTable(
 
     userId: varchar("user_id", { length: 34 }).references(() => usersSchema.id).notNull(),
     teamId: varchar("team_id", { length: 34 }).references(() => teamsSchema.id).notNull(),
-    phoneNumber: varchar("phone_number", { length: 20 }).notNull().unique(),
+    phoneNumber: varchar("phone_number", { length: 20 }).unique(),
+    channel: voteTokenChannel("channel").notNull().default("whatsapp"),
 
     status: voteStatus("status").notNull().default("valid"),
 
