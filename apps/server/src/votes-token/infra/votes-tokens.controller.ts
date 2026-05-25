@@ -4,6 +4,7 @@ import { RateLimitContext } from "@/shared/infra/rate-limiting/rate-limit";
 import { t } from "elysia";
 import { rateLimit } from "elysia-rate-limit";
 
+import { getIpClient } from "@/shared/utils/get-ip-client";
 import {
   createVoteTokenInput,
   createVoteTokenUseCase,
@@ -45,12 +46,13 @@ export const votesTokensController = createController({
   )
   .post(
     "/request",
-    async ({ body, validateToken, request, set }) => {
+    async ({ body, validateToken, request, set, server }) => {
       const user = await validateToken(request);
+      const ipAddress = getIpClient(request, server);
 
       const result = await createVoteTokenUseCase(user.id, {
         phoneNumber: body.phoneNumber,
-      });
+      }, ipAddress);
 
       set.status = 201;
 

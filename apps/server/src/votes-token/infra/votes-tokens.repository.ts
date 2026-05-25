@@ -67,6 +67,23 @@ export const VoteTokensRepository = {
     return Number(row?.value ?? 0);
   },
 
+  async countRecentByIp(
+    ipAddress: string,
+    windowSeconds: number,
+  ): Promise<number> {
+    const since = new Date(Date.now() - windowSeconds * 1000);
+    const [row] = await db
+      .select({ value: count() })
+      .from(votesTokensSchema)
+      .where(
+        and(
+          gt(votesTokensSchema.createdAt, since),
+          eq(votesTokensSchema.ipAddress, ipAddress),
+        ),
+      );
+    return Number(row?.value ?? 0);
+  },
+
   async findActiveByPhoneOtherUser(
     phoneNumber: string,
     excludeUserId: string,
