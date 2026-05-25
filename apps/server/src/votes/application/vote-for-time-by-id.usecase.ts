@@ -12,6 +12,8 @@ import { UsersRepository } from "@/users/infra/users.repository";
 import { VoteTokensRepository } from "@/votes-token/infra/votes-tokens.repository";
 import { t, type Static } from "elysia";
 
+import { logger } from "@/shared/infra/observability";
+import { proxyApiClient, type ProxyCheckIpResult } from "@/shared/infra/proxy-api/proxy-api-client";
 import { VotesRepository } from "../infra/votes.repository";
 
 export const voteForTimeByIdInput = t.Object({
@@ -67,6 +69,29 @@ export const voteForTimeByIdUseCase = async (input: VoteForTimeByIdInput) => {
     throw new UnauthorizedError("Invalid verification code");
   }
 
+  let voteStatus: "valid" | "flagged" = "valid";
+  let proxyCheckResult: ProxyCheckIpResult | null = null;
+
+  if (input.ipAddress && input.ipAddress !== "unknown") {
+    proxyCheckResult = await proxyApiClient.checkIp(input.ipAddress);
+    if (proxyCheckResult) {
+      const d = proxyCheckResult.detections;
+      const isSuspicious = d.vpn || d.proxy || d.tor || d.hosting || d.compromised || d.risk >= 33;
+      if (isSuspicious) {
+        voteStatus = "flagged";
+        logger.warn(
+          { userId: input.userId, ipAddress: input.ipAddress, proxyCheck: proxyCheckResult },
+          "Vote flagged as suspicious",
+        );
+      }
+    }
+  }
+
+  const metadata = {
+    ...input.metadata,
+    proxyCheck: proxyCheckResult,
+  };
+
   return db.transaction(async (tx) => {
     await VoteTokensRepository.markAsUsed(validToken.id, tx);
 
@@ -80,8 +105,8 @@ export const voteForTimeByIdUseCase = async (input: VoteForTimeByIdInput) => {
         ipAddress: input.ipAddress,
         ipCountry: input.ipCountry,
         userAgent: input.userAgent,
-        metadata: input.metadata,
-        status: "valid",
+        metadata,
+        status: voteStatus,
       },
       tx,
     );
