@@ -61,6 +61,8 @@ const envSchema = z.object({
   VOTE_TOKEN_RATE_LIMIT_COUNT: z.coerce.number().int().positive().default(3),
   VOTE_TOKEN_RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().positive().default(600),
   VOTE_TOKEN_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
+  VOTE_TOKEN_IP_RATE_LIMIT_COUNT: z.coerce.number().int().positive().default(5),
+  VOTE_TOKEN_IP_RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().positive().default(600),
   RESEND_API_KEY: z.string().min(1),
 });
 

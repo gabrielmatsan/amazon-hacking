@@ -49,6 +49,7 @@ function normalizePhone(raw: string): string {
 export async function createVoteTokenUseCase(
   userId: string,
   input: CreateVoteTokenInput,
+  ipAddress?: string,
 ): Promise<CreateVoteTokenResult> {
   const phoneNumber = normalizePhone(input.phoneNumber);
 
@@ -60,6 +61,16 @@ export async function createVoteTokenUseCase(
 
   const existingVoteByPhone = await VotesRepository.findByPhoneNumber(phoneNumber);
   if (existingVoteByPhone) throw new ConflictError("Phone number is already used");
+
+  if (ipAddress && ipAddress !== "unknown") {
+    const recentByIp = await VoteTokensRepository.countRecentByIp(
+      ipAddress,
+      env.VOTE_TOKEN_IP_RATE_LIMIT_WINDOW_SECONDS,
+    );
+    if (recentByIp >= env.VOTE_TOKEN_IP_RATE_LIMIT_COUNT) {
+      throw new ConflictError("Too many token requests from this network, try again later");
+    }
+  }
 
   const recentCount = await VoteTokensRepository.countRecent(
     userId,
@@ -89,7 +100,7 @@ export async function createVoteTokenUseCase(
       );
 
       await VoteTokensRepository.create(
-        { userId, phoneNumber, tokenHash, expiresAt, channel: "whatsapp" },
+        { userId, phoneNumber, tokenHash, expiresAt, channel: "whatsapp", ipAddress: ipAddress ?? null },
         tx,
       );
     } catch (err) {
@@ -102,7 +113,7 @@ export async function createVoteTokenUseCase(
       channel = "email";
 
       await VoteTokensRepository.create(
-        { userId, phoneNumber: null, tokenHash, expiresAt, channel: "email" },
+        { userId, phoneNumber: null, tokenHash, expiresAt, channel: "email", ipAddress: ipAddress ?? null },
         tx,
       );
 

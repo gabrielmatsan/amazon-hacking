@@ -31,6 +31,7 @@ export const votesTokensSchema = pgTable(
       .notNull(),
     tokenHash: varchar("token_hash", { length: 64 }).notNull(),
     phoneNumber: varchar("phone_number", { length: 20 }),
+    ipAddress: varchar("ip_address", { length: 45 }),
     channel: voteTokenChannel("channel").notNull().default("whatsapp"),
     status: voteTokenStatus("status").notNull().default("valid"),
     attempts: integer("attempts").notNull().default(0),
@@ -44,6 +45,7 @@ export const votesTokensSchema = pgTable(
       .where(sql`${table.status} = 'valid'`),
     index("votes_tokens_phone_number_index").on(table.phoneNumber),
     index("votes_tokens_user_id_index").on(table.userId),
+    index("votes_tokens_ip_address_index").on(table.ipAddress),
   ],
 );
 
