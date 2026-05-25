@@ -50,7 +50,7 @@ describe("Admin teams controller (integration)", () => {
         new Request("http://localhost/admin/teams", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ name: "Equipe X" }),
+          body: JSON.stringify({ name: "Equipe X", slug: "equipe-x" }),
         }),
       );
 
@@ -67,7 +67,7 @@ describe("Admin teams controller (integration)", () => {
             "content-type": "application/json",
             cookie: authCookie(sid),
           },
-          body: JSON.stringify({ name: "Equipe X" }),
+          body: JSON.stringify({ name: "Equipe X", slug: "equipe-x" }),
         }),
       );
 
@@ -84,7 +84,7 @@ describe("Admin teams controller (integration)", () => {
             "content-type": "application/json",
             cookie: authCookie(sid),
           },
-          body: JSON.stringify({ name: "Equipe X" }),
+          body: JSON.stringify({ name: "Equipe X", slug: "equipe-x" }),
         }),
       );
 
@@ -105,6 +105,7 @@ describe("Admin teams controller (integration)", () => {
           },
           body: JSON.stringify({
             name: "Equipe Alpha",
+            slug: "equipe-alpha",
             description: "A primeira equipe",
             teamMembers: [{ name: "João", role: "dev" }],
           }),
@@ -132,7 +133,7 @@ describe("Admin teams controller (integration)", () => {
             "content-type": "application/json",
             cookie: authCookie(sid),
           },
-          body: JSON.stringify({ name: "Equipe Mínima" }),
+          body: JSON.stringify({ name: "Equipe Mínima", slug: "equipe-minima" }),
         }),
       );
 
@@ -153,7 +154,7 @@ describe("Admin teams controller (integration)", () => {
             "content-type": "application/json",
             cookie: authCookie(sid),
           },
-          body: JSON.stringify({ name: "" }),
+          body: JSON.stringify({ name: "", slug: "empty-name" }),
         }),
       );
 
@@ -172,6 +173,7 @@ describe("Admin teams controller (integration)", () => {
           },
           body: JSON.stringify({
             name: "Equipe Quebrada",
+            slug: "equipe-quebrada",
             teamMembers: [{ name: "Sem role" }],
           }),
         }),
@@ -192,6 +194,7 @@ describe("Admin teams controller (integration)", () => {
           },
           body: JSON.stringify({
             name: "Equipe Com Logo",
+            slug: "equipe-com-logo",
             logoUrl: "https://cdn.example.com/logo.png",
           }),
         }),
@@ -208,7 +211,7 @@ describe("Admin teams controller (integration)", () => {
       const { sid } = await seedUser("admin");
       const [team] = await db
         .insert(teamsSchema)
-        .values({ name: "Original", description: "antigo" })
+        .values({ name: "Original", slug: "test-team-original", description: "antigo" })
         .returning();
 
       const response = await app.handle(
@@ -238,7 +241,7 @@ describe("Admin teams controller (integration)", () => {
       const { sid } = await seedUser("admin");
       const [team] = await db
         .insert(teamsSchema)
-        .values({ name: "Original", description: "preserva" })
+        .values({ name: "Original", slug: "test-team-preserva", description: "preserva" })
         .returning();
 
       const response = await app.handle(
@@ -279,7 +282,7 @@ describe("Admin teams controller (integration)", () => {
       const { sid } = await seedUser("admin");
       const [team] = await db
         .insert(teamsSchema)
-        .values({ name: "Original", logoUrl: "https://cdn.example.com/original.png" })
+        .values({ name: "Original", slug: "test-team-logo", logoUrl: "https://cdn.example.com/original.png" })
         .returning();
 
       const response = await app.handle(
@@ -306,7 +309,7 @@ describe("Admin teams controller (integration)", () => {
       const { sid } = await seedUser("user");
       const [team] = await db
         .insert(teamsSchema)
-        .values({ name: "Original" })
+        .values({ name: "Original", slug: "test-team-forbidden" })
         .returning();
 
       const response = await app.handle(
@@ -346,7 +349,7 @@ describe("Admin teams controller (integration)", () => {
             "content-type": "application/json",
             cookie: authCookie(newSid),
           },
-          body: JSON.stringify({ name: "Pós-promoção" }),
+          body: JSON.stringify({ name: "Pós-promoção", slug: "pos-promocao" }),
         }),
       );
 
@@ -361,8 +364,8 @@ describe("Admin teams controller (integration)", () => {
       const [firstTeam, secondTeam] = await db
         .insert(teamsSchema)
         .values([
-          { name: "Equipe Alpha" },
-          { name: "Equipe Beta" },
+          { name: "Equipe Alpha", slug: "equipe-alpha-votes" },
+          { name: "Equipe Beta", slug: "equipe-beta-votes" },
         ])
         .returning();
 

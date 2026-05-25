@@ -5,7 +5,6 @@ import { Footer } from "@/components/site/footer";
 import { WaveDivider } from "@/components/site/wave-divider";
 import { SolutionsGallery } from "@/components/solutions/solutions-gallery";
 import { TucupyCta } from "@/components/site/tucupy-cta";
-import { winners } from "@/lib/content/winners";
 import { setRequestLocale } from "@/lib/i18n";
 import { pageMetadata, resolveLocale, solutionsCopy } from "@/lib/seo";
 
@@ -60,7 +59,7 @@ export default async function SolutionsPage({
             <h2 className="mx-auto mb-10 max-w-[45ch] text-center text-base text-white/90 md:text-lg">
               {m.solutions_gallery_title({}, { locale: resolved })}
             </h2>
-            <SolutionsGallery solutions={winners} locale={resolved} />
+            <SolutionsGallery locale={resolved} />
           </div>
         </section>
         <WaveDivider from="#005194" to="#ffffff" />
