@@ -13,7 +13,6 @@ import { t, type Static } from "elysia";
 
 import { ForbiddenError } from "@/shared/infra/errors/forbidden-error";
 import { NotFoundError } from "@/shared/infra/errors/not-found-error";
-import { proxyApiClient } from "@/shared/infra/proxy-api/proxy-api-client";
 import { normalizeEmail } from "@/shared/utils/normalize-email";
 import { resendEmailClient } from "@/shared/mail/resend";
 import { UsersRepository } from "@/users/infra/users.repository";
@@ -78,13 +77,6 @@ export async function createVoteTokenUseCase(
     );
     if (recentByIp >= env.VOTE_TOKEN_IP_RATE_LIMIT_COUNT) {
       throw new ConflictError("Too many token requests from this network, try again later");
-    }
-
-
-    const riskAssessment = await proxyApiClient.assessRisk(ipAddress);
-    if (riskAssessment?.isSuspicious) {
-      logger.warn({ userId, ipAddress, riskAssessment }, "Vote token blocked: suspicious IP");
-      throw new ForbiddenError("Voting is not allowed from this network");
     }
   }
 
