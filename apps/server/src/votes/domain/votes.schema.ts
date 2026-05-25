@@ -24,7 +24,7 @@ export const votesSchema = pgTable(
     ipAddress: text("ip_address"),
     ipCountry: text("ip_country"),
     userAgent: text("user_agent"),
-    //fingerprint: varchar("fingerprint", { length: 64 }),
+    fingerprint: varchar("fingerprint", { length: 64 }),
 
     metadata: jsonb("metadata").$type<any>(),
 
