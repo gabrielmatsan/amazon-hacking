@@ -77,7 +77,7 @@ export const authController = createController({ prefix: "/auth" })
   })
   .get(
     "/google/callback",
-    async ({ oauth2, set, cookie: { session_id }, redirect, request }) => {
+    async ({ oauth2, set, cookie: { session_id, oauth_return_to }, redirect, request }) => {
       let result: Awaited<ReturnType<typeof googleCallback>>;
 
       try {
@@ -105,11 +105,15 @@ export const authController = createController({ prefix: "/auth" })
 
       setSessionCookie(session_id, result.sid);
 
-      return redirect(env.FRONTEND_URL);
+      const returnTo = oauth_return_to.value || "/";
+      oauth_return_to.set({ ...cookieOptions, value: "", maxAge: 0 });
+
+      return redirect(`${env.FRONTEND_URL}${returnTo}`);
     },
     {
       cookie: t.Cookie({
         session_id: t.Optional(t.String()),
+        oauth_return_to: t.Optional(t.String()),
       }),
       detail: {
         description: "Google callback endpoint",

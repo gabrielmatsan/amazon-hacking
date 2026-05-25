@@ -66,7 +66,8 @@ export const voteForTimeByIdUseCase = async (input: VoteForTimeByIdInput) => {
       {
         userId: input.userId,
         teamId: input.teamId,
-        phoneNumber: validToken.phoneNumber,
+        phoneNumber: validToken.phoneNumber ?? undefined,
+        channel: validToken.channel ?? "whatsapp",
         ipAddress: input.ipAddress,
         ipCountry: input.ipCountry,
         userAgent: input.userAgent,
