@@ -39,6 +39,7 @@ export type Team = {
   teamMembers: TeamMember[] | null;
   solutionPillar: SolutionPillar;
   videoUrl: string | null;
+  secondaryVideoUrl: string | null;
   createdAt: string;
   updatedAt: string;
 };

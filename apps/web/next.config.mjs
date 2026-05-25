@@ -1,5 +1,3 @@
-import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -36,7 +34,8 @@ const nextConfig = {
   },
 };
 
-if (process.env.NODE_ENV !== "development") {
+if (process.env.NODE_ENV === "development") {
+  const { initOpenNextCloudflareForDev } = await import("@opennextjs/cloudflare");
   initOpenNextCloudflareForDev();
 }
 

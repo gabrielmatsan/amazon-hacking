@@ -32,6 +32,7 @@ export const teamType = t.Object({
   teamMembers: t.Nullable(t.Array(teamMemberType)),
   solutionPillar: solutionPillarType,
   videoUrl: t.Nullable(t.String()),
+  secondaryVideoUrl: t.Nullable(t.String()),
   createdAt: t.Date(),
   updatedAt: t.Date(),
 });
@@ -41,6 +42,8 @@ export const createTeamBody = t.Object(
     name: t.String({ minLength: 1, error: "name is required" }),
     description: t.Optional(t.String()),
     teamMembers: t.Optional(t.Array(teamMemberType)),
+    videoUrl: t.Optional(t.Nullable(t.String())),
+    secondaryVideoUrl: t.Optional(t.Nullable(t.String())),
     slug: t.String({ minLength: 1, error: "slug is required" }),
   },
   { additionalProperties: false },
@@ -51,6 +54,8 @@ export const updateTeamBody = t.Object(
     name: t.Optional(t.String({ minLength: 1, error: "name is required" })),
     description: t.Optional(t.Nullable(t.String())),
     teamMembers: t.Optional(t.Nullable(t.Array(teamMemberType))),
+    videoUrl: t.Optional(t.Nullable(t.String())),
+    secondaryVideoUrl: t.Optional(t.Nullable(t.String())),
   },
   { additionalProperties: false },
 );
