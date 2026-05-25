@@ -28,13 +28,17 @@ describe("Teams controller — public endpoints (integration)", () => {
     expect(body).toEqual({ data: [] });
   });
 
-  it("GET /teams returns teams ordered by createdAt desc (newest first)", async () => {
+  it("GET /teams returns teams grouped by solutionPillar", async () => {
     await db.insert(teamsSchema).values({
       name: "Equipe Antiga",
+      slug: "equipe-antiga",
+      solutionPillar: "education",
       createdAt: new Date("2025-01-01T00:00:00Z"),
     });
     await db.insert(teamsSchema).values({
       name: "Equipe Nova",
+      slug: "equipe-nova",
+      solutionPillar: "education",
       createdAt: new Date("2025-12-31T00:00:00Z"),
     });
 
@@ -43,17 +47,20 @@ describe("Teams controller — public endpoints (integration)", () => {
     );
 
     const { data } = await response.json();
-    expect(data.map((t: { name: string }) => t.name)).toEqual([
+    expect(data).toHaveLength(1);
+    expect(data[0].solutionPillar).toBe("education");
+    expect(data[0].teams.map((t: { name: string }) => t.name)).toEqual([
       "Equipe Nova",
       "Equipe Antiga",
     ]);
   });
 
-  it("GET /teams/:id returns full team detail including teamMembers", async () => {
+  it("GET /teams/id/:id returns full team detail including teamMembers", async () => {
     const [created] = await db
       .insert(teamsSchema)
       .values({
         name: "Equipe Beta",
+        slug: "equipe-beta",
         description: "Detalhada",
         logoUrl: "https://cdn.example.com/beta.png",
         teamMembers: [{ name: "Maria", role: "designer" }],
@@ -61,7 +68,7 @@ describe("Teams controller — public endpoints (integration)", () => {
       .returning();
 
     const response = await app.handle(
-      new Request(`http://localhost/teams/${created.id}`)
+      new Request(`http://localhost/teams/id/${created.id}`)
     );
 
     expect(response.status).toBe(200);
@@ -76,9 +83,26 @@ describe("Teams controller — public endpoints (integration)", () => {
     expect(data.createdAt).toBeString();
   });
 
-  it("GET /teams/:id returns 404 when team does not exist", async () => {
+  it("GET /teams/slug/:slug returns full team detail by slug", async () => {
+    await db.insert(teamsSchema).values({
+      name: "Equipe Gamma",
+      slug: "equipe-gamma",
+      description: "Por slug",
+    });
+
     const response = await app.handle(
-      new Request("http://localhost/teams/nonexistent-id-123")
+      new Request("http://localhost/teams/slug/equipe-gamma")
+    );
+
+    expect(response.status).toBe(200);
+    const { data } = await response.json();
+    expect(data.name).toBe("Equipe Gamma");
+    expect(data.slug).toBe("equipe-gamma");
+  });
+
+  it("GET /teams/slug/:slug returns 404 when team does not exist", async () => {
+    const response = await app.handle(
+      new Request("http://localhost/teams/slug/nonexistent-slug")
     );
 
     expect(response.status).toBe(404);
@@ -92,6 +116,7 @@ describe("Teams controller — public endpoints (integration)", () => {
   it("GET /teams returns each team with public fields only (no teamMembers)", async () => {
     await db.insert(teamsSchema).values({
       name: "Equipe Alpha",
+      slug: "equipe-alpha",
       description: "A primeira equipe",
       logoUrl: "https://cdn.example.com/alpha.png",
       teamMembers: [{ name: "João", role: "dev" }],
@@ -104,10 +129,12 @@ describe("Teams controller — public endpoints (integration)", () => {
     expect(response.status).toBe(200);
     const { data } = await response.json();
     expect(data).toHaveLength(1);
-    expect(data[0]).toEqual({
+    expect(data[0].solutionPillar).toBe("default");
+    expect(data[0].teams).toHaveLength(1);
+    expect(data[0].teams[0]).toEqual({
       id: expect.any(String),
       name: "Equipe Alpha",
-      description: "A primeira equipe",
+      slug: "equipe-alpha",
       logoUrl: "https://cdn.example.com/alpha.png",
     });
   });

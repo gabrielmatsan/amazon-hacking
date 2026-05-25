@@ -1,0 +1,1 @@
+ALTER TABLE "teams" ADD COLUMN "video_url" varchar(500);

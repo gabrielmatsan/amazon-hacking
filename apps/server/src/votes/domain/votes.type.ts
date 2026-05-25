@@ -1,3 +1,4 @@
+import { voteTokenChannel } from "@/votes-token/domain/votes-tokens.schema";
 import { t, type Static } from "elysia";
 
 // export const voteSources = {
@@ -11,11 +12,18 @@ export const voteStatus = {
   invalidated: "invalidated",
 } as const;
 
+export const voteTokenChannelType = {
+  whatsapp: "whatsapp",
+  email: "email",
+} as const;
+
 
 export const voteType = t.Object({
   id: t.String(),
   userId: t.String(),
   teamId: t.String(),
+  phoneNumber: t.Nullable(t.String()),
+  channel: t.Enum(voteTokenChannelType),
   status: t.Enum(voteStatus),
   ipAddress: t.Nullable(t.String()),
   ipCountry: t.Nullable(t.String()),
@@ -27,4 +35,5 @@ export const voteType = t.Object({
 
 export type VoteType = Static<typeof voteType>;
 export type VoteStatusType = VoteType["status"];
+export type VoteTokenChannelType = VoteType["channel"];
 //export type VoteSourceType = VoteType["source"];

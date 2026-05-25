@@ -10,6 +10,7 @@ const nextConfig = {
       { protocol: "https", hostname: "pub-fa05dfe540d6495ab86c69ad7eea34db.r2.dev" },
       { protocol: "https", hostname: "img.youtube.com" },
       { protocol: "https", hostname: "i.ytimg.com" },
+      { protocol: "https", hostname: "picsum.photos" },
     ],
   },
   experimental: {
@@ -23,6 +24,7 @@ const nextConfig = {
     return [
       { source: "/", destination: "/pt-br" },
       { source: "/solucoes", destination: "/pt-br/solucoes" },
+      { source: "/solucoes/:slug", destination: "/pt-br/solucoes/:slug" },
       { source: "/privacy-policy", destination: "/pt-br/privacy-policy" },
     ];
   },
@@ -34,6 +36,8 @@ const nextConfig = {
   },
 };
 
-initOpenNextCloudflareForDev();
+if (process.env.NODE_ENV !== "development") {
+  initOpenNextCloudflareForDev();
+}
 
 export default nextConfig;

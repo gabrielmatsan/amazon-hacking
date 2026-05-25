@@ -14,12 +14,24 @@ export const teamMemberType = t.Object({
   ),
 });
 
+export const solutionPillarType = t.Union([
+  t.Literal("digital_agriculture"),
+  t.Literal("bioeconomy"),
+  t.Literal("logistics"),
+  t.Literal("education"),
+  t.Literal("health"),
+  t.Literal("default"),
+]);
+
 export const teamType = t.Object({
   id: t.String(),
   name: t.String(),
   description: t.Nullable(t.String()),
+  slug: t.String(),
   logoUrl: t.Nullable(t.String()),
   teamMembers: t.Nullable(t.Array(teamMemberType)),
+  solutionPillar: solutionPillarType,
+  videoUrl: t.Nullable(t.String()),
   createdAt: t.Date(),
   updatedAt: t.Date(),
 });
@@ -29,6 +41,7 @@ export const createTeamBody = t.Object(
     name: t.String({ minLength: 1, error: "name is required" }),
     description: t.Optional(t.String()),
     teamMembers: t.Optional(t.Array(teamMemberType)),
+    slug: t.String({ minLength: 1, error: "slug is required" }),
   },
   { additionalProperties: false },
 );
@@ -44,5 +57,6 @@ export const updateTeamBody = t.Object(
 
 export type Team = Static<typeof teamType>;
 export type TeamMember = Static<typeof teamMemberType>;
+export type SolutionPillar = Static<typeof solutionPillarType>;
 export type CreateTeamBody = Static<typeof createTeamBody>;
 export type UpdateTeamBody = Static<typeof updateTeamBody>;

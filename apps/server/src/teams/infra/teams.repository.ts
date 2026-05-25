@@ -1,14 +1,8 @@
-import { desc, eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 import { db } from "@/shared/infra/databases/postgres";
-import { teamsSchema } from "../domain/teams.schema";
-import type { Team, TeamMember } from "../domain/teams.type";
-
-export type CreateTeamData = {
-  name: string;
-  description?: string;
-  teamMembers?: TeamMember[];
-};
+import { teamsSchema, type NewTeam } from "../domain/teams.schema";
+import type { SolutionPillar, Team, TeamMember } from "../domain/teams.type";
 
 export type UpdateTeamData = {
   name?: string;
@@ -16,19 +10,46 @@ export type UpdateTeamData = {
   teamMembers?: TeamMember[] | null;
 };
 
+export type TeamListItem = {
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl: string | null;
+};
+
+export type TeamListGroup = {
+  solutionPillar: SolutionPillar;
+  teams: TeamListItem[];
+};
+
 export const TeamsRepository = {
-  async findAllPublic(): Promise<Pick<Team, "id" | "name" | "description" | "logoUrl">[]> {
+  async findBySlug(slug: string): Promise<Team | null> {
+    const [team] = await db
+      .select()
+      .from(teamsSchema)
+      .where(eq(teamsSchema.slug, slug));
+    return team;
+  },
+
+  async findAllPublic(): Promise<TeamListGroup[]> {
     const teams = await db
       .select({
-        id: teamsSchema.id,
-        name: teamsSchema.name,
-        description: teamsSchema.description,
-        logoUrl: teamsSchema.logoUrl,
+        solutionPillar: teamsSchema.solutionPillar,
+        teams: sql<TeamListItem[]>`json_agg(
+          json_build_object(
+            'id', ${teamsSchema.id},
+            'name', ${teamsSchema.name},
+            'slug', ${teamsSchema.slug},
+            'logoUrl', ${teamsSchema.logoUrl}
+          )
+          order by ${teamsSchema.createdAt} desc
+        )`,
       })
       .from(teamsSchema)
-      .orderBy(desc(teamsSchema.createdAt));
+      .groupBy(teamsSchema.solutionPillar)
+      .orderBy(teamsSchema.solutionPillar);
 
-    return teams
+    return teams;
   },
 
   async findById(id: string): Promise<Team | null> {
@@ -40,13 +61,11 @@ export const TeamsRepository = {
     return team;
   },
 
-  async create(data: CreateTeamData): Promise<Team> {
+  async create(data: NewTeam): Promise<Team> {
     const [team] = await db
       .insert(teamsSchema)
       .values({
-        name: data.name,
-        description: data.description ?? null,
-        teamMembers: data.teamMembers ?? null,
+        ...data,
       })
       .returning();
 

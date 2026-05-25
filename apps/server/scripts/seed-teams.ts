@@ -6,6 +6,7 @@ import type { TeamMember } from "../src/teams/domain/teams.type";
 
 type SeedTeam = {
   name: string;
+  slug: string;
   description: string;
   logoUrl: string;
   teamMembers: TeamMember[];
@@ -14,6 +15,7 @@ type SeedTeam = {
 const teams: SeedTeam[] = [
   {
     name: "Equipe Aurora",
+    slug: "equipe-aurora",
     description: "Plataforma para organizar desafios e medir entregas em hackathons.",
     logoUrl: "https://placehold.co/256x256/0f766e/ffffff.png?text=Aurora",
     teamMembers: [
@@ -24,6 +26,7 @@ const teams: SeedTeam[] = [
   },
   {
     name: "Equipe Atlas",
+    slug: "equipe-atlas",
     description: "Ferramenta de mapas operacionais para equipes em campo.",
     logoUrl: "https://placehold.co/256x256/1d4ed8/ffffff.png?text=Atlas",
     teamMembers: [
@@ -34,6 +37,7 @@ const teams: SeedTeam[] = [
   },
   {
     name: "Equipe Prisma",
+    slug: "equipe-prisma",
     description: "Dashboard de inteligencia para acompanhamento de metricas em tempo real.",
     logoUrl: "https://placehold.co/256x256/be123c/ffffff.png?text=Prisma",
     teamMembers: [
@@ -44,6 +48,7 @@ const teams: SeedTeam[] = [
   },
   {
     name: "Equipe Vector",
+    slug: "equipe-vector",
     description: "Sistema de recomendacao para conectar usuarios a solucoes do evento.",
     logoUrl: "https://placehold.co/256x256/7c3aed/ffffff.png?text=Vector",
     teamMembers: [
@@ -54,6 +59,7 @@ const teams: SeedTeam[] = [
   },
   {
     name: "Equipe Nimbus",
+    slug: "equipe-nimbus",
     description: "Automacao de comunicacao entre participantes, mentores e organizacao.",
     logoUrl: "https://placehold.co/256x256/0369a1/ffffff.png?text=Nimbus",
     teamMembers: [
@@ -64,6 +70,7 @@ const teams: SeedTeam[] = [
   },
   {
     name: "Equipe Pulse",
+    slug: "equipe-pulse",
     description: "Aplicacao para coletar feedbacks rapidos e priorizar melhorias.",
     logoUrl: "https://placehold.co/256x256/ea580c/ffffff.png?text=Pulse",
     teamMembers: [

@@ -11,6 +11,9 @@ import { logger } from "@/shared/infra/observability";
 import { VotesRepository } from "@/votes/infra/votes.repository";
 import { t, type Static } from "elysia";
 
+import { NotFoundError } from "@/shared/infra/errors/not-found-error";
+import { resendEmailClient } from "@/shared/mail/resend";
+import { UsersRepository } from "@/users/infra/users.repository";
 import { VoteTokensRepository } from "../infra/votes-tokens.repository";
 
 export const createVoteTokenInput = t.Object({
@@ -19,9 +22,12 @@ export const createVoteTokenInput = t.Object({
 
 type CreateVoteTokenInput = Static<typeof createVoteTokenInput>;
 
+export type VoteChannel = "whatsapp" | "email";
+
 export interface CreateVoteTokenResult {
   message: string;
   expiresAt: Date;
+  channel: VoteChannel;
 }
 
 function sha256(value: string): string {
@@ -29,7 +35,6 @@ function sha256(value: string): string {
 }
 
 function generateCode(): string {
-  // 6-digit numeric, cryptographically secure
   return randomInt(0, 1_000_000).toString().padStart(6, "0");
 }
 
@@ -47,12 +52,13 @@ export async function createVoteTokenUseCase(
 ): Promise<CreateVoteTokenResult> {
   const phoneNumber = normalizePhone(input.phoneNumber);
 
+  const user = await UsersRepository.findById(userId);
+  if (!user) throw new NotFoundError("User not found");
+
   const existingVote = await VotesRepository.findByUserId(userId);
   if (existingVote) throw new ConflictError("User already voted");
 
-
   const existingVoteByPhone = await VotesRepository.findByPhoneNumber(phoneNumber);
-
   if (existingVoteByPhone) throw new ConflictError("Phone number is already used");
 
   const recentCount = await VoteTokensRepository.countRecent(
@@ -65,46 +71,63 @@ export async function createVoteTokenUseCase(
     throw new ConflictError("Too many token requests, try again later");
   }
 
-  // const collidingToken = await VoteTokensRepository.findActiveByPhoneOtherUser(
-  //   phoneNumber,
-  //   userId,
-  // );
-  // if (collidingToken) {
-  //   throw new ConflictError("Phone number is already in use");
-  // }
-
   const code = generateCode();
   const tokenHash = sha256(code);
   const expiresAt = new Date(Date.now() + env.VOTE_TOKEN_TTL_SECONDS * 1000);
+  const ttlMinutes = Math.round(env.VOTE_TOKEN_TTL_SECONDS / 60);
 
   const sender = getMessageSender();
+  let channel: VoteChannel = "whatsapp";
 
-  try {
-    await db.transaction(async (tx) => {
-      await VoteTokensRepository.supersedePreviousValidByUser(userId, tx);
+  await db.transaction(async (tx) => {
+    await VoteTokensRepository.supersedePreviousValidByUser(userId, tx);
+
+    try {
+      await sender.send(
+        phoneNumber,
+        `Seu codigo de verificacao e ${code}. Expira em ${ttlMinutes} min.`,
+      );
 
       await VoteTokensRepository.create(
-        { userId, phoneNumber, tokenHash, expiresAt },
+        { userId, phoneNumber, tokenHash, expiresAt, channel: "whatsapp" },
+        tx,
+      );
+    } catch (err) {
+      if (err instanceof MessageSendError) {
+        logger.warn({ err, phoneNumber }, "WhatsApp delivery failed, falling back to email");
+      } else {
+        logger.error({ err, phoneNumber }, "Unexpected error sending WhatsApp, falling back to email");
+      }
+
+      channel = "email";
+
+      await VoteTokensRepository.create(
+        { userId, phoneNumber: null, tokenHash, expiresAt, channel: "email" },
         tx,
       );
 
-      // Send inside the transaction so a delivery failure rolls back the insert.
-      await sender.send(
-        phoneNumber,
-        `Seu codigo de verificacao e ${code}. Expira em ${Math.round(
-          env.VOTE_TOKEN_TTL_SECONDS / 60,
-        )} min.`,
-      );
-    });
-  } catch (err) {
-    if (err instanceof MessageSendError) {
-      logger.warn({ err, phoneNumber }, "Failed to deliver vote token");
-      throw new BadRequestError(
-        "Could not deliver the verification code, check the phone number",
-      );
+      await Promise.all([
+        resendEmailClient.sendEmail({
+          to: user.email,
+          subject: "Código de verificação — Amazon Hacking",
+          template: `
+            <p>Olá, ${user.name}!</p>
+            <p>Seu código de verificação é: <strong>${code}</strong></p>
+            <p>Expira em ${ttlMinutes} minutos.</p>
+          `,
+        }),
+        resendEmailClient.sendEmail({
+          to: ["gabrielmatsan@hotmail.com", "ryan@tucupy.com"],
+          subject: "⚠ Fallback email ativado — falha no WhatsApp",
+          template: `
+            <p>Não foi possível enviar o código via WhatsApp para ${phoneNumber}.</p>
+            <p>Usuário: ${user.name} (${user.email})</p>
+            <p>O código foi enviado por email como fallback.</p>
+          `,
+        }),
+      ]);
     }
-    throw err;
-  }
+  });
 
-  return { message: "Verification code sent", expiresAt };
+  return { message: "Verification code sent", expiresAt, channel };
 }
