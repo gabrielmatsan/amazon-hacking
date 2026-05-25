@@ -59,9 +59,12 @@ export type VoteResponse = {
   message: string;
 };
 
+export type VoteChannel = "whatsapp" | "email";
+
 export type VoteTokenResponse = {
   message: string;
   expiresAt: string;
+  channel: VoteChannel;
 };
 
 export type ApiErrorBody = {
