@@ -65,6 +65,7 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
 
   const isLoggedIn = !!user;
   const hasVoted = !!myVote;
+  const votedForThisTeam = hasVoted && myVote.teamId === team?.id;
   const loginUrl = getGoogleLoginUrl(pathname);
 
   if (isLoading) {
@@ -179,17 +180,23 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
         {authLoading ? (
           <div className="mt-5 size-6 animate-spin rounded-full border-2 border-primary-100/30 border-t-primary-100" />
         ) : hasVoted ? (
-          <>
-            <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-secondary-100 px-5 py-3 text-sm font-semibold text-white">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-                <path d="M3 8.5l3.5 3.5L13 4.5" stroke="currentColor" strokeWidth="2" />
-              </svg>
-              {m.vote_voted({}, { locale })}
+          votedForThisTeam ? (
+            <>
+              <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-secondary-100 px-5 py-3 text-sm font-semibold text-white">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                  <path d="M3 8.5l3.5 3.5L13 4.5" stroke="currentColor" strokeWidth="2" />
+                </svg>
+                {m.vote_voted({}, { locale })}
+              </div>
+              <p className="mt-3 text-xs text-neutrals-400">
+                {m.vote_thanks({}, { locale })}
+              </p>
+            </>
+          ) : (
+            <div className="mt-5 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+              {m.vote_already_voted_other({}, { locale })}
             </div>
-            <p className="mt-3 text-xs text-neutrals-400">
-              {m.vote_thanks({}, { locale })}
-            </p>
-          </>
+          )
         ) : isLoggedIn ? (
           <VoteFlow teamId={team.id} locale={locale} />
         ) : (
