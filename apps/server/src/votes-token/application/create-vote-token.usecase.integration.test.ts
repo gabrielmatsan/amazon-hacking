@@ -10,12 +10,21 @@ import { votesTokensSchema } from "@/votes-token/domain/votes-tokens.schema";
 import { votesSchema } from "@/votes/domain/votes.schema";
 import { teamsSchema } from "@/teams/domain/teams.schema";
 
+import { normalizeEmail } from "@/shared/utils/normalize-email";
 import { createVoteTokenUseCase } from "./create-vote-token.usecase";
 
 const mockSendEmail = mock(() => Promise.resolve({ success: true }));
 
 mock.module("@/shared/mail/resend", () => ({
   resendEmailClient: { sendEmail: mockSendEmail },
+}));
+
+mock.module("@/shared/infra/proxy-api/proxy-api-client", () => ({
+  proxyApiClient: {
+    assessRisk: mock(() => Promise.resolve(null)),
+    checkIp: mock(() => Promise.resolve(null)),
+    checkBatch: mock(() => Promise.resolve(new Map())),
+  },
 }));
 
 describe("createVoteTokenUseCase (integration)", () => {
@@ -29,11 +38,13 @@ describe("createVoteTokenUseCase (integration)", () => {
   });
 
   async function seedUser(name = "Test User") {
+    const email = IntegrationTestHelper.generateTestEmail();
     const [user] = await db
       .insert(usersSchema)
       .values({
         name,
-        email: IntegrationTestHelper.generateTestEmail(),
+        email,
+        normalizedEmail: normalizeEmail(email),
       })
       .returning();
     return user;

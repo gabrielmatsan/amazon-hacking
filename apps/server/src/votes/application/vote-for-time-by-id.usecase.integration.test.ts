@@ -6,6 +6,7 @@ import { db } from "@/shared/infra/databases/postgres";
 import { ConflictError } from "@/shared/infra/errors/conflict-error";
 import { UnauthorizedError } from "@/shared/infra/errors/unauthorized-error";
 import { MessageSendError, setMessageSenderForTests } from "@/shared/infra/messaging";
+import { normalizeEmail } from "@/shared/utils/normalize-email";
 import { IntegrationTestHelper } from "@/shared/utils/test-helpers/integration-test-helper";
 import { teamsSchema } from "@/teams/domain/teams.schema";
 import { usersSchema } from "@/users/domain/users.schema";
@@ -18,6 +19,14 @@ import { voteForTimeByIdUseCase } from "./vote-for-time-by-id.usecase";
 mock.module("@/shared/mail/resend", () => ({
   resendEmailClient: {
     sendEmail: mock(() => Promise.resolve({ success: true })),
+  },
+}));
+
+mock.module("@/shared/infra/proxy-api/proxy-api-client", () => ({
+  proxyApiClient: {
+    assessRisk: mock(() => Promise.resolve(null)),
+    checkIp: mock(() => Promise.resolve(null)),
+    checkBatch: mock(() => Promise.resolve(new Map())),
   },
 }));
 
@@ -40,6 +49,15 @@ async function seedToken(
   });
 }
 
+async function seedUser(name = "Test User") {
+  const email = IntegrationTestHelper.generateTestEmail();
+  const [user] = await db
+    .insert(usersSchema)
+    .values({ name, email, normalizedEmail: normalizeEmail(email) })
+    .returning();
+  return user;
+}
+
 describe("voteForTimeByIdUseCase", () => {
   beforeAll(async () => {
     await IntegrationTestHelper.setupTestDatabase();
@@ -50,13 +68,7 @@ describe("voteForTimeByIdUseCase", () => {
   });
 
   it("creates a vote via whatsapp with phone number", async () => {
-    const [user] = await db
-      .insert(usersSchema)
-      .values({
-        name: "Maria",
-        email: IntegrationTestHelper.generateTestEmail(),
-      })
-      .returning();
+    const user = await seedUser("Maria");
 
     const [team] = await db
       .insert(teamsSchema)
@@ -82,13 +94,7 @@ describe("voteForTimeByIdUseCase", () => {
   });
 
   it("creates a vote via email fallback with null phone number", async () => {
-    const [user] = await db
-      .insert(usersSchema)
-      .values({
-        name: "Carlos",
-        email: IntegrationTestHelper.generateTestEmail(),
-      })
-      .returning();
+    const user = await seedUser("Carlos");
 
     const [team] = await db
       .insert(teamsSchema)
@@ -113,13 +119,7 @@ describe("voteForTimeByIdUseCase", () => {
   });
 
   it("rejects a wrong token and increments attempts", async () => {
-    const [user] = await db
-      .insert(usersSchema)
-      .values({
-        name: "Joao",
-        email: IntegrationTestHelper.generateTestEmail(),
-      })
-      .returning();
+    const user = await seedUser("Joao");
 
     const [team] = await db
       .insert(teamsSchema)
@@ -143,13 +143,7 @@ describe("voteForTimeByIdUseCase", () => {
   });
 
   it("does not allow the same user to vote twice", async () => {
-    const [user] = await db
-      .insert(usersSchema)
-      .values({
-        name: "Maria",
-        email: IntegrationTestHelper.generateTestEmail(),
-      })
-      .returning();
+    const user = await seedUser("Maria");
 
     const [firstTeam] = await db
       .insert(teamsSchema)
@@ -185,15 +179,8 @@ describe("voteForTimeByIdUseCase", () => {
   });
 
   it("email fallback vote (null phone) does not block another user from using the same phone", async () => {
-    const [userA] = await db
-      .insert(usersSchema)
-      .values({ name: "User A", email: IntegrationTestHelper.generateTestEmail() })
-      .returning();
-
-    const [userB] = await db
-      .insert(usersSchema)
-      .values({ name: "User B", email: IntegrationTestHelper.generateTestEmail() })
-      .returning();
+    const userA = await seedUser("User A");
+    const userB = await seedUser("User B");
 
     const [teamA] = await db
       .insert(teamsSchema)
@@ -243,10 +230,7 @@ describe("voteForTimeByIdUseCase", () => {
       send: mock(() => { throw new MessageSendError("Evolution API down"); }),
     });
 
-    const [user] = await db
-      .insert(usersSchema)
-      .values({ name: "Fallback User", email: IntegrationTestHelper.generateTestEmail() })
-      .returning();
+    const user = await seedUser("Fallback User");
 
     const [team] = await db
       .insert(teamsSchema)

@@ -13,11 +13,13 @@ import { votesSchema } from "@/votes/domain/votes.schema";
 import { adminController } from "./admin.controller";
 
 async function seedUser(role: UserRole = "user") {
+  const email = `${role}-${Date.now()}-${Math.random()}@example.com`;
   const [user] = await db
     .insert(usersSchema)
     .values({
       name: `${role} user`,
-      email: `${role}-${Date.now()}-${Math.random()}@example.com`,
+      email,
+      normalizedEmail: email.toLowerCase(),
       role,
     })
     .returning();
@@ -369,14 +371,14 @@ describe("Admin teams controller (integration)", () => {
         ])
         .returning();
 
+      const voterEmails = Array.from({ length: 4 }, () => IntegrationTestHelper.generateTestEmail());
       const users = await db
         .insert(usersSchema)
-        .values([
-          { name: "Voter 1", email: IntegrationTestHelper.generateTestEmail() },
-          { name: "Voter 2", email: IntegrationTestHelper.generateTestEmail() },
-          { name: "Voter 3", email: IntegrationTestHelper.generateTestEmail() },
-          { name: "Voter 4", email: IntegrationTestHelper.generateTestEmail() },
-        ])
+        .values(voterEmails.map((email, i) => ({
+          name: `Voter ${i + 1}`,
+          email,
+          normalizedEmail: email.toLowerCase(),
+        })))
         .returning();
 
       await db.insert(votesSchema).values([

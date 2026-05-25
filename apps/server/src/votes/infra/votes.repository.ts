@@ -1,6 +1,7 @@
 import { db, type Transaction } from "@/shared/infra/databases/postgres";
 import { teamsSchema } from "@/teams/domain/teams.schema";
-import { count, eq } from "drizzle-orm";
+import { usersSchema } from "@/users/domain/users.schema";
+import { and, count, eq } from "drizzle-orm";
 import { votesSchema, type NewVote } from "../domain/votes.schema";
 import type { VoteType } from "../domain/votes.type";
 
@@ -32,6 +33,20 @@ export const VotesRepository = {
       .onConflictDoNothing()
       .returning();
     return vote ?? null;
+  },
+
+  async countByNormalizedEmail(normalizedEmail: string): Promise<number> {
+    const [row] = await db
+      .select({ value: count() })
+      .from(votesSchema)
+      .innerJoin(usersSchema, eq(votesSchema.userId, usersSchema.id))
+      .where(
+        and(
+          eq(usersSchema.normalizedEmail, normalizedEmail),
+          eq(votesSchema.status, "valid"),
+        ),
+      );
+    return Number(row?.value ?? 0);
   },
 
   async votesCount() {

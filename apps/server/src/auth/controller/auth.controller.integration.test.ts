@@ -33,11 +33,13 @@ async function flushSessionKeys() {
 }
 
 async function seedUserWithSession(role: UserRole = "user") {
+  const email = `${role}-${Date.now()}-${Math.random()}@example.com`;
   const [user] = await db
     .insert(usersSchema)
     .values({
       name: `${role} user`,
-      email: `${role}-${Date.now()}-${Math.random()}@example.com`,
+      email,
+      normalizedEmail: email.toLowerCase(),
       role,
     })
     .returning();

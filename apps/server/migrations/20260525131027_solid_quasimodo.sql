@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "normalized_email" varchar(255);

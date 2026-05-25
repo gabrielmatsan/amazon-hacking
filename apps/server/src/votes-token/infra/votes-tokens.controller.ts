@@ -73,6 +73,7 @@ export const votesTokensController = createController({
         }),
         400: errorResponse,
         401: errorResponse,
+        403: errorResponse,
         409: errorResponse,
         422: errorResponse,
       },

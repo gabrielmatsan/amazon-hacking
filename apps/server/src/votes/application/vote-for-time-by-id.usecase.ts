@@ -3,8 +3,10 @@ import { createHash } from "crypto";
 import { db } from "@/shared/infra/databases/postgres";
 import { env } from "@/shared/infra/env/env";
 import { ConflictError } from "@/shared/infra/errors/conflict-error";
+import { ForbiddenError } from "@/shared/infra/errors/forbidden-error";
 import { NotFoundError } from "@/shared/infra/errors/not-found-error";
 import { UnauthorizedError } from "@/shared/infra/errors/unauthorized-error";
+import { normalizeEmail } from "@/shared/utils/normalize-email";
 import { TeamsRepository } from "@/teams/infra/teams.repository";
 import { UsersRepository } from "@/users/infra/users.repository";
 import { VoteTokensRepository } from "@/votes-token/infra/votes-tokens.repository";
@@ -40,6 +42,11 @@ export const voteForTimeByIdUseCase = async (input: VoteForTimeByIdInput) => {
 
   const existingVote = await VotesRepository.findByUserId(input.userId);
   if (existingVote) throw new ConflictError("User already voted");
+
+  const votesByEmail = await VotesRepository.countByNormalizedEmail(normalizeEmail(user.email));
+  if (votesByEmail >= env.MAX_VOTES_PER_NORMALIZED_EMAIL) {
+    throw new ForbiddenError("Vote limit reached for this email");
+  }
 
   const tokenHash = sha256(input.token);
 
