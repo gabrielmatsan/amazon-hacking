@@ -2,6 +2,7 @@ import { NotFoundError } from "@/shared/infra/errors/not-found-error";
 import { resendEmailClient } from "@/shared/mail/resend/index";
 import { UsersRepository } from "@/users/infra/users.repository";
 
+import { logger } from "@/shared/infra/observability";
 import type { Team } from "../domain/teams.type";
 import { TeamsRepository } from "../infra/teams.repository";
 
@@ -17,7 +18,9 @@ export async function rejectTeamUseCase(id: string, reason: string): Promise<Tea
   });
 
   const leader = await UsersRepository.findByTeamId(id);
+  logger.info({ leader: leader?.email }, "Leader found");
   if (leader) {
+    logger.info({ leader }, "Sending email to leader");
     await resendEmailClient.sendEmail({
       to: leader.email,
       subject: `Equipe "${existing.name}" — Revisão necessária`,

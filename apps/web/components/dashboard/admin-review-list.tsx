@@ -35,8 +35,8 @@ function RejectDialog({
   const [reason, setReason] = useState("");
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/50 p-4">
-      <div className="w-full max-w-md rounded-xl border border-neutral-200 bg-white p-6 shadow-lg">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-neutral-900/50 p-4">
+      <div className="w-full max-w-md max-h-[90dvh] overflow-y-auto rounded-xl border border-neutral-200 bg-white p-6 shadow-lg">
         <h3 className="text-base font-semibold text-neutral-900">
           Rejeitar equipe
         </h3>
@@ -53,25 +53,22 @@ function RejectDialog({
           placeholder="Ex: A logo não atende aos requisitos mínimos..."
           aria-label="Motivo da rejeição"
         />
-        <div className="mt-4 flex justify-end gap-2">
-          <Button
+        <div className="mt-4 flex justify-center gap-2">
+          <button
             type="button"
-            variant="outline"
-            size="sm"
             onClick={onCancel}
+            className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
           >
             Cancelar
-          </Button>
-          <Button
+          </button>
+          <button
             type="button"
-            variant="destructive"
-            size="sm"
-            loading={loading}
-            disabled={!reason.trim()}
+            disabled={!reason.trim() || loading}
             onClick={() => onConfirm(reason.trim())}
+            className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
           >
-            Confirmar rejeição
-          </Button>
+            {loading ? "Enviando..." : "Confirmar rejeição"}
+          </button>
         </div>
       </div>
     </div>
