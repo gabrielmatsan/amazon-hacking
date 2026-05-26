@@ -577,6 +577,7 @@ describe("Admin teams controller (integration)", () => {
             votingStartsAt: "2026-06-01T08:00:00.000Z",
             votingEndsAt: "2026-06-01T18:00:00.000Z",
             votingEnabled: true,
+            maxRiskScore: 33,
           }),
         }),
       );
@@ -609,6 +610,7 @@ describe("Admin teams controller (integration)", () => {
             votingStartsAt: null,
             votingEndsAt: null,
             votingEnabled: false,
+            maxRiskScore: 50,
           }),
         }),
       );

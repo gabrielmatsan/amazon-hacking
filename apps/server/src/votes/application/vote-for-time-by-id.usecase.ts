@@ -83,7 +83,7 @@ export const voteForTimeByIdUseCase = async (input: VoteForTimeByIdInput) => {
     if (proxyCheckResult) {
       const d = proxyCheckResult.detections;
 
-      if (d.risk > maxRiskScore) {
+      if (d.risk >= maxRiskScore) {
         logger.warn(
           { userId: input.userId, ipAddress: input.ipAddress, risk: d.risk, maxRiskScore },
           "Vote blocked: risk score exceeds configured limit",
