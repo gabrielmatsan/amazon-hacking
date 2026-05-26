@@ -20,7 +20,10 @@ export const UsersRepository = {
   },
 
   async findByTeamId(teamId: string): Promise<User | null> {
-    const [user] = await db.select().from(usersSchema).where(eq(usersSchema.teamId, teamId));
+    const [user] = await db
+      .select()
+      .from(usersSchema)
+      .where(eq(usersSchema.teamId, teamId));
     return user ?? null;
   },
 
