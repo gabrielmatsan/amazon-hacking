@@ -132,10 +132,10 @@ export function AdminVotesDashboard() {
                             <img
                               src={team.logoUrl}
                               alt=""
-                              className="size-7 rounded-md border border-neutral-200 object-cover"
+                              className="size-7 rounded-full border border-neutral-200 object-cover"
                             />
                           ) : (
-                            <div className="flex size-7 items-center justify-center rounded-md bg-neutral-100 text-xs font-semibold text-neutral-400">
+                            <div className="flex size-7 items-center justify-center rounded-full bg-neutral-100 text-xs font-semibold text-neutral-400">
                               {team.teamName.charAt(0)}
                             </div>
                           )}

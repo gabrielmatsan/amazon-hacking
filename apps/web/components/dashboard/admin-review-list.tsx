@@ -98,10 +98,10 @@ function TeamPreviewCard({
               <img
                 src={team.logoUrl}
                 alt={`Logo ${team.name}`}
-                className="size-10 rounded-lg border border-neutral-200 object-cover"
+                className="size-10 rounded-full border border-neutral-200 object-cover"
               />
             ) : (
-              <div className="flex size-10 items-center justify-center rounded-lg bg-neutral-100 text-sm font-semibold text-neutral-400">
+              <div className="flex size-10 items-center justify-center rounded-full bg-neutral-100 text-sm font-semibold text-neutral-400">
                 {team.name.charAt(0).toUpperCase()}
               </div>
             )}
