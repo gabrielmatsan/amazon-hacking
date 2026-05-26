@@ -73,7 +73,7 @@ export const createLeaderTeamBody = t.Object(
   {
     name: t.String({ minLength: 1, error: "name is required" }),
     description: t.Optional(t.String()),
-    teamMembers: t.Optional(t.Array(teamMemberType)),
+    teamMembers: t.Optional(t.Array(teamMemberType, { maxItems: 11 })),
     videoUrl: t.Optional(t.Nullable(t.String())),
     secondaryVideoUrl: t.Optional(t.Nullable(t.String())),
     solutionPillar: t.Optional(solutionPillarType),
@@ -86,7 +86,7 @@ export const updateLeaderTeamBody = t.Object(
   {
     name: t.Optional(t.String({ minLength: 1, error: "name is required" })),
     description: t.Optional(t.Nullable(t.String())),
-    teamMembers: t.Optional(t.Nullable(t.Array(teamMemberType))),
+    teamMembers: t.Optional(t.Nullable(t.Array(teamMemberType, { maxItems: 11 }))),
     videoUrl: t.Optional(t.Nullable(t.String())),
     secondaryVideoUrl: t.Optional(t.Nullable(t.String())),
     solutionPillar: t.Optional(solutionPillarType),

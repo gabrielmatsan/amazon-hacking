@@ -1,19 +1,18 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { PlusIcon, TrashIcon, UploadIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUploadLeaderImage } from "@/hooks/use-leader-team";
-import type { Team, TeamMember, SolutionPillar } from "@/lib/api/types";
 import type { CreateLeaderTeamInput } from "@/lib/api/leader";
+import type { SolutionPillar, Team, TeamMember } from "@/lib/api/types";
+import { PlusIcon, TrashIcon, UploadIcon, XIcon } from "lucide-react";
+import { useRef, useState } from "react";
 
 const PILLAR_OPTIONS: { value: SolutionPillar; label: string }[] = [
   { value: "digital_agriculture", label: "Agricultura Digital" },
   { value: "bioeconomy", label: "Bioeconomia" },
-  { value: "logistics", label: "Logística" },
   { value: "education", label: "Educação" },
+  { value: "logistics", label: "Logística" },
   { value: "health", label: "Saúde" },
-  { value: "default", label: "Outro" },
 ];
 
 type TeamFormProps = {
@@ -29,8 +28,8 @@ function emptyMember(): TeamMember {
 export function TeamForm({ team, onSubmit, loading }: TeamFormProps) {
   const [name, setName] = useState(team?.name ?? "");
   const [description, setDescription] = useState(team?.description ?? "");
-  const [solutionPillar, setSolutionPillar] = useState<SolutionPillar>(
-    team?.solutionPillar ?? "default",
+  const [solutionPillar, setSolutionPillar] = useState<SolutionPillar | "">(
+    team?.solutionPillar ?? "",
   );
   const [logoUrl, setLogoUrl] = useState<string | null>(team?.logoUrl ?? null);
   const [videoUrl, setVideoUrl] = useState(team?.videoUrl ?? "");
@@ -82,7 +81,7 @@ export function TeamForm({ team, onSubmit, loading }: TeamFormProps) {
     onSubmit({
       name: name.trim(),
       description: description.trim() || undefined,
-      solutionPillar,
+      solutionPillar: solutionPillar as SolutionPillar,
       logoUrl,
       videoUrl: videoUrl.trim() || null,
       secondaryVideoUrl: secondaryVideoUrl.trim() || null,
@@ -188,8 +187,10 @@ export function TeamForm({ team, onSubmit, loading }: TeamFormProps) {
             onChange={(e) =>
               setSolutionPillar(e.target.value as SolutionPillar)
             }
+            required
             className="col-span-full row-start-1 w-full appearance-none rounded-lg border border-neutral-300 bg-white px-3 py-2 pr-8 text-sm text-neutral-900 outline-none ring-1 ring-transparent focus:border-primary-100 focus:ring-primary-100 max-sm:text-base/6"
           >
+            <option value="" disabled>Selecione um eixo</option>
             {PILLAR_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
@@ -286,21 +287,23 @@ export function TeamForm({ team, onSubmit, loading }: TeamFormProps) {
             </div>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={handleAddMember}
-          className="mt-3 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-primary-100 hover:bg-primary-100/5"
-        >
-          <PlusIcon className="size-4 shrink-0" />
-          Adicionar membro
-        </button>
+        {members.length < 10 && (
+          <button
+            type="button"
+            onClick={handleAddMember}
+            className="mt-3 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-primary-100 hover:bg-primary-100/5"
+          >
+            <PlusIcon className="size-4 shrink-0" />
+            Adicionar membro ({members.length}/10)
+          </button>
+        )}
       </fieldset>
 
       <div className="flex justify-end border-t border-neutral-200 pt-6">
         <Button
           type="submit"
           loading={loading}
-          disabled={!name.trim() || uploadMutation.isPending}
+          disabled={!name.trim() || !solutionPillar || uploadMutation.isPending}
           className="px-6"
         >
           {team ? "Salvar alterações" : "Criar equipe"}
