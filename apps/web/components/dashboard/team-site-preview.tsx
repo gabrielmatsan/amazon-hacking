@@ -39,7 +39,8 @@ export function TeamSitePreview({
   team: Team;
   onClose: () => void;
 }) {
-  const colors = PILLAR_COLORS[team.solutionPillar] ?? PILLAR_COLORS.default;
+  const defaultColors = { bg: "bg-neutral-100", text: "text-neutral-600", ring: "ring-neutral-200" };
+  const colors = PILLAR_COLORS[team.solutionPillar as keyof typeof PILLAR_COLORS] ?? defaultColors;
   const primaryId = team.videoUrl ? extractVideoId(team.videoUrl) : null;
   const secondaryId = team.secondaryVideoUrl ? extractVideoId(team.secondaryVideoUrl) : null;
   const hasBothVideos = !!primaryId && !!secondaryId;

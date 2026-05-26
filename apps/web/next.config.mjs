@@ -26,6 +26,8 @@ const nextConfig = {
       { source: "/privacy-policy", destination: "/pt-br/privacy-policy" },
       { source: "/dashboard", destination: "/pt-br/dashboard" },
       { source: "/admin", destination: "/pt-br/admin" },
+      { source: "/admin/votes", destination: "/pt-br/admin/votes" },
+      { source: "/admin/flagged", destination: "/pt-br/admin/flagged" },
     ];
   },
   async redirects() {
