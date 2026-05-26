@@ -51,6 +51,7 @@ describe("ConfigRepository (integration)", () => {
         votingStartsAt: new Date("2026-06-01T08:00:00Z"),
         votingEndsAt: new Date("2026-06-01T18:00:00Z"),
         votingEnabled: true,
+        maxRiskScore: 100,
       });
 
       const updated = await ConfigRepository.upsert({
