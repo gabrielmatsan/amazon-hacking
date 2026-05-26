@@ -22,10 +22,11 @@ const envSchema = z.object({
   AWS_ACCESS_KEY_ID: z.string().optional(),
   AWS_SECRET_ACCESS_KEY: z.string().optional(),
 
-  // S3
+  // S3 / R2
   S3_PUBLIC_BUCKET_URL: z.string().default("https://my-storage.s3.amazonaws.com"),
   S3_PUBLIC_BUCKET_NAME: z.string().default("my-storage"),
   S3_PUBLIC_URL: z.string().url().default("https://your-cloudfront-url.cloudfront.net"),
+  S3_ENDPOINT: z.string().url().optional(),
 
   // Email
   DEFAULT_FROM_EMAIL: z.string().email(),

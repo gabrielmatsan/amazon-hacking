@@ -7,6 +7,7 @@ import { checkSlugUseCase } from "@/teams/applications/check-slug.usecase";
 import { createLeaderTeamUseCase } from "@/teams/applications/create-leader-team.usecase";
 import { getLeaderTeamUseCase } from "@/teams/applications/get-leader-team.usecase";
 import { updateLeaderTeamUseCase } from "@/teams/applications/update-leader-team.usecase";
+import { uploadImageInput, uploadImageOutput, uploadImageUseCase } from "@/teams/applications/upload-image.usecase";
 import {
   createLeaderTeamBody,
   teamType,
@@ -59,6 +60,20 @@ export const leaderController = createController({ prefix: "/leader", normalize:
       404: errorResponse,
     },
     detail: { tags: ["Leader", "Teams"], summary: "Get my team (leader only)" },
+  })
+  .post("/images", async ({ body }) => {
+    const image = await uploadImageUseCase(body);
+    return { data: image };
+  }, {
+    body: uploadImageInput,
+    response: {
+      200: t.Object({ data: uploadImageOutput }),
+      400: errorResponse,
+      401: errorResponse,
+      403: errorResponse,
+      422: errorResponse,
+    },
+    detail: { tags: ["Leader", "Images"], summary: "Upload image (leader only)" },
   })
   .get("/teams/check-slug/:slug", async ({ params }) => {
     const result = await checkSlugUseCase(params.slug);
