@@ -1,3 +1,4 @@
+import { usersSchema } from "@/users/domain/users.schema";
 import { votesSchema } from "@/votes/domain/votes.schema";
 import { createId } from "@paralleldrive/cuid2";
 import { relations } from "drizzle-orm";
@@ -13,6 +14,9 @@ export const solutionPillarEnum = pgEnum("solution_pillar", [
   "health",
   "default"
 ]);
+
+export const teamStatusEnum = pgEnum("team_status", ["active", "review", "rejected"]);
+
 export const teamsSchema = pgTable("teams", {
   id: varchar("id", { length: 34 }).primaryKey().$defaultFn(() => createId()),
   name: varchar("name", { length: 255 }).notNull(),
@@ -21,6 +25,8 @@ export const teamsSchema = pgTable("teams", {
   slug: varchar("slug", { length: 255 }).notNull().unique(),
   teamMembers: jsonb("team_members").$type<TeamMember[]>(),
   solutionPillar: solutionPillarEnum("solution_pillar").notNull().default("default"),
+  status: teamStatusEnum("status").notNull().default("review"),
+  rejectionReason: text("rejection_reason"),
   videoUrl: varchar("video_url", { length: 500 }),
   secondaryVideoUrl: varchar("secondary_video_url", { length: 500 }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -29,6 +35,7 @@ export const teamsSchema = pgTable("teams", {
 
 export const teamsRelations = relations(teamsSchema, ({ many }) => ({
   votes: many(votesSchema),
+  users: many(usersSchema),
 }))
 
 

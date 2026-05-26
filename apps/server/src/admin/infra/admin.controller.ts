@@ -1,8 +1,11 @@
 import { t } from "elysia";
 
 import { createController, errorResponse } from "@/shared/infra/base.controller";
-import { requireAdmin } from "@/shared/infra/require-admin.middleware";
+import { requireRole } from "@/shared/infra/require-role.middleware";
 
+import { approveTeamUseCase } from "@/teams/applications/approve-team.usecase";
+import { listTeamsByStatusUseCase } from "@/teams/applications/list-teams-by-status.usecase";
+import { rejectTeamUseCase } from "@/teams/applications/reject-team.usecase";
 import { uploadImageInput, uploadImageOutput, uploadImageUseCase } from "@/teams/applications/upload-image.usecase";
 import { checkVotesOutput, checkVotesUseCase } from "@/votes/application/check-votes.usecase";
 import { createTeamUseCase } from "../../teams/applications/create-team.usecase";
@@ -10,7 +13,7 @@ import { updateTeamUseCase } from "../../teams/applications/update-team.usecase"
 import { createTeamBody, teamType, updateTeamBody } from "../../teams/domain/teams.type";
 
 export const adminController = createController({ prefix: "/admin", normalize: false })
-  .use(requireAdmin)
+  .use(requireRole("admin"))
   .post("/teams", async ({ body, set }) => {
     const team = await createTeamUseCase(body);
     set.status = 201;
@@ -54,6 +57,45 @@ export const adminController = createController({ prefix: "/admin", normalize: f
       422: errorResponse,
     },
     detail: { tags: ["Admin", "Images"], summary: "Upload image (admin only)" },
+  })
+  .get("/teams/review", async () => {
+    const teams = await listTeamsByStatusUseCase("review");
+    return { data: teams };
+  }, {
+    response: {
+      200: t.Object({ data: t.Array(teamType) }),
+      401: errorResponse,
+      403: errorResponse,
+    },
+    detail: { tags: ["Admin", "Teams"], summary: "List teams in review (admin only)" },
+  })
+  .put("/teams/:id/approve", async ({ params }) => {
+    const team = await approveTeamUseCase(params.id);
+    return { data: team };
+  }, {
+    params: t.Object({ id: t.String() }),
+    response: {
+      200: t.Object({ data: teamType }),
+      401: errorResponse,
+      403: errorResponse,
+      404: errorResponse,
+    },
+    detail: { tags: ["Admin", "Teams"], summary: "Approve team (admin only)" },
+  })
+  .put("/teams/:id/reject", async ({ params, body }) => {
+    const team = await rejectTeamUseCase(params.id, body.reason);
+    return { data: team };
+  }, {
+    params: t.Object({ id: t.String() }),
+    body: t.Object({ reason: t.String({ minLength: 1, error: "reason is required" }) }),
+    response: {
+      200: t.Object({ data: teamType }),
+      401: errorResponse,
+      403: errorResponse,
+      404: errorResponse,
+      422: errorResponse,
+    },
+    detail: { tags: ["Admin", "Teams"], summary: "Reject team (admin only)" },
   })
   .get("/votes/count", async () => {
     const votes = await checkVotesUseCase();

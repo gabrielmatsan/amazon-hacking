@@ -18,4 +18,13 @@ export const UsersRepository = {
     const [user] = await db.insert(usersSchema).values(data).returning();
     return user;
   },
+
+  async findByTeamId(teamId: string): Promise<User | null> {
+    const [user] = await db.select().from(usersSchema).where(eq(usersSchema.teamId, teamId));
+    return user ?? null;
+  },
+
+  async updateTeamId(userId: string, teamId: string): Promise<void> {
+    await db.update(usersSchema).set({ teamId }).where(eq(usersSchema.id, userId));
+  },
 }
