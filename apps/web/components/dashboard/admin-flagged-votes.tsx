@@ -44,6 +44,14 @@ function extractFlagReasons(metadata: Record<string, unknown> | null): string[] 
   return reasons;
 }
 
+const FLAG_TOOLTIPS: Record<string, string> = {
+  VPN: "IP pertencente a um serviço de VPN, que mascara a localização real do usuário.",
+  Proxy: "IP associado a um servidor proxy, usado para intermediar conexões e ocultar a origem.",
+  Tor: "IP é um nó de saída da rede Tor, usada para navegação anônima.",
+  Hosting: "IP pertence a um provedor de hosting/datacenter — pode indicar bot ou automação.",
+  "IP comprometido": "IP reportado em listas de endereços comprometidos ou envolvidos em atividade maliciosa.",
+};
+
 function FlagReasons({ metadata }: { metadata: Record<string, unknown> | null }) {
   const reasons = extractFlagReasons(metadata);
   if (reasons.length === 0) return null;
@@ -51,14 +59,37 @@ function FlagReasons({ metadata }: { metadata: Record<string, unknown> | null })
   return (
     <div className="flex flex-wrap gap-1.5 border-t border-neutral-950/5 px-4 py-2.5">
       <span className="text-xs text-neutral-500">Motivo:</span>
-      {reasons.map((reason) => (
-        <span
-          key={reason}
-          className="inline-flex rounded-md bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-red-600/10"
-        >
-          {reason}
+      {reasons.map((reason) => {
+        const isRisk = reason.startsWith("Risco:");
+        const tooltip = isRisk
+          ? "Score de risco do IP ultrapassou o limite de 33%. Quanto maior, mais provável a fraude."
+          : FLAG_TOOLTIPS[reason];
+        return (
+          <span key={reason} className="group relative inline-flex cursor-help">
+            <span className="inline-flex rounded-md bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-red-600/10">
+              {reason}
+            </span>
+            {tooltip && (
+              <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-1.5 hidden w-56 -translate-x-1/2 rounded-lg bg-neutral-900 px-3 py-2 text-xs text-neutral-200 shadow-lg group-hover:block">
+                {tooltip}
+              </span>
+            )}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+function GlossaryItem({ term, description }: { term: string; description: string }) {
+  return (
+    <div className="flex gap-3 px-4 py-2.5">
+      <dt className="w-28 shrink-0">
+        <span className="inline-flex rounded-md bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-red-600/10">
+          {term}
         </span>
-      ))}
+      </dt>
+      <dd className="text-xs text-neutral-600">{description}</dd>
     </div>
   );
 }
@@ -192,6 +223,8 @@ function InfoCell({
         {value}
       </p>
     </div>
+
+    
   );
 }
 
@@ -227,6 +260,21 @@ export function AdminFlaggedVotes() {
       <p className="mt-1 text-sm text-neutral-500">
         Revise votos suspeitos. Veja IP, metadata e decida aprovar ou invalidar.
       </p>
+
+      {/* Glossário */}
+      <details className="mt-6 rounded-xl border border-neutral-200 bg-white">
+        <summary className="cursor-pointer select-none px-4 py-3 text-xs font-medium text-neutral-500">
+          Glossário de termos de risco
+        </summary>
+        <dl className="divide-y divide-neutral-950/5 border-t border-neutral-950/5">
+          <GlossaryItem term="VPN" description="IP pertencente a um serviço de VPN, que mascara a localização real do usuário." />
+          <GlossaryItem term="Proxy" description="IP associado a um servidor proxy, usado para intermediar conexões e ocultar a origem." />
+          <GlossaryItem term="Tor" description="IP é um nó de saída da rede Tor, usada para navegação anônima." />
+          <GlossaryItem term="Hosting" description="IP pertence a um provedor de hosting/datacenter, não a um usuário residencial — pode indicar bot ou automação." />
+          <GlossaryItem term="IP comprometido" description="IP reportado em listas de endereços comprometidos ou envolvidos em atividade maliciosa." />
+          <GlossaryItem term="Risco ≥ 33%" description="Score de risco do IP ultrapassou o limite. Quanto maior, mais provável a fraude." />
+        </dl>
+      </details>
 
       {votes.length === 0 ? (
         <div className="mt-8 flex flex-col items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-white py-12">
