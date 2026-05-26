@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 import { db } from "@/shared/infra/databases/postgres";
 import { teamsSchema, type NewTeam } from "../domain/teams.schema";
@@ -8,6 +8,13 @@ export type UpdateTeamData = {
   name?: string;
   description?: string | null;
   teamMembers?: TeamMember[] | null;
+  status?: "active" | "review" | "rejected";
+  rejectionReason?: string | null;
+  slug?: string;
+  solutionPillar?: SolutionPillar;
+  logoUrl?: string | null;
+  videoUrl?: string | null;
+  secondaryVideoUrl?: string | null;
 };
 
 export type TeamListItem = {
@@ -46,10 +53,19 @@ export const TeamsRepository = {
         )`,
       })
       .from(teamsSchema)
+      .where(eq(teamsSchema.status, "active"))
       .groupBy(teamsSchema.solutionPillar)
       .orderBy(teamsSchema.solutionPillar);
 
     return teams;
+  },
+
+  async findBySlugActive(slug: string): Promise<Team | null> {
+    const [team] = await db
+      .select()
+      .from(teamsSchema)
+      .where(and(eq(teamsSchema.slug, slug), eq(teamsSchema.status, "active")));
+    return team ?? null;
   },
 
   async findById(id: string): Promise<Team | null> {
@@ -59,6 +75,31 @@ export const TeamsRepository = {
       .where(eq(teamsSchema.id, id));
 
     return team;
+  },
+
+  async findByIdActive(id: string): Promise<Team | null> {
+    const [team] = await db
+      .select()
+      .from(teamsSchema)
+      .where(and(eq(teamsSchema.id, id), eq(teamsSchema.status, "active")));
+    return team ?? null;
+  },
+
+  async findByStatus(status: "active" | "review" | "rejected"): Promise<Team[]> {
+    return db
+      .select()
+      .from(teamsSchema)
+      .where(eq(teamsSchema.status, status))
+      .orderBy(teamsSchema.updatedAt);
+  },
+
+  async slugExists(slug: string): Promise<boolean> {
+    const [team] = await db
+      .select({ id: teamsSchema.id })
+      .from(teamsSchema)
+      .where(eq(teamsSchema.slug, slug))
+      .limit(1);
+    return !!team;
   },
 
   async create(data: NewTeam): Promise<Team> {
@@ -87,6 +128,13 @@ export const TeamsRepository = {
     if (data.name !== undefined) values.name = data.name;
     if (data.description !== undefined) values.description = data.description;
     if (data.teamMembers !== undefined) values.teamMembers = data.teamMembers;
+    if (data.status !== undefined) values.status = data.status;
+    if (data.rejectionReason !== undefined) values.rejectionReason = data.rejectionReason;
+    if (data.slug !== undefined) values.slug = data.slug;
+    if (data.solutionPillar !== undefined) values.solutionPillar = data.solutionPillar;
+    if (data.logoUrl !== undefined) values.logoUrl = data.logoUrl;
+    if (data.videoUrl !== undefined) values.videoUrl = data.videoUrl;
+    if (data.secondaryVideoUrl !== undefined) values.secondaryVideoUrl = data.secondaryVideoUrl;
 
     const [team] = await db
       .update(teamsSchema)

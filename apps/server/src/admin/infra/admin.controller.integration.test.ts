@@ -1,6 +1,12 @@
-import { beforeAll, beforeEach, describe, expect, it } from "bun:test";
+import { beforeAll, beforeEach, describe, expect, it, mock } from "bun:test";
 import { eq } from "drizzle-orm";
 import { Elysia } from "elysia";
+
+const mockSendEmail = mock(() => Promise.resolve({ success: true, messageId: "mock-id" }));
+mock.module("@/shared/mail/resend/index", () => ({
+  resendEmailClient: { sendEmail: mockSendEmail },
+  ResendEmailClient: class { sendEmail = mockSendEmail },
+}));
 
 import { SessionRepository } from "@/auth/infra/session.repository";
 import { db } from "@/shared/infra/databases/postgres";
@@ -44,6 +50,7 @@ describe("Admin teams controller (integration)", () => {
 
   beforeEach(async () => {
     await IntegrationTestHelper.resetDatabase();
+    mockSendEmail.mockClear();
   });
 
   describe("requireAdmin", () => {
@@ -359,6 +366,183 @@ describe("Admin teams controller (integration)", () => {
     });
   });
 
+  describe("GET /admin/teams/review", () => {
+    it("returns only teams with review status", async () => {
+      const { sid } = await seedUser("admin");
+
+      await db.insert(teamsSchema).values([
+        { name: "Active Team", slug: "active-team", status: "active" },
+        { name: "Review Team", slug: "review-team", status: "review" },
+        { name: "Rejected Team", slug: "rejected-team", status: "rejected" },
+      ]);
+
+      const response = await app.handle(
+        new Request("http://localhost/admin/teams/review", {
+          headers: { cookie: authCookie(sid) },
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      const { data } = await response.json();
+      expect(data).toHaveLength(1);
+      expect(data[0].name).toBe("Review Team");
+      expect(data[0].status).toBe("review");
+    });
+
+    it("returns empty array when no teams in review", async () => {
+      const { sid } = await seedUser("admin");
+
+      const response = await app.handle(
+        new Request("http://localhost/admin/teams/review", {
+          headers: { cookie: authCookie(sid) },
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      const { data } = await response.json();
+      expect(data).toEqual([]);
+    });
+  });
+
+  describe("PUT /admin/teams/:id/approve", () => {
+    it("approves a team in review and sets status to active", async () => {
+      const { sid } = await seedUser("admin");
+      const [team] = await db
+        .insert(teamsSchema)
+        .values({ name: "Pending", slug: "pending-team", status: "review" })
+        .returning();
+
+      const response = await app.handle(
+        new Request(`http://localhost/admin/teams/${team.id}/approve`, {
+          method: "PUT",
+          headers: { cookie: authCookie(sid) },
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      const { data } = await response.json();
+      expect(data.status).toBe("active");
+      expect(data.rejectionReason).toBeNull();
+    });
+
+    it("clears rejectionReason when approving a rejected team", async () => {
+      const { sid } = await seedUser("admin");
+      const [team] = await db
+        .insert(teamsSchema)
+        .values({
+          name: "Rejected",
+          slug: "rejected-team",
+          status: "rejected",
+          rejectionReason: "old reason",
+        })
+        .returning();
+
+      const response = await app.handle(
+        new Request(`http://localhost/admin/teams/${team.id}/approve`, {
+          method: "PUT",
+          headers: { cookie: authCookie(sid) },
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      const { data } = await response.json();
+      expect(data.status).toBe("active");
+      expect(data.rejectionReason).toBeNull();
+    });
+
+    it("returns 404 for non-existent team", async () => {
+      const { sid } = await seedUser("admin");
+
+      const response = await app.handle(
+        new Request("http://localhost/admin/teams/nonexistent-id/approve", {
+          method: "PUT",
+          headers: { cookie: authCookie(sid) },
+        }),
+      );
+
+      expect(response.status).toBe(404);
+    });
+  });
+
+  describe("PUT /admin/teams/:id/reject", () => {
+    it("rejects a team and stores the reason", async () => {
+      const { sid } = await seedUser("admin");
+      const [leader] = await db
+        .insert(usersSchema)
+        .values({
+          name: "Leader",
+          email: "leader@example.com",
+          normalizedEmail: "leader@example.com",
+          role: "leader",
+        })
+        .returning();
+
+      const [team] = await db
+        .insert(teamsSchema)
+        .values({ name: "Under Review", slug: "under-review", status: "review" })
+        .returning();
+
+      await db
+        .update(usersSchema)
+        .set({ teamId: team.id })
+        .where(eq(usersSchema.id, leader.id));
+
+      const response = await app.handle(
+        new Request(`http://localhost/admin/teams/${team.id}/reject`, {
+          method: "PUT",
+          headers: {
+            "content-type": "application/json",
+            cookie: authCookie(sid),
+          },
+          body: JSON.stringify({ reason: "Logo is missing" }),
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      const { data } = await response.json();
+      expect(data.status).toBe("rejected");
+      expect(data.rejectionReason).toBe("Logo is missing");
+    });
+
+    it("returns 404 for non-existent team", async () => {
+      const { sid } = await seedUser("admin");
+
+      const response = await app.handle(
+        new Request("http://localhost/admin/teams/nonexistent-id/reject", {
+          method: "PUT",
+          headers: {
+            "content-type": "application/json",
+            cookie: authCookie(sid),
+          },
+          body: JSON.stringify({ reason: "Bad" }),
+        }),
+      );
+
+      expect(response.status).toBe(404);
+    });
+
+    it("returns 422 when reason is empty", async () => {
+      const { sid } = await seedUser("admin");
+      const [team] = await db
+        .insert(teamsSchema)
+        .values({ name: "Team", slug: "team-empty-reason", status: "review" })
+        .returning();
+
+      const response = await app.handle(
+        new Request(`http://localhost/admin/teams/${team.id}/reject`, {
+          method: "PUT",
+          headers: {
+            "content-type": "application/json",
+            cookie: authCookie(sid),
+          },
+          body: JSON.stringify({ reason: "" }),
+        }),
+      );
+
+      expect(response.status).toBe(422);
+    });
+  });
+
   describe("GET /admin/votes/count", () => {
     it("returns valid votes count grouped by team for admin users", async () => {
       const { sid } = await seedUser("admin");
@@ -366,8 +550,8 @@ describe("Admin teams controller (integration)", () => {
       const [firstTeam, secondTeam] = await db
         .insert(teamsSchema)
         .values([
-          { name: "Equipe Alpha", slug: "equipe-alpha-votes" },
-          { name: "Equipe Beta", slug: "equipe-beta-votes" },
+          { name: "Equipe Alpha", slug: "equipe-alpha-votes", status: "active" },
+          { name: "Equipe Beta", slug: "equipe-beta-votes", status: "active" },
         ])
         .returning();
 

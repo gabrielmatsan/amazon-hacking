@@ -4,12 +4,14 @@ export const userRolesType = {
   user: "user",
   mentor: "mentor",
   admin: "admin",
+  leader: "leader",
 } as const;
 
 export const userType = t.Object({
   id: t.String(),
   email: t.String(),
   name: t.String(),
+  teamId: t.Nullable(t.String()),
   role: t.Enum(userRolesType),
   createdAt: t.Date(),
 })

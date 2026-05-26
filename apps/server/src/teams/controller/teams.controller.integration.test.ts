@@ -33,12 +33,14 @@ describe("Teams controller — public endpoints (integration)", () => {
       name: "Equipe Antiga",
       slug: "equipe-antiga",
       solutionPillar: "education",
+      status: "active",
       createdAt: new Date("2025-01-01T00:00:00Z"),
     });
     await db.insert(teamsSchema).values({
       name: "Equipe Nova",
       slug: "equipe-nova",
       solutionPillar: "education",
+      status: "active",
       createdAt: new Date("2025-12-31T00:00:00Z"),
     });
 
@@ -64,6 +66,7 @@ describe("Teams controller — public endpoints (integration)", () => {
         description: "Detalhada",
         logoUrl: "https://cdn.example.com/beta.png",
         teamMembers: [{ name: "Maria", role: "designer" }],
+        status: "active",
       })
       .returning();
 
@@ -88,6 +91,7 @@ describe("Teams controller — public endpoints (integration)", () => {
       name: "Equipe Gamma",
       slug: "equipe-gamma",
       description: "Por slug",
+      status: "active",
     });
 
     const response = await app.handle(
@@ -113,6 +117,69 @@ describe("Teams controller — public endpoints (integration)", () => {
     });
   });
 
+  it("GET /teams does not return teams in review status", async () => {
+    await db.insert(teamsSchema).values({
+      name: "Equipe Review",
+      slug: "equipe-review",
+      status: "review",
+    });
+
+    const response = await app.handle(
+      new Request("http://localhost/teams")
+    );
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body).toEqual({ data: [] });
+  });
+
+  it("GET /teams does not return teams in rejected status", async () => {
+    await db.insert(teamsSchema).values({
+      name: "Equipe Rejected",
+      slug: "equipe-rejected",
+      status: "rejected",
+    });
+
+    const response = await app.handle(
+      new Request("http://localhost/teams")
+    );
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body).toEqual({ data: [] });
+  });
+
+  it("GET /teams/id/:id returns 404 for team in review status", async () => {
+    const [created] = await db
+      .insert(teamsSchema)
+      .values({
+        name: "Equipe Review",
+        slug: "equipe-review",
+        status: "review",
+      })
+      .returning();
+
+    const response = await app.handle(
+      new Request(`http://localhost/teams/id/${created.id}`)
+    );
+
+    expect(response.status).toBe(404);
+  });
+
+  it("GET /teams/slug/:slug returns 404 for team in rejected status", async () => {
+    await db.insert(teamsSchema).values({
+      name: "Equipe Rejected",
+      slug: "equipe-rejected",
+      status: "rejected",
+    });
+
+    const response = await app.handle(
+      new Request("http://localhost/teams/slug/equipe-rejected")
+    );
+
+    expect(response.status).toBe(404);
+  });
+
   it("GET /teams returns each team with public fields only (no teamMembers)", async () => {
     await db.insert(teamsSchema).values({
       name: "Equipe Alpha",
@@ -120,6 +187,7 @@ describe("Teams controller — public endpoints (integration)", () => {
       description: "A primeira equipe",
       logoUrl: "https://cdn.example.com/alpha.png",
       teamMembers: [{ name: "João", role: "dev" }],
+      status: "active",
     });
 
     const response = await app.handle(

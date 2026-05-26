@@ -9,7 +9,7 @@ import { TeamsRepository } from "../infra/teams.repository";
 
 
 export async function getTeam(id: string): Promise<Team> {
-  const team = await TeamsRepository.findById(id);
+  const team = await TeamsRepository.findByIdActive(id);
   if (!team) throw new NotFoundError("Team not found");
   return team;
 }
