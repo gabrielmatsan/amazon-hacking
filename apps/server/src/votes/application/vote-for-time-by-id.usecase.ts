@@ -41,6 +41,7 @@ export const voteForTimeByIdUseCase = async (input: VoteForTimeByIdInput) => {
 
   if (!user) throw new NotFoundError("User not found");
   if (!team) throw new NotFoundError("Team not found");
+  if (team.status !== 'active') throw new ForbiddenError("You can't vote for this team, it's not active");
 
   const existingVote = await VotesRepository.findByUserId(input.userId);
   if (existingVote) throw new ConflictError("User already voted");
