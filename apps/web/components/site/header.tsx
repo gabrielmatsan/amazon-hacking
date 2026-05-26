@@ -125,7 +125,23 @@ export function Header({
           )}
           <div className="hidden lg:block">
             {user ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                {user.role === "leader" && (
+                  <Link
+                    href={localizeHref("/dashboard")}
+                    className="text-xs font-medium text-white/70 hover:text-white"
+                  >
+                    Painel
+                  </Link>
+                )}
+                {user.role === "admin" && (
+                  <Link
+                    href={localizeHref("/admin")}
+                    className="text-xs font-medium text-white/70 hover:text-white"
+                  >
+                    Admin
+                  </Link>
+                )}
                 <span className="flex size-8 items-center justify-center rounded-full bg-primary-100 text-xs font-semibold text-white">
                   {user.name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
                 </span>
@@ -229,16 +245,36 @@ export function Header({
                 </Link>
               )}
               {user ? (
-                <button
-                  type="button"
-                  onClick={() => { handleLogout(); setOpen(false); }}
-                  className="inline-flex items-center gap-2 text-sm font-medium text-white/70 hover:text-white"
-                >
-                  <span className="flex size-7 items-center justify-center rounded-full bg-primary-100 text-xs font-semibold text-white">
-                    {user.name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
-                  </span>
-                  Sair
-                </button>
+                <div className="flex flex-col items-center gap-3">
+                  {user.role === "leader" && (
+                    <Link
+                      href={localizeHref("/dashboard")}
+                      onClick={() => setOpen(false)}
+                      className="inline-flex rounded-full bg-white/10 px-6 py-2.5 text-sm font-semibold text-white hover:bg-white/20"
+                    >
+                      Painel
+                    </Link>
+                  )}
+                  {user.role === "admin" && (
+                    <Link
+                      href={localizeHref("/admin")}
+                      onClick={() => setOpen(false)}
+                      className="inline-flex rounded-full bg-white/10 px-6 py-2.5 text-sm font-semibold text-white hover:bg-white/20"
+                    >
+                      Admin
+                    </Link>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => { handleLogout(); setOpen(false); }}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-white/70 hover:text-white"
+                  >
+                    <span className="flex size-7 items-center justify-center rounded-full bg-primary-100 text-xs font-semibold text-white">
+                      {user.name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
+                    </span>
+                    Sair
+                  </button>
+                </div>
               ) : (
                 <a
                   href={loginUrl}

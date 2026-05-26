@@ -1,13 +1,11 @@
+import { m } from "@/lib/paraglide/messages";
+import { localizeHref } from "@/lib/paraglide/runtime";
 import Image from "next/image";
 import Link from "next/link";
-import { localizeHref } from "@/lib/paraglide/runtime";
-import { m } from "@/lib/paraglide/messages";
 
 const socials = [
-  { href: "https://www.instagram.com/amazon.hacking/", label: "Instagram" },
-  { href: "https://www.youtube.com/@CESUPAonline", label: "YouTube" },
-  { href: "https://www.linkedin.com/school/cesupa/", label: "LinkedIn" },
-  { href: "mailto:amazon.hacking@cesupa.br", label: "E-mail" },
+  { href: "https://www.instagram.com/amazonhacking.cesupa/", label: "Instagram" },
+  { href: "https://www.youtube.com/@AMAZONHACKING", label: "YouTube" },
 ];
 
 export function Footer() {
