@@ -24,6 +24,8 @@ const nextConfig = {
       { source: "/solucoes", destination: "/pt-br/solucoes" },
       { source: "/solucoes/:slug", destination: "/pt-br/solucoes/:slug" },
       { source: "/privacy-policy", destination: "/pt-br/privacy-policy" },
+      { source: "/dashboard", destination: "/pt-br/dashboard" },
+      { source: "/admin", destination: "/pt-br/admin" },
     ];
   },
   async redirects() {
