@@ -39,6 +39,7 @@ describe("ConfigRepository (integration)", () => {
         votingStartsAt: new Date("2026-06-01T08:00:00Z"),
         votingEndsAt: new Date("2026-06-01T18:00:00Z"),
         votingEnabled: true,
+        maxRiskScore: 100,
       });
 
       expect(config.id).toBeString();
@@ -56,6 +57,7 @@ describe("ConfigRepository (integration)", () => {
         votingStartsAt: null,
         votingEndsAt: null,
         votingEnabled: false,
+        maxRiskScore: 50,
       });
 
       expect(updated.votingEnabled).toBe(false);

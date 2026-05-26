@@ -111,6 +111,7 @@ export type AppConfig = {
   votingStartsAt: string | null;
   votingEndsAt: string | null;
   votingEnabled: boolean;
+  maxRiskScore: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -124,6 +125,7 @@ export async function updateAppConfig(input: {
   votingStartsAt: string | null;
   votingEndsAt: string | null;
   votingEnabled: boolean;
+  maxRiskScore: number;
 }) {
   const { data } = await api.put<{ data: AppConfig }>("/admin/config", input);
   return data.data;

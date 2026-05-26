@@ -12,6 +12,7 @@ export const ConfigRepository = {
     votingStartsAt: Date | null;
     votingEndsAt: Date | null;
     votingEnabled: boolean;
+    maxRiskScore: number;
   }): Promise<AppConfig> {
     const existing = await this.get();
 
@@ -50,5 +51,10 @@ export const ConfigRepository = {
     }
 
     return { open: true };
+  },
+
+  async getMaxRiskScore(): Promise<number> {
+    const config = await this.get();
+    return config?.maxRiskScore ?? 100;
   },
 };
