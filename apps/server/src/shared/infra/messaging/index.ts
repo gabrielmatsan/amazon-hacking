@@ -1,5 +1,5 @@
 import { env } from "../env/env";
-import { evolutionSender } from "./evolution-sender";
+import { evolutionSender, sendEvolutionAlert } from "./evolution-sender";
 import type { MessageSender } from "./message-sender";
 import { mockSender } from "./mock-sender";
 
@@ -23,3 +23,4 @@ export function setMessageSenderForTests(sender: MessageSender | null): void {
 
 export type { MessageSender } from "./message-sender";
 export { MessageSendError } from "./message-sender";
+export { sendEvolutionAlert };

@@ -2,8 +2,6 @@ import { env } from "../env/env";
 import { logger } from "../observability";
 import { MessageSendError, type MessageSender } from "./message-sender";
 
-const MAX_RETRIES = 1;
-
 function requireConfig(): {
   url: string;
   apiKey: string;
@@ -21,41 +19,22 @@ function requireConfig(): {
   };
 }
 
-async function restartInstance(
-  url: string,
-  apiKey: string,
-  instance: string,
-): Promise<void> {
-  logger.warn({ instance }, "Restarting Evolution instance");
-
-  const restartRes = await fetch(`${url}/instance/restart/${instance}`, {
-    method: "PUT",
-    headers: { apikey: apiKey },
-  });
-
-  if (!restartRes.ok) {
-    throw new MessageSendError(
-      `Failed to restart instance: ${restartRes.status}`,
-    );
-  }
-
-  await new Promise((r) => setTimeout(r, 5000));
-}
-
-function isConnectionClosed(status: number, body: string): boolean {
-  return status === 500 && body.includes("Connection Closed");
-}
 
 // Evolution expects the phone in digits only (E.164 without leading "+")
 function toEvolutionNumber(phoneE164: string): string {
   return phoneE164.replace(/^\+/, "");
 }
 
+function toEvolutionGroupId(groupId: string): string {
+  if (groupId.endsWith("@g.us")) return groupId;
+  return `${groupId}@g.us`;
+}
+
 async function sendText(
   url: string,
   apiKey: string,
   instance: string,
-  phoneE164: string,
+  recipient: string,
   body: string,
   signal: AbortSignal,
 ): Promise<{ ok: boolean; status: number; errorText: string }> {
@@ -68,7 +47,7 @@ async function sendText(
       apikey: apiKey,
     },
     body: JSON.stringify({
-      number: toEvolutionNumber(phoneE164),
+      number: recipient,
       text: body,
     }),
     signal,
@@ -90,17 +69,14 @@ export const evolutionSender: MessageSender = {
     const timer = setTimeout(() => controller.abort(), 20_000);
 
     try {
-      let result = await sendText(url, apiKey, instance, phoneE164, body, controller.signal);
-
-      if (!result.ok && isConnectionClosed(result.status, result.errorText)) {
-        logger.warn(
-          { status: result.status, phoneE164 },
-          "Connection closed, attempting restart and retry",
-        );
-
-        await restartInstance(url, apiKey, instance);
-        result = await sendText(url, apiKey, instance, phoneE164, body, controller.signal);
-      }
+      const result = await sendText(
+        url,
+        apiKey,
+        instance,
+        toEvolutionNumber(phoneE164),
+        body,
+        controller.signal,
+      );
 
       if (!result.ok) {
         logger.warn(
@@ -120,3 +96,38 @@ export const evolutionSender: MessageSender = {
     }
   },
 };
+
+export async function sendEvolutionAlert(body: string): Promise<void> {
+  if (!env.EVOLUTION_ALERTS_ENABLED) return;
+
+  if (!env.EVOLUTION_ALERT_GROUP_ID) {
+    logger.warn("Evolution alerts are enabled but EVOLUTION_ALERT_GROUP_ID is not configured");
+    return;
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 20_000);
+
+  try {
+    const { url, apiKey, instance } = requireConfig();
+    const result = await sendText(
+      url,
+      apiKey,
+      instance,
+      toEvolutionGroupId(env.EVOLUTION_ALERT_GROUP_ID),
+      body,
+      controller.signal,
+    );
+
+    if (!result.ok) {
+      logger.warn(
+        { status: result.status, errorText: result.errorText },
+        "Evolution alert returned non-2xx",
+      );
+    }
+  } catch (err) {
+    logger.warn({ err }, "Evolution alert failed");
+  } finally {
+    clearTimeout(timer);
+  }
+}
