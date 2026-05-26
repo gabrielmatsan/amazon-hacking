@@ -116,7 +116,7 @@ export function TeamForm({ team, onSubmit, loading }: TeamFormProps) {
               <img
                 src={logoPreview}
                 alt="Logo da equipe"
-                className="size-16 rounded-lg border border-neutral-200 object-cover"
+                className="size-16 rounded-full border border-neutral-200 object-cover"
               />
               <button
                 type="button"
@@ -132,7 +132,7 @@ export function TeamForm({ team, onSubmit, loading }: TeamFormProps) {
               </button>
             </div>
           ) : (
-            <div className="flex size-16 items-center justify-center rounded-lg border border-dashed border-neutral-300 bg-neutral-50">
+            <div className="flex size-16 items-center justify-center rounded-full border border-dashed border-neutral-300 bg-neutral-50">
               <UploadIcon className="size-5 shrink-0 stroke-neutral-400" />
             </div>
           )}

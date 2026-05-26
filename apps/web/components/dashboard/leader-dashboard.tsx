@@ -132,7 +132,7 @@ export function LeaderDashboard({ locale }: { locale: string }) {
               <img
                 src={team.logoUrl}
                 alt={`Logo ${team.name}`}
-                className="size-10 rounded-lg border border-neutral-200 object-cover"
+                className="size-10 rounded-full border border-neutral-200 object-cover"
               />
             )}
             <div>
