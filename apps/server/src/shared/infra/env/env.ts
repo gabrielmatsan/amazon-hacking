@@ -57,6 +57,8 @@ const envSchema = z.object({
   EVOLUTION_URL: z.string().url().optional(),
   EVOLUTION_API_KEY: z.string().optional(),
   EVOLUTION_INSTANCE: z.string().optional(),
+  EVOLUTION_ALERT_GROUP_ID: z.string().optional(),
+  EVOLUTION_ALERTS_ENABLED: z.string().transform((val) => val === "true").default("false"),
   VOTE_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(300),
   VOTE_TOKEN_RATE_LIMIT_COUNT: z.coerce.number().int().positive().default(3),
   VOTE_TOKEN_RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().positive().default(600),

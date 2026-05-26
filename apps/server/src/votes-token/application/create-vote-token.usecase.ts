@@ -6,7 +6,7 @@ import { db } from "@/shared/infra/databases/postgres";
 import { env } from "@/shared/infra/env/env";
 import { BadRequestError } from "@/shared/infra/errors/bad-error-request";
 import { ConflictError } from "@/shared/infra/errors/conflict-error";
-import { getMessageSender, MessageSendError } from "@/shared/infra/messaging";
+import { getMessageSender, MessageSendError, sendEvolutionAlert } from "@/shared/infra/messaging";
 import { logger } from "@/shared/infra/observability";
 import { VotesRepository } from "@/votes/infra/votes.repository";
 import { t, type Static } from "elysia";
@@ -125,26 +125,24 @@ export async function createVoteTokenUseCase(
         tx,
       );
 
-      await Promise.all([
-        resendEmailClient.sendEmail({
-          to: user.email,
-          subject: "Código de verificação — Amazon Hacking",
-          template: `
-            <p>Olá, ${user.name}!</p>
-            <p>Seu código de verificação é: <strong>${code}</strong></p>
-            <p>Expira em ${ttlMinutes} minutos.</p>
-          `,
-        }),
-        resendEmailClient.sendEmail({
-          to: ["gabrielmatsan@hotmail.com", "ryan@tucupy.com"],
-          subject: "⚠ Fallback email ativado — falha no WhatsApp",
-          template: `
-            <p>Não foi possível enviar o código via WhatsApp para ${phoneNumber}.</p>
-            <p>Usuário: ${user.name} (${user.email})</p>
-            <p>O código foi enviado por email como fallback.</p>
-          `,
-        }),
-      ]);
+      await resendEmailClient.sendEmail({
+        to: user.email,
+        subject: "Código de verificação — Amazon Hacking",
+        template: `
+          <p>Olá, ${user.name}!</p>
+          <p>Seu código de verificação é: <strong>${code}</strong></p>
+          <p>Expira em ${ttlMinutes} minutos.</p>
+        `,
+      });
+
+      await sendEvolutionAlert(
+        [
+          "Fallback email ativado - falha no WhatsApp",
+          `Telefone: ${phoneNumber}`,
+          `Usuario: ${user.name} (${user.email})`,
+          "O codigo foi enviado por email como fallback.",
+        ].join("\n"),
+      );
     }
   });
 

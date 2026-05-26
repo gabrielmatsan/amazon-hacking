@@ -91,16 +91,11 @@ describe("createVoteTokenUseCase (integration)", () => {
     expect(tokens[0].channel).toBe("email");
     expect(tokens[0].phoneNumber).toBeNull();
 
-    expect(mockSendEmail).toHaveBeenCalledTimes(2);
+    expect(mockSendEmail).toHaveBeenCalledTimes(1);
 
     const calls = mockSendEmail.mock.calls as unknown as Array<[{ to: string | string[]; subject: string; template: string }]>;
     const userEmailCall = calls.find((c) => c[0].to === user.email);
     expect(userEmailCall).toBeTruthy();
-
-    const adminEmailCall = calls.find(
-      (c) => Array.isArray(c[0].to) && c[0].to.includes("ryan@tucupy.com"),
-    );
-    expect(adminEmailCall).toBeTruthy();
   });
 
   it("falls back to email when whatsapp sender throws unexpected error", async () => {
