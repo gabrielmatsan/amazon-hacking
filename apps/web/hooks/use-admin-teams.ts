@@ -9,6 +9,8 @@ import {
   getFlaggedVotes,
   approveVote,
   invalidateVote,
+  getAppConfig,
+  updateAppConfig,
 } from "@/lib/api/admin";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
@@ -74,6 +76,24 @@ export function useInvalidateVote() {
     mutationFn: (id: string) => invalidateVote(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "votes"] });
+    },
+  });
+}
+
+export function useAppConfig() {
+  return useQuery({
+    queryKey: ["admin", "config"],
+    queryFn: getAppConfig,
+  });
+}
+
+export function useUpdateAppConfig() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { votingStartsAt: string | null; votingEndsAt: string | null; votingEnabled: boolean }) =>
+      updateAppConfig(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "config"] });
     },
   });
 }

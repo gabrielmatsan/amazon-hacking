@@ -72,7 +72,7 @@ describe("voteForTimeByIdUseCase", () => {
 
     const [team] = await db
       .insert(teamsSchema)
-      .values({ name: "Equipe Alpha", slug: "test-team-1" })
+      .values({ name: "Equipe Alpha", slug: "test-team-1", status: "active" })
       .returning();
 
     const phone = "+5511900000010";
@@ -98,7 +98,7 @@ describe("voteForTimeByIdUseCase", () => {
 
     const [team] = await db
       .insert(teamsSchema)
-      .values({ name: "Equipe Gamma", slug: "test-team-email" })
+      .values({ name: "Equipe Gamma", slug: "test-team-email", status: "active" })
       .returning();
 
     const code = "654321";
@@ -123,7 +123,7 @@ describe("voteForTimeByIdUseCase", () => {
 
     const [team] = await db
       .insert(teamsSchema)
-      .values({ name: "Equipe Beta", slug: "test-team-2" })
+      .values({ name: "Equipe Beta", slug: "test-team-2", status: "active" })
       .returning();
 
     const phone = "+5511900000011";
@@ -147,12 +147,12 @@ describe("voteForTimeByIdUseCase", () => {
 
     const [firstTeam] = await db
       .insert(teamsSchema)
-      .values({ name: "Equipe Alpha", slug: "test-team-3" })
+      .values({ name: "Equipe Alpha", slug: "test-team-3", status: "active" })
       .returning();
 
     const [secondTeam] = await db
       .insert(teamsSchema)
-      .values({ name: "Equipe Beta", slug: "test-team-4" })
+      .values({ name: "Equipe Beta", slug: "test-team-4", status: "active" })
       .returning();
 
     const phone = "+5511900000012";
@@ -184,12 +184,12 @@ describe("voteForTimeByIdUseCase", () => {
 
     const [teamA] = await db
       .insert(teamsSchema)
-      .values({ name: "Team A", slug: "test-team-phone-a" })
+      .values({ name: "Team A", slug: "test-team-phone-a", status: "active" })
       .returning();
 
     const [teamB] = await db
       .insert(teamsSchema)
-      .values({ name: "Team B", slug: "test-team-phone-b" })
+      .values({ name: "Team B", slug: "test-team-phone-b", status: "active" })
       .returning();
 
     const codeA = "111111";
@@ -234,7 +234,7 @@ describe("voteForTimeByIdUseCase", () => {
 
     const [team] = await db
       .insert(teamsSchema)
-      .values({ name: "Team Fallback", slug: "test-team-fallback" })
+      .values({ name: "Team Fallback", slug: "test-team-fallback", status: "active" })
       .returning();
 
     const phone = "+5591988001122";

@@ -12,6 +12,7 @@ import { UsersRepository } from "@/users/infra/users.repository";
 import { VoteTokensRepository } from "@/votes-token/infra/votes-tokens.repository";
 import { t, type Static } from "elysia";
 
+import { ConfigRepository } from "@/config/infra/config.repository";
 import { logger } from "@/shared/infra/observability";
 import { proxyApiClient, type ProxyCheckIpResult } from "@/shared/infra/proxy-api/proxy-api-client";
 import { VotesRepository } from "../infra/votes.repository";
@@ -34,6 +35,9 @@ function sha256(value: string): string {
 }
 
 export const voteForTimeByIdUseCase = async (input: VoteForTimeByIdInput) => {
+  const votingStatus = await ConfigRepository.isVotingOpen();
+  if (!votingStatus.open) throw new ForbiddenError(votingStatus.reason ?? "Votação fechada");
+
   const [user, team] = await Promise.all([
     UsersRepository.findById(input.userId),
     TeamsRepository.findById(input.teamId),

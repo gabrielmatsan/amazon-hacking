@@ -105,3 +105,26 @@ export async function invalidateVote(id: string) {
   );
   return data.data;
 }
+
+export type AppConfig = {
+  id: string | null;
+  votingStartsAt: string | null;
+  votingEndsAt: string | null;
+  votingEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export async function getAppConfig() {
+  const { data } = await api.get<{ data: AppConfig }>("/admin/config");
+  return data.data;
+}
+
+export async function updateAppConfig(input: {
+  votingStartsAt: string | null;
+  votingEndsAt: string | null;
+  votingEnabled: boolean;
+}) {
+  const { data } = await api.put<{ data: AppConfig }>("/admin/config", input);
+  return data.data;
+}
