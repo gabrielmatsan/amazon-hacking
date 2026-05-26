@@ -30,6 +30,8 @@ export type TeamListGroup = {
   teams: TeamListItem[];
 };
 
+export type TeamStatus = "active" | "review" | "rejected";
+
 export type Team = {
   id: string;
   name: string;
@@ -38,8 +40,10 @@ export type Team = {
   logoUrl: string | null;
   teamMembers: TeamMember[] | null;
   solutionPillar: SolutionPillar;
+  rejectionReason: string | null;
   videoUrl: string | null;
   secondaryVideoUrl: string | null;
+  status: TeamStatus;
   createdAt: string;
   updatedAt: string;
 };
@@ -48,7 +52,8 @@ export type AuthUser = {
   id: string;
   name: string;
   email: string;
-  role: "user" | "mentor" | "admin";
+  teamId: string | null;
+  role: "user" | "mentor" | "admin" | "leader";
 };
 
 export type MyVoteResponse = {
