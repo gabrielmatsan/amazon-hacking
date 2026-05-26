@@ -40,11 +40,30 @@ function generateCode(): string {
   return randomInt(0, 1_000_000).toString().padStart(6, "0");
 }
 
+function addNinthDigit(national: string): string {
+  const digits = national.replace(/\D/g, "");
+  if (digits.length === 10) {
+    const ddd = digits.slice(0, 2);
+    const subscriber = digits.slice(2);
+    if (subscriber[0] !== "9") {
+      return `${ddd}9${subscriber}`;
+    }
+  }
+  return digits;
+}
+
 function normalizePhone(raw: string): string {
   const parsed = parsePhoneNumberFromString(raw, "BR");
   if (!parsed || !parsed.isValid()) {
     throw new BadRequestError("Invalid phone number");
   }
+
+  if (parsed.country === "BR") {
+    const fixed = addNinthDigit(parsed.nationalNumber);
+    const reparsed = parsePhoneNumberFromString(fixed, "BR");
+    if (reparsed?.isValid()) return reparsed.number;
+  }
+
   return parsed.number;
 }
 
