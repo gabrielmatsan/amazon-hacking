@@ -24,6 +24,45 @@ function formatDate(iso: string): string {
   });
 }
 
+function extractFlagReasons(metadata: Record<string, unknown> | null): string[] {
+  if (!metadata) return [];
+  const proxyCheck = metadata.proxyCheck as Record<string, unknown> | undefined;
+  if (!proxyCheck) return [];
+
+  const detections = proxyCheck.detections as Record<string, unknown> | undefined;
+  if (!detections) return [];
+
+  const reasons: string[] = [];
+  if (detections.vpn) reasons.push("VPN");
+  if (detections.proxy) reasons.push("Proxy");
+  if (detections.tor) reasons.push("Tor");
+  if (detections.hosting) reasons.push("Hosting");
+  if (detections.compromised) reasons.push("IP comprometido");
+  if (typeof detections.risk === "number" && detections.risk >= 33) {
+    reasons.push(`Risco: ${detections.risk}%`);
+  }
+  return reasons;
+}
+
+function FlagReasons({ metadata }: { metadata: Record<string, unknown> | null }) {
+  const reasons = extractFlagReasons(metadata);
+  if (reasons.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap gap-1.5 border-t border-neutral-950/5 px-4 py-2.5">
+      <span className="text-xs text-neutral-500">Motivo:</span>
+      {reasons.map((reason) => (
+        <span
+          key={reason}
+          className="inline-flex rounded-md bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-red-600/10"
+        >
+          {reason}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function MetadataSection({ metadata }: { metadata: Record<string, unknown> | null }) {
   if (!metadata || Object.keys(metadata).length === 0) {
     return <p className="text-xs text-neutral-400">Sem metadata</p>;
@@ -89,6 +128,8 @@ function VoteCard({
           </button>
         </div>
       </div>
+
+      <FlagReasons metadata={vote.metadata} />
 
       {/* Info grid */}
       <div className="grid grid-cols-2 gap-px border-t border-neutral-950/5 bg-neutral-950/5 sm:grid-cols-4">
