@@ -1,0 +1,1 @@
+ALTER TABLE "app_config" ADD COLUMN "max_risk_score" integer DEFAULT 100 NOT NULL;

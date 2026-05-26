@@ -76,11 +76,21 @@ export const voteForTimeByIdUseCase = async (input: VoteForTimeByIdInput) => {
 
   let voteStatus: "valid" | "flagged" = "valid";
   let proxyCheckResult: ProxyCheckIpResult | null = null;
+  const maxRiskScore = await ConfigRepository.getMaxRiskScore();
 
   if (input.ipAddress && input.ipAddress !== "unknown") {
     proxyCheckResult = await proxyApiClient.checkIp(input.ipAddress);
     if (proxyCheckResult) {
       const d = proxyCheckResult.detections;
+
+      if (d.risk > maxRiskScore) {
+        logger.warn(
+          { userId: input.userId, ipAddress: input.ipAddress, risk: d.risk, maxRiskScore },
+          "Vote blocked: risk score exceeds configured limit",
+        );
+        throw new ForbiddenError(`Voto bloqueado: score de risco (${d.risk}%) excede o limite configurado (${maxRiskScore}%)`);
+      }
+
       const isSuspicious = d.vpn || d.proxy || d.tor || d.hosting || d.compromised || d.risk >= 33;
       if (isSuspicious) {
         voteStatus = "flagged";

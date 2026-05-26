@@ -23,6 +23,7 @@ export function AdminConfig() {
   const [votingEnabled, setVotingEnabled] = useState(true);
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
+  const [maxRiskScore, setMaxRiskScore] = useState(100);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -30,6 +31,7 @@ export function AdminConfig() {
       setVotingEnabled(config.votingEnabled);
       setStartsAt(toLocalDatetime(config.votingStartsAt));
       setEndsAt(toLocalDatetime(config.votingEndsAt));
+      setMaxRiskScore(config.maxRiskScore);
     }
   }, [config]);
 
@@ -41,6 +43,7 @@ export function AdminConfig() {
         votingStartsAt: fromLocalDatetime(startsAt),
         votingEndsAt: fromLocalDatetime(endsAt),
         votingEnabled,
+        maxRiskScore,
       },
       { onSuccess: () => setSaved(true) },
     );
@@ -123,6 +126,32 @@ export function AdminConfig() {
             <p className="mt-1 text-xs text-neutral-500">
               Deixe vazio para sem limite de término.
             </p>
+          </div>
+        </div>
+
+        {/* Limite de risco */}
+        <div className="mt-6">
+          <label htmlFor="max-risk" className="text-sm font-medium text-neutral-900">
+            Limite máximo de risco (%)
+          </label>
+          <p className="mt-0.5 text-xs text-neutral-500">
+            Votos com score de risco acima deste valor serão bloqueados. Votos com risco ≥ 33% continuam sendo marcados como flagged para revisão manual.
+          </p>
+          <div className="mt-2 flex items-center gap-3">
+            <input
+              id="max-risk"
+              name="maxRiskScore"
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={maxRiskScore}
+              onChange={(e) => setMaxRiskScore(Number(e.target.value))}
+              className="h-2 flex-1 cursor-pointer appearance-none rounded-full bg-neutral-200 accent-primary-100"
+            />
+            <span className="w-12 text-right text-sm font-semibold text-neutral-900 tabular-nums">
+              {maxRiskScore}%
+            </span>
           </div>
         </div>
 

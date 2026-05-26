@@ -90,7 +90,7 @@ export function useAppConfig() {
 export function useUpdateAppConfig() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: { votingStartsAt: string | null; votingEndsAt: string | null; votingEnabled: boolean }) =>
+    mutationFn: (input: { votingStartsAt: string | null; votingEndsAt: string | null; votingEnabled: boolean; maxRiskScore: number }) =>
       updateAppConfig(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "config"] });

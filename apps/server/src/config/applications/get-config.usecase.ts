@@ -7,6 +7,7 @@ export async function getConfigUseCase() {
     votingStartsAt: null,
     votingEndsAt: null,
     votingEnabled: true,
+    maxRiskScore: 100,
     createdAt: new Date(),
     updatedAt: new Date(),
   };

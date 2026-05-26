@@ -177,6 +177,7 @@ export const adminController = createController({ prefix: "/admin", normalize: f
           votingStartsAt: t.Nullable(t.Date()),
           votingEndsAt: t.Nullable(t.Date()),
           votingEnabled: t.Boolean(),
+          maxRiskScore: t.Number(),
           createdAt: t.Date(),
           updatedAt: t.Date(),
         }),
@@ -194,6 +195,7 @@ export const adminController = createController({ prefix: "/admin", normalize: f
       votingStartsAt: t.Nullable(t.String()),
       votingEndsAt: t.Nullable(t.String()),
       votingEnabled: t.Boolean(),
+      maxRiskScore: t.Number({ minimum: 0, maximum: 100 }),
     }),
     response: {
       200: t.Object({
@@ -202,6 +204,7 @@ export const adminController = createController({ prefix: "/admin", normalize: f
           votingStartsAt: t.Nullable(t.Date()),
           votingEndsAt: t.Nullable(t.Date()),
           votingEnabled: t.Boolean(),
+          maxRiskScore: t.Number(),
           createdAt: t.Date(),
           updatedAt: t.Date(),
         }),
