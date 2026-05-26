@@ -9,6 +9,7 @@ mock.module("@/shared/mail/resend/index", () => ({
 }));
 
 import { SessionRepository } from "@/auth/infra/session.repository";
+import { appConfigSchema } from "@/config/domain/config.schema";
 import { db } from "@/shared/infra/databases/postgres";
 import { IntegrationTestHelper } from "@/shared/utils/test-helpers/integration-test-helper";
 import { teamsSchema } from "@/teams/domain/teams.schema";
@@ -540,6 +541,260 @@ describe("Admin teams controller (integration)", () => {
       );
 
       expect(response.status).toBe(422);
+    });
+  });
+
+  describe("GET /admin/config", () => {
+    it("returns default config when no config exists", async () => {
+      const { sid } = await seedUser("admin");
+
+      const response = await app.handle(
+        new Request("http://localhost/admin/config", {
+          headers: { cookie: authCookie(sid) },
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      const { data } = await response.json();
+      expect(data.votingEnabled).toBe(true);
+      expect(data.votingStartsAt).toBeNull();
+      expect(data.votingEndsAt).toBeNull();
+    });
+  });
+
+  describe("PUT /admin/config", () => {
+    it("creates config when none exists", async () => {
+      const { sid } = await seedUser("admin");
+
+      const response = await app.handle(
+        new Request("http://localhost/admin/config", {
+          method: "PUT",
+          headers: {
+            "content-type": "application/json",
+            cookie: authCookie(sid),
+          },
+          body: JSON.stringify({
+            votingStartsAt: "2026-06-01T08:00:00.000Z",
+            votingEndsAt: "2026-06-01T18:00:00.000Z",
+            votingEnabled: true,
+          }),
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      const { data } = await response.json();
+      expect(data.votingEnabled).toBe(true);
+      expect(data.votingStartsAt).toBeTruthy();
+      expect(data.votingEndsAt).toBeTruthy();
+      expect(data.id).toBeString();
+    });
+
+    it("updates existing config", async () => {
+      const { sid } = await seedUser("admin");
+
+      await db.insert(appConfigSchema).values({
+        votingEnabled: true,
+        votingStartsAt: new Date("2026-06-01T08:00:00Z"),
+        votingEndsAt: new Date("2026-06-01T18:00:00Z"),
+      });
+
+      const response = await app.handle(
+        new Request("http://localhost/admin/config", {
+          method: "PUT",
+          headers: {
+            "content-type": "application/json",
+            cookie: authCookie(sid),
+          },
+          body: JSON.stringify({
+            votingStartsAt: null,
+            votingEndsAt: null,
+            votingEnabled: false,
+          }),
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      const { data } = await response.json();
+      expect(data.votingEnabled).toBe(false);
+      expect(data.votingStartsAt).toBeNull();
+      expect(data.votingEndsAt).toBeNull();
+    });
+  });
+
+  describe("GET /admin/votes/flagged", () => {
+    it("returns flagged votes with cursor pagination", async () => {
+      const { sid } = await seedUser("admin");
+
+      const [team] = await db
+        .insert(teamsSchema)
+        .values({ name: "Team", slug: "team-flagged", status: "active" })
+        .returning();
+
+      const emails = Array.from({ length: 3 }, (_, i) => `flagged-${Date.now()}-${i}@example.com`);
+      const voters = await db
+        .insert(usersSchema)
+        .values(emails.map((email, i) => ({
+          name: `Voter ${i}`,
+          email,
+          normalizedEmail: email.toLowerCase(),
+        })))
+        .returning();
+
+      await db.insert(votesSchema).values([
+        { userId: voters[0].id, teamId: team.id, status: "flagged", phoneNumber: "+5511900010001" },
+        { userId: voters[1].id, teamId: team.id, status: "flagged", phoneNumber: "+5511900010002" },
+        { userId: voters[2].id, teamId: team.id, status: "valid", phoneNumber: "+5511900010003" },
+      ]);
+
+      const response = await app.handle(
+        new Request("http://localhost/admin/votes/flagged?limit=10", {
+          headers: { cookie: authCookie(sid) },
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      const { data } = await response.json();
+      expect(data.items).toHaveLength(2);
+      expect(data.items.every((v: { status: string }) => v.status === "flagged")).toBe(true);
+    });
+
+    it("returns empty when no flagged votes", async () => {
+      const { sid } = await seedUser("admin");
+
+      const response = await app.handle(
+        new Request("http://localhost/admin/votes/flagged", {
+          headers: { cookie: authCookie(sid) },
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      const { data } = await response.json();
+      expect(data.items).toHaveLength(0);
+      expect(data.nextCursor).toBeNull();
+    });
+
+    it("paginates with cursor", async () => {
+      const { sid } = await seedUser("admin");
+
+      const [team] = await db
+        .insert(teamsSchema)
+        .values({ name: "Team", slug: "team-cursor", status: "active" })
+        .returning();
+
+      const emails = Array.from({ length: 3 }, (_, i) => `cursor-${Date.now()}-${i}@example.com`);
+      const voters = await db
+        .insert(usersSchema)
+        .values(emails.map((email, i) => ({
+          name: `Voter ${i}`,
+          email,
+          normalizedEmail: email.toLowerCase(),
+        })))
+        .returning();
+
+      await db.insert(votesSchema).values([
+        { userId: voters[0].id, teamId: team.id, status: "flagged", phoneNumber: "+5511900020001", createdAt: new Date("2026-01-01T01:00:00Z") },
+        { userId: voters[1].id, teamId: team.id, status: "flagged", phoneNumber: "+5511900020002", createdAt: new Date("2026-01-01T02:00:00Z") },
+        { userId: voters[2].id, teamId: team.id, status: "flagged", phoneNumber: "+5511900020003", createdAt: new Date("2026-01-01T03:00:00Z") },
+      ]);
+
+      const firstPage = await app.handle(
+        new Request("http://localhost/admin/votes/flagged?limit=2", {
+          headers: { cookie: authCookie(sid) },
+        }),
+      );
+
+      expect(firstPage.status).toBe(200);
+      const first = await firstPage.json();
+      expect(first.data.items).toHaveLength(2);
+      expect(first.data.nextCursor).toBeString();
+
+      const secondPage = await app.handle(
+        new Request(`http://localhost/admin/votes/flagged?limit=2&cursor=${first.data.nextCursor}`, {
+          headers: { cookie: authCookie(sid) },
+        }),
+      );
+
+      expect(secondPage.status).toBe(200);
+      const second = await secondPage.json();
+      expect(second.data.items).toHaveLength(1);
+      expect(second.data.nextCursor).toBeNull();
+    });
+  });
+
+  describe("PUT /admin/votes/:id/approve", () => {
+    it("changes flagged vote status to valid", async () => {
+      const { sid } = await seedUser("admin");
+
+      const [team] = await db
+        .insert(teamsSchema)
+        .values({ name: "Team", slug: "team-vote-approve", status: "active" })
+        .returning();
+
+      const [voter] = await db
+        .insert(usersSchema)
+        .values({ name: "Voter", email: `approve-${Date.now()}@example.com`, normalizedEmail: `approve-${Date.now()}@example.com` })
+        .returning();
+
+      const [vote] = await db
+        .insert(votesSchema)
+        .values({ userId: voter.id, teamId: team.id, status: "flagged", phoneNumber: "+5511900030001" })
+        .returning();
+
+      const response = await app.handle(
+        new Request(`http://localhost/admin/votes/${vote.id}/approve`, {
+          method: "PUT",
+          headers: { cookie: authCookie(sid) },
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      const { data } = await response.json();
+      expect(data.status).toBe("valid");
+    });
+
+    it("returns 404 for non-existent vote", async () => {
+      const { sid } = await seedUser("admin");
+
+      const response = await app.handle(
+        new Request("http://localhost/admin/votes/nonexistent-id/approve", {
+          method: "PUT",
+          headers: { cookie: authCookie(sid) },
+        }),
+      );
+
+      expect(response.status).toBe(404);
+    });
+  });
+
+  describe("PUT /admin/votes/:id/invalidate", () => {
+    it("changes flagged vote status to invalidated", async () => {
+      const { sid } = await seedUser("admin");
+
+      const [team] = await db
+        .insert(teamsSchema)
+        .values({ name: "Team", slug: "team-vote-invalidate", status: "active" })
+        .returning();
+
+      const [voter] = await db
+        .insert(usersSchema)
+        .values({ name: "Voter", email: `invalidate-${Date.now()}@example.com`, normalizedEmail: `invalidate-${Date.now()}@example.com` })
+        .returning();
+
+      const [vote] = await db
+        .insert(votesSchema)
+        .values({ userId: voter.id, teamId: team.id, status: "flagged", phoneNumber: "+5511900040001" })
+        .returning();
+
+      const response = await app.handle(
+        new Request(`http://localhost/admin/votes/${vote.id}/invalidate`, {
+          method: "PUT",
+          headers: { cookie: authCookie(sid) },
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      const { data } = await response.json();
+      expect(data.status).toBe("invalidated");
     });
   });
 

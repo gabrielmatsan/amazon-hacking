@@ -8,6 +8,7 @@ import {
   ClipboardListIcon,
   BarChart3Icon,
   AlertTriangleIcon,
+  SettingsIcon,
   LogOutIcon,
   ArrowLeftIcon,
 } from "lucide-react";
@@ -92,6 +93,17 @@ export function AdminShell({
           >
             <AlertTriangleIcon className="size-4 shrink-0 stroke-neutral-500" />
             Flagged
+          </a>
+          <a
+            href={`/${base}admin/config`}
+            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
+              pathname.includes("/admin/config")
+                ? "bg-neutral-100 text-neutral-900"
+                : "text-neutral-600 hover:bg-neutral-100"
+            }`}
+          >
+            <SettingsIcon className="size-4 shrink-0 stroke-neutral-500" />
+            Configurações
           </a>
         </nav>
 

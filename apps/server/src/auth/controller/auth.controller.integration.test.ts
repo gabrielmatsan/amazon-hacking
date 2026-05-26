@@ -159,6 +159,7 @@ describe("Auth controller (integration)", () => {
         id: user.id,
         name: user.name,
         email: user.email,
+        teamId: null,
         role: "admin",
       });
     });

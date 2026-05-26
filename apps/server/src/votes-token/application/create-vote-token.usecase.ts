@@ -11,6 +11,7 @@ import { logger } from "@/shared/infra/observability";
 import { VotesRepository } from "@/votes/infra/votes.repository";
 import { t, type Static } from "elysia";
 
+import { ConfigRepository } from "@/config/infra/config.repository";
 import { ForbiddenError } from "@/shared/infra/errors/forbidden-error";
 import { NotFoundError } from "@/shared/infra/errors/not-found-error";
 import { normalizeEmail } from "@/shared/utils/normalize-email";
@@ -72,6 +73,8 @@ export async function createVoteTokenUseCase(
   input: CreateVoteTokenInput,
   ipAddress?: string,
 ): Promise<CreateVoteTokenResult> {
+  const votingStatus = await ConfigRepository.isVotingOpen();
+  if (!votingStatus.open) throw new ForbiddenError(votingStatus.reason ?? "Votação fechada");
   const phoneNumber = normalizePhone(input.phoneNumber);
 
   const user = await UsersRepository.findById(userId);

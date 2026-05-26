@@ -3,6 +3,8 @@ import { t } from "elysia";
 import { createController, errorResponse } from "@/shared/infra/base.controller";
 import { requireRole } from "@/shared/infra/require-role.middleware";
 
+import { getConfigUseCase } from "@/config/applications/get-config.usecase";
+import { updateConfigUseCase } from "@/config/applications/update-config.usecase";
 import { approveTeamUseCase } from "@/teams/applications/approve-team.usecase";
 import { listTeamsByStatusUseCase } from "@/teams/applications/list-teams-by-status.usecase";
 import { rejectTeamUseCase } from "@/teams/applications/reject-team.usecase";
@@ -163,4 +165,50 @@ export const adminController = createController({ prefix: "/admin", normalize: f
       404: errorResponse,
     },
     detail: { tags: ["Admin", "Votes"], summary: "Invalidate a flagged vote" },
+  })
+  .get("/config", async () => {
+    const config = await getConfigUseCase();
+    return { data: config };
+  }, {
+    response: {
+      200: t.Object({
+        data: t.Object({
+          id: t.Nullable(t.String()),
+          votingStartsAt: t.Nullable(t.Date()),
+          votingEndsAt: t.Nullable(t.Date()),
+          votingEnabled: t.Boolean(),
+          createdAt: t.Date(),
+          updatedAt: t.Date(),
+        }),
+      }),
+      401: errorResponse,
+      403: errorResponse,
+    },
+    detail: { tags: ["Admin", "Config"], summary: "Get app configuration" },
+  })
+  .put("/config", async ({ body }) => {
+    const config = await updateConfigUseCase(body);
+    return { data: config };
+  }, {
+    body: t.Object({
+      votingStartsAt: t.Nullable(t.String()),
+      votingEndsAt: t.Nullable(t.String()),
+      votingEnabled: t.Boolean(),
+    }),
+    response: {
+      200: t.Object({
+        data: t.Object({
+          id: t.String(),
+          votingStartsAt: t.Nullable(t.Date()),
+          votingEndsAt: t.Nullable(t.Date()),
+          votingEnabled: t.Boolean(),
+          createdAt: t.Date(),
+          updatedAt: t.Date(),
+        }),
+      }),
+      401: errorResponse,
+      403: errorResponse,
+      422: errorResponse,
+    },
+    detail: { tags: ["Admin", "Config"], summary: "Update app configuration" },
   });
