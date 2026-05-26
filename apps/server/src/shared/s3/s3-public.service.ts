@@ -70,7 +70,19 @@ export class S3PublicService implements IS3Service {
 
   static getInstance(): S3PublicService {
     return new S3PublicService(
-      new S3Client({ region: env.AWS_REGION }),
+      new S3Client({
+        region: env.AWS_REGION,
+        ...(env.S3_ENDPOINT && {
+          endpoint: env.S3_ENDPOINT,
+          forcePathStyle: true,
+        }),
+        ...(env.AWS_ACCESS_KEY_ID && env.AWS_SECRET_ACCESS_KEY && {
+          credentials: {
+            accessKeyId: env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+          },
+        }),
+      }),
       env.S3_PUBLIC_BUCKET_NAME,
     );
   }

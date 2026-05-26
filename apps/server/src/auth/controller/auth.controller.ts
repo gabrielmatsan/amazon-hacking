@@ -168,6 +168,7 @@ export const authController = createController({ prefix: "/auth" })
         id: user.id,
         name: user.name,
         email: user.email,
+        teamId: user.teamId ?? null,
         role: user.role,
       };
     },
