@@ -2,9 +2,12 @@
 
 import { useAuth } from "@/hooks/use-auth";
 import { getGoogleLoginUrl, logout } from "@/lib/api/auth";
+import { usePathname } from "next/navigation";
 import {
   ShieldCheckIcon,
   ClipboardListIcon,
+  BarChart3Icon,
+  AlertTriangleIcon,
   LogOutIcon,
   ArrowLeftIcon,
 } from "lucide-react";
@@ -19,6 +22,7 @@ export function AdminShell({
 }) {
   const { data: user, isLoading, isError } = useAuth();
   const queryClient = useQueryClient();
+  const pathname = usePathname();
 
   if (isLoading) {
     return (
@@ -58,10 +62,36 @@ export function AdminShell({
         <nav className="flex flex-1 flex-col gap-1 p-3" role="list">
           <a
             href={`/${base}admin`}
-            className="flex items-center gap-2 rounded-lg bg-neutral-100 px-3 py-2 text-sm font-medium text-neutral-900"
+            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
+              pathname.endsWith("/admin") || pathname.endsWith("/admin/")
+                ? "bg-neutral-100 text-neutral-900"
+                : "text-neutral-600 hover:bg-neutral-100"
+            }`}
           >
             <ClipboardListIcon className="size-4 shrink-0 stroke-neutral-500" />
             Revisão de equipes
+          </a>
+          <a
+            href={`/${base}admin/votes`}
+            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
+              pathname.endsWith("/admin/votes") || pathname.endsWith("/admin/votes/")
+                ? "bg-neutral-100 text-neutral-900"
+                : "text-neutral-600 hover:bg-neutral-100"
+            }`}
+          >
+            <BarChart3Icon className="size-4 shrink-0 stroke-neutral-500" />
+            Votos
+          </a>
+          <a
+            href={`/${base}admin/flagged`}
+            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
+              pathname.includes("/admin/flagged")
+                ? "bg-neutral-100 text-neutral-900"
+                : "text-neutral-600 hover:bg-neutral-100"
+            }`}
+          >
+            <AlertTriangleIcon className="size-4 shrink-0 stroke-neutral-500" />
+            Flagged
           </a>
         </nav>
 

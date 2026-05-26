@@ -11,6 +11,7 @@
     "test:integration": "find ./src -name '*.integration.test.ts' -exec bun test --env-file=.env.test {} +",
     "test:coverage": "bun test --coverage",
     "seed:teams": "bun scripts/seed-teams.ts",
+    "seed:votes": "bun scripts/seed-votes.ts",
     "test:db:up": "docker-compose -f docker-compose.test.yml up -d",
     "test:db:down": "docker-compose -f docker-compose.test.yml down -v",
     "test:db:migrate": "bun run db:migrate",

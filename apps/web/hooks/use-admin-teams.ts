@@ -5,7 +5,12 @@ import {
   listTeamsInReview,
   approveTeam,
   rejectTeam,
+  getVotesDashboard,
+  getFlaggedVotes,
+  approveVote,
+  invalidateVote,
 } from "@/lib/api/admin";
+import { useInfiniteQuery } from "@tanstack/react-query";
 
 export function useTeamsInReview() {
   return useQuery({
@@ -33,6 +38,42 @@ export function useRejectTeam() {
       rejectTeam(id, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "teams", "review"] });
+    },
+  });
+}
+
+export function useVotesDashboard() {
+  return useQuery({
+    queryKey: ["admin", "votes", "dashboard"],
+    queryFn: getVotesDashboard,
+  });
+}
+
+export function useFlaggedVotes() {
+  return useInfiniteQuery({
+    queryKey: ["admin", "votes", "flagged"],
+    queryFn: ({ pageParam }) => getFlaggedVotes(pageParam ?? undefined),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+  });
+}
+
+export function useApproveVote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => approveVote(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "votes"] });
+    },
+  });
+}
+
+export function useInvalidateVote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => invalidateVote(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "votes"] });
     },
   });
 }
