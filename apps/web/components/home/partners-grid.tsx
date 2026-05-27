@@ -7,9 +7,9 @@ import { partnersByTier } from "@/lib/content/partners";
 import type { Partner } from "@/lib/content/types";
 
 const tierLabels = {
-  master: { "pt-br": "Master", en: "Master", es: "Master" },
-  maintainers: { "pt-br": "Mantenedoras", en: "Maintainers", es: "Mantenedoras" },
-  supporters: { "pt-br": "Apoiadoras", en: "Supporters", es: "Apoyadoras" },
+  sponsors: { "pt-br": "Patrocinadoras", en: "Sponsors", es: "Patrocinadoras" },
+  support: { "pt-br": "Apoio", en: "Support", es: "Apoyo" },
+  godmothers: { "pt-br": "Madrinhas", en: "Godmothers", es: "Madrinas" },
 } as const;
 
 function LogoRow({
@@ -59,7 +59,7 @@ export function PartnersGrid() {
         <WaveDivider from="#ffffff" to="#0165b7" />
         <div className="bg-primary-100 px-8 pb-16 text-center">
           <Reveal as="h3" className="text-2xl font-bold text-white md:text-4xl">
-            {tierLabels.master[locale]}
+            {tierLabels.sponsors[locale]}
           </Reveal>
           <div className="mt-10">
             <LogoRow items={partnersByTier.platinum} size="lg" />
@@ -69,7 +69,7 @@ export function PartnersGrid() {
         <WaveDivider from="#0165b7" to="#005194" />
         <div className="bg-primary-200 px-8 pb-16 text-center">
           <Reveal as="h3" className="text-2xl font-bold text-white md:text-4xl">
-            {tierLabels.maintainers[locale]}
+            {tierLabels.support[locale]}
           </Reveal>
           <div className="mt-10">
             <LogoRow items={partnersByTier.gold} size="md" />
@@ -79,7 +79,7 @@ export function PartnersGrid() {
         <WaveDivider from="#005194" to="#0a0a0a" />
         <div className="bg-neutrals-700 px-8 pb-16 text-center">
           <Reveal as="h3" className="text-2xl font-bold text-white md:text-4xl">
-            {tierLabels.supporters[locale]}
+            {tierLabels.godmothers[locale]}
           </Reveal>
           <div className="mt-10">
             <LogoRow items={partnersByTier.silver} size="sm" />
