@@ -7,9 +7,10 @@ export async function getMyVote() {
   return data.data;
 }
 
-export async function requestVoteToken(phoneNumber: string) {
+export async function requestVoteToken(phoneNumber: string, turnstileToken: string) {
   const { data } = await axios.post<VoteTokenResponse>("/api/vote-token", {
     phoneNumber,
+    turnstileToken,
   });
   return data;
 }

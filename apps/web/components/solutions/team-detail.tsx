@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { YouTubeEmbed } from "@next/third-parties/google";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { m } from "@/lib/paraglide/messages";
 import type { Locale } from "@/lib/paraglide/runtime";
 import { useAuth } from "@/hooks/use-auth";
@@ -225,6 +226,8 @@ function VoteFlow({ teamId, locale }: { teamId: string; locale: Locale }) {
   const [code, setCode] = useState("");
   const [channel, setChannel] = useState<VoteChannel | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileInstance>(null);
 
   const requestToken = useRequestVoteToken();
   const vote = useVoteForTeam();
@@ -233,13 +236,20 @@ function VoteFlow({ teamId, locale }: { teamId: string; locale: Locale }) {
     e.preventDefault();
     setErrorMsg(null);
 
-    requestToken.mutate(phone, {
+    if (!turnstileToken) {
+      setErrorMsg("Aguarde a verificação de segurança");
+      return;
+    }
+
+    requestToken.mutate({ phoneNumber: phone, turnstileToken }, {
       onSuccess: (data) => {
         setChannel(data.channel);
         setStep("code");
       },
       onError: (err) => {
         setErrorMsg(getErrorMessage(err) ?? m.vote_error_generic({}, { locale }));
+        turnstileRef.current?.reset();
+        setTurnstileToken(null);
       },
     });
   };
@@ -275,7 +285,7 @@ function VoteFlow({ teamId, locale }: { teamId: string; locale: Locale }) {
           />
           <button
             type="submit"
-            disabled={requestToken.isPending || phone.length < 6}
+            disabled={requestToken.isPending || phone.length < 6 || !turnstileToken}
             className="shrink-0 rounded-xl bg-primary-100 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-200 disabled:opacity-50"
           >
             {requestToken.isPending
@@ -283,6 +293,17 @@ function VoteFlow({ teamId, locale }: { teamId: string; locale: Locale }) {
               : m.vote_phone_submit({}, { locale })}
           </button>
         </div>
+        {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+          <div className="mt-3">
+            <Turnstile
+              ref={turnstileRef}
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+              onSuccess={setTurnstileToken}
+              onExpire={() => setTurnstileToken(null)}
+              options={{ theme: "light", size: "normal" }}
+            />
+          </div>
+        )}
         {errorMsg && (
           <p className="mt-2 text-sm text-rose-600">{errorMsg}</p>
         )}
