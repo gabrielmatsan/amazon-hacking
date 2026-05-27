@@ -24,16 +24,24 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json();
 
-  const res = await fetch(`${apiUrl}/votes-token/request`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-token": apiToken,
-      Cookie: `session_id=${sessionId}`,
-    },
-    body: JSON.stringify(body),
-  });
+  try {
+    const res = await fetch(`${apiUrl}/votes-token/request`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-token": apiToken,
+        Cookie: `session_id=${sessionId}`,
+      },
+      body: JSON.stringify(body),
+    });
 
-  const data = await res.json();
-  return NextResponse.json(data, { status: res.status });
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
+  } catch (err) {
+    console.error("[vote-token] upstream error:", err);
+    return NextResponse.json(
+      { error: "failed", message: "Failed to reach voting service" },
+      { status: 502 },
+    );
+  }
 }
