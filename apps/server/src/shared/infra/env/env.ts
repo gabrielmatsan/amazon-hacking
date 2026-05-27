@@ -71,6 +71,9 @@ const envSchema = z.object({
 
   // Proxy API
   PROXY_API_KEY: z.string().min(1),
+
+  // Cloudflare Turnstile
+  TURNSTILE_SECRET_KEY: z.string().min(1),
 });
 
 const parsedEnv = envSchema.parse(process.env);

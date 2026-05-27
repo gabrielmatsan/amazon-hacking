@@ -14,13 +14,15 @@ import { t, type Static } from "elysia";
 import { ConfigRepository } from "@/config/infra/config.repository";
 import { ForbiddenError } from "@/shared/infra/errors/forbidden-error";
 import { NotFoundError } from "@/shared/infra/errors/not-found-error";
-import { normalizeEmail } from "@/shared/utils/normalize-email";
+import { verifyTurnstileToken } from "@/shared/infra/turnstile/verify-turnstile";
 import { resendEmailClient } from "@/shared/mail/resend";
+import { normalizeEmail } from "@/shared/utils/normalize-email";
 import { UsersRepository } from "@/users/infra/users.repository";
 import { VoteTokensRepository } from "../infra/votes-tokens.repository";
 
 export const createVoteTokenInput = t.Object({
   phoneNumber: t.String({ minLength: 6, maxLength: 25 }),
+  turnstileToken: t.String({ minLength: 1 }),
 });
 
 type CreateVoteTokenInput = Static<typeof createVoteTokenInput>;
@@ -73,8 +75,12 @@ export async function createVoteTokenUseCase(
   input: CreateVoteTokenInput,
   ipAddress?: string,
 ): Promise<CreateVoteTokenResult> {
+
+  await verifyTurnstileToken(input.turnstileToken, ipAddress);
+
   const votingStatus = await ConfigRepository.isVotingOpen();
   if (!votingStatus.open) throw new ForbiddenError(votingStatus.reason ?? "Votação fechada");
+
   const phoneNumber = normalizePhone(input.phoneNumber);
 
   const user = await UsersRepository.findById(userId);

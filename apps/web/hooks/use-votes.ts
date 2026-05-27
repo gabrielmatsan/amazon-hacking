@@ -15,7 +15,8 @@ export function useMyVote() {
 
 export function useRequestVoteToken() {
   return useMutation({
-    mutationFn: (phoneNumber: string) => requestVoteToken(phoneNumber),
+    mutationFn: ({ phoneNumber, turnstileToken }: { phoneNumber: string; turnstileToken: string }) =>
+      requestVoteToken(phoneNumber, turnstileToken),
   });
 }
 
