@@ -31,6 +31,7 @@ const nextConfig = {
       { source: "/admin/votes", destination: "/pt-br/admin/votes" },
       { source: "/admin/flagged", destination: "/pt-br/admin/flagged" },
       { source: "/admin/config", destination: "/pt-br/admin/config" },
+      { source: "/admin/create-team", destination: "/pt-br/admin/create-team" },
     ];
   },
   async redirects() {

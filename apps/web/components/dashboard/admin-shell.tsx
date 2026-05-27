@@ -11,6 +11,7 @@ import {
   SettingsIcon,
   LogOutIcon,
   ArrowLeftIcon,
+  PlusCircleIcon,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -71,6 +72,17 @@ export function AdminShell({
           >
             <ClipboardListIcon className="size-4 shrink-0 stroke-neutral-500" />
             Revisão de equipes
+          </a>
+          <a
+            href={`/${base}admin/create-team`}
+            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
+              pathname.includes("/admin/create-team")
+                ? "bg-neutral-100 text-neutral-900"
+                : "text-neutral-600 hover:bg-neutral-100"
+            }`}
+          >
+            <PlusCircleIcon className="size-4 shrink-0 stroke-neutral-500" />
+            Cadastrar equipe
           </a>
           <a
             href={`/${base}admin/votes`}

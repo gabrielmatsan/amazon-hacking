@@ -11,6 +11,11 @@ import {
   invalidateVote,
   getAppConfig,
   updateAppConfig,
+  searchUsersByEmail,
+  createAdminTeam,
+  uploadAdminImage,
+  uploadFileToPresignedUrl,
+  type CreateAdminTeamInput,
 } from "@/lib/api/admin";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
@@ -94,6 +99,39 @@ export function useUpdateAppConfig() {
       updateAppConfig(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "config"] });
+    },
+  });
+}
+
+export function useSearchUsersByEmail(email: string) {
+  return useQuery({
+    queryKey: ["admin", "users", "search", email],
+    queryFn: () => searchUsersByEmail(email),
+    enabled: email.length >= 3,
+  });
+}
+
+export function useCreateAdminTeam() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CreateAdminTeamInput) => createAdminTeam(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "teams"] });
+    },
+  });
+}
+
+export function useUploadAdminImage() {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const { urlPresigned, publicUrl } = await uploadAdminImage({
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+        fileContent: "",
+      });
+      await uploadFileToPresignedUrl(urlPresigned, file);
+      return publicUrl;
     },
   });
 }
