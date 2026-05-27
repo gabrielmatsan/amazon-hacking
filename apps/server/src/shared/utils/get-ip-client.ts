@@ -1,6 +1,12 @@
 export function getIpClient(request: Request, server?: any): string {
 
-  // 1. Cloudflare CF-Connecting-IP (best option for Cloudflare)
+  // 1. Real client IP forwarded by Next.js proxy (not overwritten by Cloudflare)
+  const realClientIp = request.headers.get("x-real-client-ip");
+  if (realClientIp) {
+    return realClientIp;
+  }
+
+  // 2. Cloudflare CF-Connecting-IP (direct requests, not proxied)
   const cfConnectingIp = request.headers.get("cf-connecting-ip");
   if (cfConnectingIp) {
     return cfConnectingIp;
