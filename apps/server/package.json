@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "build": "echo 'Build complete'",
+    "build": "bun build ./src/app.ts --compile --outfile ./dist/server",
     "dev": "bun run --watch src/app.ts",
     "test": "bun test --env-file=.env.test",
     "test:watch": "bun test --watch",
