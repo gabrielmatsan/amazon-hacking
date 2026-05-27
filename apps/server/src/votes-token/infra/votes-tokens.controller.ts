@@ -52,6 +52,7 @@ export const votesTokensController = createController({
 
       const result = await createVoteTokenUseCase(user.id, {
         phoneNumber: body.phoneNumber,
+        turnstileToken: body.turnstileToken,
       }, ipAddress);
 
       set.status = 201;
