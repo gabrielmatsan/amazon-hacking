@@ -6,6 +6,7 @@ import cors from "@elysiajs/cors";
 import swagger from "@elysiajs/swagger";
 import { Elysia } from "elysia";
 import { rateLimit } from "elysia-rate-limit";
+import { elysiaHelmet as helmet } from "elysiajs-helmet";
 import { appRoutes } from "./app.routes";
 import { shutdownPools } from "./shared/infra/databases/postgres";
 import { redis } from "./shared/infra/databases/redis";
@@ -14,10 +15,7 @@ import { healthChecker } from "./shared/infra/observability/health";
 import { logger } from "./shared/infra/observability/logger";
 import { getMetrics, getMetricsContentType } from "./shared/infra/observability/metrics/prometheus";
 import { onAfterResponseHandler, onRequestHandler } from "./shared/infra/observability/middleware";
-import { stopEmailQueue } from "./shared/infra/queues/bullmq/mail/email-queue";
-import { startEmailWorker, stopEmailWorker } from "./shared/infra/queues/bullmq/mail/email-worker";
-import { RateLimitContext } from "./shared/infra/rate-limiting/rate-limit";
-import { initializeSES } from "./shared/mail/ses/ses-setup";
+
 
 const app = new Elysia({
   normalize: "typebox",
@@ -28,30 +26,6 @@ const app = new Elysia({
 })
   .onRequest(onRequestHandler)
   .onAfterResponse(onAfterResponseHandler)
-  // .use(rateLimit({
-  //   context: new RateLimitContext(),
-  //   duration: 1000 * 60 * 1 + 1000 * 30,
-  //   max: 100,
-  //   generator: (request: Request) => {
-  //     return (
-  //       request.headers.get("cf-connecting-ip") ??
-  //       request.headers.get("x-forwarded-for") ??
-  //       request.headers.get("x-real-ip") ??
-  //       "unknown"
-  //     );
-  //   },
-  //   skip: (request: Request) => {
-  //     if (env.NODE_ENV === "development") return true;
-  //     return request.url.includes("/health") || request.url.includes("/metrics") || request.url.includes("/docs");
-  //   },
-  //   errorResponse: new Response(JSON.stringify({
-  //     error: "failed",
-  //     message: "Rate limit exceeded",
-  //   }), {
-  //     status: 429,
-  //     headers: { "content-type": "application/json" }
-  //   })
-  // }))
   .use(
     cors({
       credentials: true,
@@ -105,13 +79,16 @@ if (env.NODE_ENV === "development") {
 }
 
 app.use(appRoutes);
+
+
+if (env.NODE_ENV === 'production') {
+  app.use(helmet({
+    corp: 'same-site',
+  }));
+}
+
 app.listen(env.PORT);
 
-// Initialize email service
-// initializeSES();
-// logger.info("Email service initialized");
-// startEmailWorker();
-// logger.info("Email worker started");
 
 export type App = typeof app;
 
@@ -145,12 +122,6 @@ const shutdown = async (signal: string) => {
   isShuttingDown = true;
 
   logger.info({ signal }, "Received signal, shutting down gracefully...");
-
-  // await stopEmailWorker();
-  // logger.info("Email worker stopped");
-
-  // await stopEmailQueue();
-  // logger.info("Email queue stopped");
 
   await shutdownPools();
   logger.info("Database pools closed");
