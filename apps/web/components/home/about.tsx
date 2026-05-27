@@ -27,9 +27,9 @@ const goals = [
 ];
 
 const numbers = [
-  { value: "240", label: { "pt-br": "Alunos", en: "Students", es: "Estudiantes" } },
-  { value: "30", label: { "pt-br": "Equipes", en: "Teams", es: "Equipos" } },
-  { value: "25", label: { "pt-br": "Mentores", en: "Mentors", es: "Mentores" } },
+  { value: "337", label: { "pt-br": "Alunos", en: "Students", es: "Estudiantes" } },
+  { value: "38", label: { "pt-br": "Equipes inscritas", en: "Registered Teams", es: "Equipos inscritos" } },
+  { value: "43", label: { "pt-br": "Mentores", en: "Mentors", es: "Mentores" } },
 ];
 
 export function AboutSection() {
