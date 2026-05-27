@@ -24,8 +24,12 @@ switch (env.NODE_ENV) {
       throw new Error("DATABASE_URL is not set");
     }
 
+    const connectionString = env.DATABASE_URL.includes('sslmode=')
+      ? env.DATABASE_URL
+      : `${env.DATABASE_URL}?sslmode=require`;
+
     const devDb = new Pool({
-      connectionString: env.DATABASE_URL,
+      connectionString: connectionString,
       max: 10,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
