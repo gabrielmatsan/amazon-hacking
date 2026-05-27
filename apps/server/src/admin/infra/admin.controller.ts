@@ -5,33 +5,38 @@ import { requireRole } from "@/shared/infra/require-role.middleware";
 
 import { getConfigUseCase } from "@/config/applications/get-config.usecase";
 import { updateConfigUseCase } from "@/config/applications/update-config.usecase";
+import { ForbiddenError } from "@/shared/infra/errors/forbidden-error";
 import { approveTeamUseCase } from "@/teams/applications/approve-team.usecase";
 import { listTeamsByStatusUseCase } from "@/teams/applications/list-teams-by-status.usecase";
 import { rejectTeamUseCase } from "@/teams/applications/reject-team.usecase";
 import { uploadImageInput, uploadImageOutput, uploadImageUseCase } from "@/teams/applications/upload-image.usecase";
+import { findUserByEmailUseCase } from "@/users/applications/find-user-by-email.usecase";
+import { userType } from "@/users/domain/users.type";
 import { checkVotesOutput, checkVotesUseCase } from "@/votes/application/check-votes.usecase";
 import { flaggedVotesOutput, listFlaggedVotesUseCase } from "@/votes/application/list-flagged-votes.usecase";
 import { approveVoteUseCase, invalidateVoteUseCase } from "@/votes/application/moderate-vote.usecase";
 import { votesDashboardOutput, votesDashboardUseCase } from "@/votes/application/votes-dashboard.usecase";
-import { createTeamUseCase } from "../../teams/applications/create-team.usecase";
+import { createAdminTeamUseCase } from "../../teams/applications/create-admin-team.usecase";
 import { updateTeamUseCase } from "../../teams/applications/update-team.usecase";
-import { createTeamBody, teamType, updateTeamBody } from "../../teams/domain/teams.type";
+import { createAdminTeamBody, teamType, updateTeamBody } from "../../teams/domain/teams.type";
 
 export const adminController = createController({ prefix: "/admin", normalize: false })
   .use(requireRole("admin"))
   .post("/teams", async ({ body, set }) => {
-    const team = await createTeamUseCase(body);
+    const team = await createAdminTeamUseCase(body);
     set.status = 201;
     return { data: team };
   }, {
-    body: createTeamBody,
+    body: createAdminTeamBody,
     response: {
       201: t.Object({ data: teamType }),
       401: errorResponse,
       403: errorResponse,
+      404: errorResponse,
+      409: errorResponse,
       422: errorResponse,
     },
-    detail: { tags: ["Admin", "Teams"], summary: "Create team (admin only)" },
+    detail: { tags: ["Admin", "Teams"], summary: "Create team with leader association (admin only)" },
   })
   .put("/teams/:id", async ({ params, body }) => {
     const team = await updateTeamUseCase(params.id, body);
@@ -214,4 +219,21 @@ export const adminController = createController({ prefix: "/admin", normalize: f
       422: errorResponse,
     },
     detail: { tags: ["Admin", "Config"], summary: "Update app configuration" },
+  })
+  .get("/user/email/:email", async ({ set, request, params, validateToken }) => {
+    const user = await validateToken(request);
+
+    if (user.role !== "admin") {
+      throw new ForbiddenError("Admin role required");
+    }
+
+    const users = await findUserByEmailUseCase(params.email);
+    return { data: users };
+  }, {
+    response: {
+      200: t.Object({ data: t.Array(userType) }),
+    },
+    params: t.Object({ email: t.String() }),
+
+    detail: { tags: ["Admin", "Users"], summary: "List users" },
   });

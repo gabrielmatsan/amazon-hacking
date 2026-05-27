@@ -1,5 +1,5 @@
 import { api } from "./client";
-import type { Team } from "./types";
+import type { AuthUser, Team } from "./types";
 
 export type VoteDashboardTotals = {
   total: number;
@@ -129,4 +129,67 @@ export async function updateAppConfig(input: {
 }) {
   const { data } = await api.put<{ data: AppConfig }>("/admin/config", input);
   return data.data;
+}
+
+export async function searchUsersByEmail(email: string) {
+  const { data } = await api.get<{ data: AuthUser[] }>(
+    `/admin/user/email/${encodeURIComponent(email)}`,
+  );
+  return data.data;
+}
+
+export type CreateAdminTeamInput = {
+  name: string;
+  description?: string;
+  teamMembers?: Array<{
+    name: string;
+    role: string;
+    email?: string;
+    imageUrl?: string;
+    links?: { website?: string; linkedin?: string; github?: string };
+  }>;
+  videoUrl?: string | null;
+  secondaryVideoUrl?: string | null;
+  solutionPillar?: string;
+  logoUrl?: string | null;
+  leaderId?: string;
+};
+
+export async function createAdminTeam(input: CreateAdminTeamInput) {
+  const { data } = await api.post<{ data: Team }>("/admin/teams", input);
+  return data.data;
+}
+
+export type UploadImageInput = {
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  fileContent: string;
+};
+
+export type UploadImageOutput = {
+  urlPresigned: string;
+  publicUrl: string;
+};
+
+export async function uploadAdminImage(input: UploadImageInput) {
+  const { data } = await api.post<{ data: UploadImageOutput }>(
+    "/admin/images",
+    input,
+  );
+  return data.data;
+}
+
+export async function uploadFileToPresignedUrl(
+  presignedUrl: string,
+  file: File,
+) {
+  const res = await fetch(presignedUrl, {
+    method: "PUT",
+    headers: { "Content-Type": file.type },
+    body: file,
+  });
+  if (!res.ok) {
+    throw new Error(`Upload failed: ${res.status}`);
+  }
 }

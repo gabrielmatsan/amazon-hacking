@@ -1,6 +1,6 @@
 import { and, eq, sql } from "drizzle-orm";
 
-import { db } from "@/shared/infra/databases/postgres";
+import { db, type Transaction } from "@/shared/infra/databases/postgres";
 import { teamsSchema, type NewTeam } from "../domain/teams.schema";
 import type { SolutionPillar, Team, TeamMember } from "../domain/teams.type";
 
@@ -102,8 +102,9 @@ export const TeamsRepository = {
     return !!team;
   },
 
-  async create(data: NewTeam): Promise<Team> {
-    const [team] = await db
+  async create(data: NewTeam, tx?: Transaction): Promise<Team> {
+    const dbInstance = tx ?? db;
+    const [team] = await dbInstance
       .insert(teamsSchema)
       .values({
         ...data,
