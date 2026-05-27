@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       "Content-Type": "application/json",
       "x-api-token": apiToken,
       "x-server-secret": process.env.SERVER_BYPASS_SECRET ?? "",
-      "x-forwarded-for": request.headers.get("x-forwarded-for") ?? request.headers.get("cf-connecting-ip") ?? "",
+      "x-real-client-ip": request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "",
       "x-real-user-agent": request.headers.get("user-agent") ?? "",
       Cookie: `session_id=${sessionId}`,
     },
