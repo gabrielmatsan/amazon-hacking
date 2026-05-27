@@ -4,7 +4,6 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function POST(request: NextRequest) {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/v1";
   const apiToken = process.env.X_API_TOKEN;
-  console.log("[vote route] token:", JSON.stringify(apiToken));
 
   if (!apiToken) {
     return NextResponse.json(
