@@ -13,7 +13,7 @@ import { redis } from "./shared/infra/databases/redis";
 import { env } from "./shared/infra/env/env";
 import { healthChecker } from "./shared/infra/observability/health";
 import { logger } from "./shared/infra/observability/logger";
-import { getMetrics, getMetricsContentType } from "./shared/infra/observability/metrics/prometheus";
+// import { getMetrics, getMetricsContentType } from "./shared/infra/observability/metrics/prometheus";
 import { onAfterResponseHandler, onRequestHandler } from "./shared/infra/observability/middleware";
 
 
@@ -47,11 +47,11 @@ const app = new Elysia({
   .get("/health", async () => {
     const health = await healthChecker.check();
     return health;
-  })
-  .get("/metrics", async ({ set }) => {
-    set.headers["content-type"] = getMetricsContentType();
-    return getMetrics();
   });
+  // .get("/metrics", async ({ set }) => {
+  //   set.headers["content-type"] = getMetricsContentType();
+  //   return getMetrics();
+  // });
 
 if (env.NODE_ENV === "development") {
   app.use(
@@ -84,6 +84,22 @@ app.use(appRoutes);
 if (env.NODE_ENV === 'production') {
   app.use(helmet({
     corp: 'same-site',
+    coop: 'same-origin',
+    frameOptions: 'DENY',
+    xssProtection: true,
+    dnsPrefetch: false,
+    referrerPolicy: 'strict-origin-when-cross-origin',
+    hsts: {
+      maxAge: 63072000,
+      includeSubDomains: true,
+      preload: true,
+    },
+    permissionsPolicy: {
+      camera: [],
+      microphone: [],
+      geolocation: [],
+      'interest-cohort': [],
+    },
   }));
 }
 
