@@ -3,7 +3,7 @@ builder = "dockerfile"
 dockerfilePath = "apps/server/Dockerfile"
 
 [deploy]
-startCommand = "bun run src/app.ts"
+startCommand = "./server"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
