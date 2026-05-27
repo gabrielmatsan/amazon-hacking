@@ -7,6 +7,49 @@ const SCI = "Ciência da Computação";
 const names = (...list: string[]) => list.map((name) => ({ name }));
 
 export const winners: Winner[] = [
+  // ---------------------------------------------------------------- 2025
+  {
+    id: "oketa-2025",
+    year: 2025,
+    name: "Oketá",
+    description: "O Oketá é uma iniciativa da Arandu Technology que propõe uma solução de bioconstrução sustentável a partir da transformação de resíduos agroindustriais da Amazônia — como o caroço de açaí triturado e a fibra natural de aninga — em tijolos sustentáveis , produzidos sem queima e com baixa adição de cimento.\nO objetivo do projeto é reduzir os impactos ambientais causados pelo descarte inadequado de resíduos orgânicos, promovendo uma alternativa viável, acessível e de baixo carbono para construções sustentáveis. O processo valoriza o saber tradicional, é feito de forma manual por comunidades locais e elimina práticas poluentes como a queima tradicional de tijolos.\nAlém de oferecer um material resistente e ecológico, o Oketá busca fortalecer a bioeconomia amazônica, gerar renda local e inspirar novas formas de construir com respeito à floresta e às pessoas que nela vivem.",
+    logoUrl: "/projects/amazon-hacking.svg",
+    team: names(
+      "Amanda Klautau",
+      "Bruna Melido",
+      "Gabriel Melo",
+      "Gabriel Normando",
+      "Isadora Lacerda",
+      "Lucas Augusto",
+      "Tiago Miranda",
+      "Yohan Marçal",
+    ),
+    prizes: ["champion"],
+    videoUrl: "https://www.youtube.com/embed/5NOsJdAp3dI",
+  },
+
+  {
+    id: "tasab-2025",
+    year: 2025,
+    name: "Tasabido",
+    description: "A TaSabido é uma plataforma digital criada para melhorar a comunicação entre pais, responsáveis e profissionais que acompanham pessoas neurodivergentes. A solução centraliza relatórios mensais, atividades personalizadas e feedbacks, permitindo um acompanhamento mais claro, contínuo e eficaz do desenvolvimento dos usuários. A plataforma promove inclusão, apoio mútuo e intervenções mais alinhadas às necessidades de cada pessoa.",
+    team: names(),
+    logoUrl: "/projects/amazon-hacking.svg",
+    prizes: ["second_place"],
+    videoUrl: "https://www.youtube.com/embed/cyEPaZoazsU",
+  },
+
+  {
+    id: "tep-2025",
+    year: 2025,
+    name: "Tep",
+    description: "A TEP – Tokenização Empresarial Paraense é uma startup que apoia pequenos negócios da Amazônia, transformando produtos regionais em ativos digitais por meio de tecnologias como blockchain e contratos inteligentes. Com isso, facilita o acesso a investimentos, amplia as vendas e impulsiona o desenvolvimento econômico com valorização cultural.",
+    logoUrl: "/projects/amazon-hacking.svg",
+    videoUrl: "https://www.youtube.com/embed/nzwFM8lZedQ",
+    team: names(),
+    prizes: ["third_place"],
+  },
+
   // ---------------------------------------------------------------- 2024
   {
     id: "yma-2024",
