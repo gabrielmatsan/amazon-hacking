@@ -12,6 +12,7 @@
 .env.local
 .env.development
 .env.test
+.env
 
 # Logs
 *.log
