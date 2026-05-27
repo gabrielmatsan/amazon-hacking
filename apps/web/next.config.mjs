@@ -7,6 +7,7 @@ const nextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "pub-fa05dfe540d6495ab86c69ad7eea34db.r2.dev" },
       { protocol: "https", hostname: "pub-e881eda790644d11857dd809b8678153.r2.dev" },
+      { protocol: "https", hostname: "store.amazon-hacking.com" },
       { protocol: "https", hostname: "img.youtube.com" },
       { protocol: "https", hostname: "i.ytimg.com" },
       { protocol: "https", hostname: "picsum.photos" },
