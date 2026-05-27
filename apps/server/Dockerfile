@@ -15,7 +15,7 @@ WORKDIR /app
 COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=pruner /app/out/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=pruner /app/out/json/ .
-RUN --mount=type=cache,id=s/dd8c0c29-9f14-4c33-8139-8f17197e879f-pnpm,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=s/bf771b30-ba61-4abb-80a6-dbe5a3cc8364-pnpm,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile
 COPY --from=pruner /app/out/full/ .
 RUN pnpm run build --filter=server
 
