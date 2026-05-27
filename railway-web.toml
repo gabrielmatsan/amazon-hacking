@@ -1,0 +1,6 @@
+[build]
+builder = "railpack"
+buildCommand = "pnpm --filter web build"
+
+[deploy]
+startCommand = "pnpm --filter web start"
