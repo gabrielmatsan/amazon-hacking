@@ -1,0 +1,47 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "amazon-hacking-server",
+  "main": "apps/server/src/worker.ts",
+  "compatibility_date": "2025-05-26",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "containers": [
+    {
+      "class_name": "ServerContainer",
+      "image": "./Dockerfile",
+      "instance_type": "basic",
+      "max_instances": 3
+    }
+  ],
+
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "SERVER_CONTAINER",
+        "class_name": "ServerContainer"
+      }
+    ]
+  },
+
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["ServerContainer"]
+    }
+  ],
+
+  "vars": {
+    "REDIS_TLS": "true",
+    "AWS_REGION": "us-east-1",
+    "OTEL_SERVICE_NAME": "amazon-hacking-api",
+    "MESSAGE_SENDER": "evolution",
+    "LOG_LEVEL": "info",
+    "LOG_PRETTY": "false",
+    "METRICS_ENABLED": "true",
+    "METRICS_PREFIX": "amazon_hacking_api"
+  },
+
+  "observability": {
+    "enabled": true
+  }
+}

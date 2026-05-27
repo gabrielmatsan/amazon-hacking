@@ -1,16 +1,12 @@
-FROM oven/bun:1.3.11 AS base
+FROM node:22-slim AS base
 
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-RUN curl -fsSL https://get.pnpm.io/install.sh | bash -
-ENV PNPM_HOME="/root/.local/share/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN pnpm add -g turbo
+COPY --from=oven/bun:1.3.11 /usr/local/bin/bun /usr/local/bin/bun
+RUN corepack enable && corepack prepare pnpm@11.3.0 --activate && npm install -g turbo@2.9.14
 
 FROM base AS pruner
 WORKDIR /app
 COPY . .
 RUN turbo prune server --docker
-
 
 FROM base AS builder
 WORKDIR /app
@@ -18,11 +14,11 @@ WORKDIR /app
 COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=pruner /app/out/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=pruner /app/out/json/ .
-RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 COPY --from=pruner /app/out/full/ .
 RUN pnpm run build --filter=server
 
-FROM base AS runner
+FROM oven/bun:1.3.11 AS runner
 WORKDIR /app
 
 COPY --from=builder /app .

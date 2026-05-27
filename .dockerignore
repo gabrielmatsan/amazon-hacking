@@ -45,3 +45,6 @@ Thumbs.db
 
 # Terraform
 terraform/
+
+# Claude
+.claude/

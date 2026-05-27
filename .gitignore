@@ -28,6 +28,7 @@ dist
 # Cloudflare / OpenNext build artifacts
 .wrangler/
 .open-next/
+.dev.vars
 
 # Paraglide generated output (regenerate with `pnpm i18n`)
 apps/web/lib/paraglide/
