@@ -92,7 +92,7 @@ const prodConfig: LoggerOptions = {
 };
 
 function createLogger(): Logger {
-  const isPretty = LOG_PRETTY || NODE_ENV === "development";
+  const isPretty = (LOG_PRETTY || NODE_ENV === "development") && NODE_ENV !== "production";
   const config = isPretty ? devConfig : prodConfig;
   return pino(config);
 }
