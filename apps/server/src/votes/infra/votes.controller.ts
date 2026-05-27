@@ -68,7 +68,7 @@ export const votesController = createController({ prefix: "/votes", normalize: f
     if (!user) throw new UnauthorizedError("Unauthorized");
 
     // 2. Pega o User Agent e o IP do usuário
-    const userAgent = request.headers.get("user-agent") ?? undefined;
+    const userAgent = request.headers.get("x-real-user-agent") ?? request.headers.get("user-agent") ?? undefined;
 
     const ipAddress = getIpClient(request, server);
     const ipLocation = await getIpLocation(ipAddress);
