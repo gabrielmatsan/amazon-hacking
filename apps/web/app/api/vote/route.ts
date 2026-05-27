@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
     headers: {
       "Content-Type": "application/json",
       "x-api-token": apiToken,
+      "x-server-secret": process.env.SERVER_BYPASS_SECRET ?? "",
       Cookie: `session_id=${sessionId}`,
     },
     body: JSON.stringify(body),
