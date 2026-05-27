@@ -3,8 +3,6 @@ import { getTraceContext, emitOtelLog } from "../telemetry";
 import { env } from "../../env/env";
 
 const LOG_LEVEL = env.LOG_LEVEL;
-const LOG_PRETTY = env.LOG_PRETTY;
-const NODE_ENV = env.NODE_ENV;
 const OTEL_SERVICE_NAME = env.OTEL_SERVICE_NAME;
 const OTEL_ENVIRONMENT = env.OTEL_ENVIRONMENT;
 
@@ -73,28 +71,8 @@ const baseConfig: LoggerOptions = {
   },
 };
 
-const devConfig: LoggerOptions = {
-  ...baseConfig,
-  transport: {
-    target: "pino-pretty",
-    options: {
-      colorize: true,
-      translateTime: "HH:MM:ss.l",
-      ignore: "pid,hostname,service,environment",
-      messageFormat: "{msg}",
-      singleLine: false,
-    },
-  },
-};
-
-const prodConfig: LoggerOptions = {
-  ...baseConfig,
-};
-
 function createLogger(): Logger {
-  const isPretty = (LOG_PRETTY || NODE_ENV === "development") && NODE_ENV !== "production";
-  const config = isPretty ? devConfig : prodConfig;
-  return pino(config);
+  return pino(baseConfig);
 }
 
 export const logger = createLogger();
