@@ -41,9 +41,21 @@ export const teamType = t.Object({
   videoUrl: t.Nullable(t.String()),
   secondaryVideoUrl: t.Nullable(t.String()),
   status: teamStatusType,
+  createdBy: t.Nullable(t.String()),
   createdAt: t.Date(),
   updatedAt: t.Date(),
 });
+
+export const teamAuditLogType = t.Object({
+  id: t.String(),
+  teamId: t.String(),
+  action: t.Union([t.Literal("approved"), t.Literal("rejected")]),
+  performedBy: t.String(),
+  reason: t.Nullable(t.String()),
+  createdAt: t.Date(),
+});
+
+export type TeamAuditLog = Static<typeof teamAuditLogType>;
 
 export const createTeamBody = t.Object(
   {

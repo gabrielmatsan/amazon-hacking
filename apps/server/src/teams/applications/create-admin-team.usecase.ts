@@ -17,6 +17,7 @@ function generateSlug(name: string): string {
 
 export async function createAdminTeamUseCase(
   input: CreateAdminTeamBody,
+  createdBy: string,
 ): Promise<Team> {
 
 
@@ -58,6 +59,7 @@ export async function createAdminTeamUseCase(
       logoUrl: input.logoUrl ?? null,
       slug,
       status: "active",
+      createdBy,
     }, tx);
 
     if (createLeaderTeam && input.leaderId) {

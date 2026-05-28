@@ -33,6 +33,10 @@ mock.module("@/shared/infra/proxy-api/proxy-api-client", () => ({
   },
 }));
 
+mock.module("@/shared/infra/turnstile/verify-turnstile", () => ({
+  verifyTurnstileToken: mock(() => Promise.resolve()),
+}));
+
 function sha256(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
@@ -243,7 +247,7 @@ describe("voteForTimeByIdUseCase", () => {
       .returning();
 
     const phone = "+5591988001122";
-    const tokenResult = await createVoteTokenUseCase(user.id, { phoneNumber: phone });
+    const tokenResult = await createVoteTokenUseCase(user.id, { phoneNumber: phone, turnstileToken: "test-token" });
 
     expect(tokenResult.channel).toBe("email");
 

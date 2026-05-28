@@ -18,12 +18,13 @@ import { approveVoteUseCase, invalidateVoteUseCase } from "@/votes/application/m
 import { votesDashboardOutput, votesDashboardUseCase } from "@/votes/application/votes-dashboard.usecase";
 import { createAdminTeamUseCase } from "../../teams/applications/create-admin-team.usecase";
 import { updateTeamUseCase } from "../../teams/applications/update-team.usecase";
-import { createAdminTeamBody, teamType, updateTeamBody } from "../../teams/domain/teams.type";
+import { createAdminTeamBody, teamAuditLogType, teamType, updateTeamBody } from "../../teams/domain/teams.type";
+import { TeamAuditLogsRepository } from "../../teams/infra/team-audit-logs.repository";
 
 export const adminController = createController({ prefix: "/admin", normalize: false })
   .use(requireRole("admin"))
-  .post("/teams", async ({ body, set }) => {
-    const team = await createAdminTeamUseCase(body);
+  .post("/teams", async ({ body, set, user }) => {
+    const team = await createAdminTeamUseCase(body, user.id);
     set.status = 201;
     return { data: team };
   }, {
@@ -79,8 +80,8 @@ export const adminController = createController({ prefix: "/admin", normalize: f
     },
     detail: { tags: ["Admin", "Teams"], summary: "List teams in review (admin only)" },
   })
-  .put("/teams/:id/approve", async ({ params }) => {
-    const team = await approveTeamUseCase(params.id);
+  .put("/teams/:id/approve", async ({ params, user }) => {
+    const team = await approveTeamUseCase(params.id, user.id);
     return { data: team };
   }, {
     params: t.Object({ id: t.String() }),
@@ -92,8 +93,8 @@ export const adminController = createController({ prefix: "/admin", normalize: f
     },
     detail: { tags: ["Admin", "Teams"], summary: "Approve team (admin only)" },
   })
-  .put("/teams/:id/reject", async ({ params, body }) => {
-    const team = await rejectTeamUseCase(params.id, body.reason);
+  .put("/teams/:id/reject", async ({ params, body, user }) => {
+    const team = await rejectTeamUseCase(params.id, body.reason, user.id);
     return { data: team };
   }, {
     params: t.Object({ id: t.String() }),
@@ -106,6 +107,18 @@ export const adminController = createController({ prefix: "/admin", normalize: f
       422: errorResponse,
     },
     detail: { tags: ["Admin", "Teams"], summary: "Reject team (admin only)" },
+  })
+  .get("/teams/:id/audit-logs", async ({ params }) => {
+    const logs = await TeamAuditLogsRepository.findByTeamId(params.id);
+    return { data: logs };
+  }, {
+    params: t.Object({ id: t.String() }),
+    response: {
+      200: t.Object({ data: t.Array(teamAuditLogType) }),
+      401: errorResponse,
+      403: errorResponse,
+    },
+    detail: { tags: ["Admin", "Teams"], summary: "List team audit logs (admin only)" },
   })
   .get("/votes/count", async () => {
     const votes = await checkVotesUseCase();
