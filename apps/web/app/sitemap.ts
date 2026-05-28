@@ -13,7 +13,7 @@ function localized(path: string): MetadataRoute.Sitemap[number] {
     alternates: { languages: languageAlternates(path) },
   };
 }
-
+//
 export default function sitemap(): MetadataRoute.Sitemap {
   return routes.map(localized);
 }
