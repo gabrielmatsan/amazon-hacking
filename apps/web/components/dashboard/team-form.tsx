@@ -24,6 +24,39 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
+function toYouTubeEmbed(rawUrl: string): string {
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return trimmed;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    return trimmed;
+  }
+
+  const host = parsed.hostname.replace(/^(www\.|m\.)/, "");
+  let videoId: string | null = null;
+
+  if (host === "youtu.be") {
+    videoId = parsed.pathname.split("/").filter(Boolean)[0] ?? null;
+  } else if (host === "youtube.com" || host === "youtube-nocookie.com") {
+    const segments = parsed.pathname.split("/").filter(Boolean);
+    if (segments[0] === "watch") {
+      videoId = parsed.searchParams.get("v");
+    } else if (
+      segments[0] === "embed" ||
+      segments[0] === "shorts" ||
+      segments[0] === "live"
+    ) {
+      videoId = segments[1] ?? null;
+    }
+  }
+
+  if (!videoId || !/^[\w-]{6,}$/.test(videoId)) return trimmed;
+  return `https://www.youtube.com/embed/${videoId}`;
+}
+
 type TeamFormProps = {
   team?: Team;
   onSubmit: (data: CreateLeaderTeamInput) => void;
@@ -109,19 +142,46 @@ export function TeamForm({ team, onSubmit, loading }: TeamFormProps) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const validMembers = members.filter((m) => m.name.trim() && m.role.trim());
+    const normalizedVideo = videoUrl.trim() ? toYouTubeEmbed(videoUrl) : null;
+    const normalizedSecondary = secondaryVideoUrl.trim()
+      ? toYouTubeEmbed(secondaryVideoUrl)
+      : null;
     onSubmit({
       name: name.trim(),
       description: description.trim() || undefined,
       solutionPillar: solutionPillar as SolutionPillar,
       logoUrl,
-      videoUrl: videoUrl.trim() || null,
-      secondaryVideoUrl: secondaryVideoUrl.trim() || null,
+      videoUrl: normalizedVideo,
+      secondaryVideoUrl: normalizedSecondary,
       teamMembers: validMembers.length > 0 ? validMembers : undefined,
     });
   }
 
+  const isEdit = !!team;
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="relative">
+      {loading && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/85 backdrop-blur-sm"
+        >
+          <div className="flex flex-col items-center gap-3 px-6 text-center text-neutral-900">
+            <div className="size-7 animate-spin rounded-full border-2 border-primary-100 border-t-transparent" />
+            <p className="text-sm font-medium">
+              {isEdit
+                ? "Salvando alterações..."
+                : "Enviando equipe para revisão..."}
+            </p>
+            <p className="text-xs text-neutral-500">
+              Não feche esta página.
+            </p>
+          </div>
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <fieldset disabled={loading} className="contents">
       <div>
         <label htmlFor="team-name" className="text-sm font-medium text-neutral-900">
           Nome da equipe
@@ -358,6 +418,8 @@ export function TeamForm({ team, onSubmit, loading }: TeamFormProps) {
           {team ? "Salvar alterações" : "Criar equipe"}
         </Button>
       </div>
-    </form>
+        </fieldset>
+      </form>
+    </div>
   );
 }
