@@ -14,16 +14,20 @@ export const partners: Partner[] = [
   { id: "paratic", name: "Pará TIC", logoUrl: `${CDN}/madrinhas/Para%CC%81Tic.png`, tier: "silver" },
   { id: "idopter", name: "iDopter Labs", logoUrl: `${CDN}/madrinhas/IdopterLabs.png`, tier: "silver" },
   { id: "jambu", name: "Jambu", logoUrl: `${CDN}/madrinhas/Jambu.png`, tier: "silver" },
-  { id: "mm", name: "MM", logoUrl: `${CDN}/madrinhas/LOGO%20MM.png`, tier: "silver" },
   { id: "easygestor", name: "Easy Gestor", logoUrl: `${CDN}/madrinhas/EasyGestor.png`, tier: "silver" },
+  { id: "mm", name: "MM", logoUrl: `${CDN}/madrinhas/LOGO%20MM.png`, tier: "silver", skipFilter: true },
   { id: "w3", name: "W3", logoUrl: `${CDN}/madrinhas/W3.png`, tier: "silver" },
   { id: "gsa", name: "GSA", logoUrl: `${CDN}/madrinhas/GSA.png`, tier: "silver" },
-  { id: "boa-esperanca", name: "Boa Esperança", logoUrl: `${CDN}/madrinhas/logo-boa%20esperanca-BE-1.png`, tier: "silver" },
+  { id: "boa-esperanca", name: "Boa Esperança", logoUrl: "/partners/logo-boa-esperanca.png", tier: "silver" },
   { id: "techlead", name: "TechLead", logoUrl: `${CDN}/madrinhas/TechLead.png`, tier: "silver" },
+  { id: "tucupy", name: "Tucupy", logoUrl: "/illustrations/tucupy-logo.svg", tier: "silver" },
+
+  { id: "tickzi", name: "Tickzi", logoUrl: "/partners/logo-tickzi.png", tier: "ticketing" },
 ];
 
 export const partnersByTier = {
   platinum: partners.filter((p) => p.tier === "platinum"),
   gold: partners.filter((p) => p.tier === "gold"),
   silver: partners.filter((p) => p.tier === "silver"),
+  ticketing: partners.filter((p) => p.tier === "ticketing"),
 };
