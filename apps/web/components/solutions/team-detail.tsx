@@ -294,7 +294,7 @@ function VoteFlow({ teamId, locale }: { teamId: string; locale: Locale }) {
           </button>
         </div>
         {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
-          <div className="mt-3">
+          <div className={turnstileToken ? "sr-only" : "mt-3"} aria-hidden={!!turnstileToken}>
             <Turnstile
               ref={turnstileRef}
               siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
