@@ -18,6 +18,7 @@ export const partners: Partner[] = [
   { id: "w3", name: "W3", logoUrl: `${CDN}/madrinhas/W3.png`, tier: "silver" },
   { id: "gsa", name: "GSA", logoUrl: `${CDN}/madrinhas/GSA.png`, tier: "silver" },
   { id: "techlead", name: "TechLead", logoUrl: `${CDN}/madrinhas/TechLead.png`, tier: "silver" },
+  { id: "mm", name: "MM", logoUrl: `${CDN}/madrinhas/LOGO%20MM.png`, tier: "silver" },
 ];
 
 export const partnersByTier = {
