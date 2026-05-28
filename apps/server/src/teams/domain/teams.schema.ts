@@ -22,7 +22,7 @@ export const teamAuditActionEnum = pgEnum("team_audit_action", ["approved", "rej
 export const teamsSchema = pgTable("teams", {
   id: varchar("id", { length: 34 }).primaryKey().$defaultFn(() => createId()),
   name: varchar("name", { length: 255 }).notNull(),
-  description: text("description"),
+  description: varchar("description", { length: 500 }),
   logoUrl: text("logo_url"),
   slug: varchar("slug", { length: 255 }).notNull().unique(),
   teamMembers: jsonb("team_members").$type<TeamMember[]>(),

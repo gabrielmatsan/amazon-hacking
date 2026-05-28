@@ -438,11 +438,19 @@ export function AdminCreateTeam() {
             <textarea
               id="admin-team-description"
               rows={4}
+              maxLength={500}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="mt-1.5 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 outline-none ring-1 ring-transparent focus:border-primary-100 focus:ring-primary-100 max-sm:text-base/6"
               placeholder="Descreva a solução da equipe..."
+              aria-describedby="admin-team-description-counter"
             />
+            <p
+              id="admin-team-description-counter"
+              className="mt-1 text-right text-xs text-neutral-500"
+            >
+              {description.length}/500
+            </p>
           </div>
 
           <div>
@@ -518,17 +526,19 @@ export function AdminCreateTeam() {
                     <input
                       type="text"
                       value={member.name}
+                      maxLength={100}
                       onChange={(e) => handleMemberChange(index, "name", e.target.value)}
                       className="w-full rounded-md border border-neutral-300 px-2.5 py-1.5 text-sm text-neutral-900 outline-none ring-1 ring-transparent focus:border-primary-100 focus:ring-primary-100 max-sm:text-base/6"
-                      placeholder="Nome"
+                      placeholder="Nome (até 100)"
                       aria-label={`Nome do membro ${index + 1}`}
                     />
                     <input
                       type="text"
                       value={member.role}
+                      maxLength={40}
                       onChange={(e) => handleMemberChange(index, "role", e.target.value)}
                       className="w-full rounded-md border border-neutral-300 px-2.5 py-1.5 text-sm text-neutral-900 outline-none ring-1 ring-transparent focus:border-primary-100 focus:ring-primary-100 max-sm:text-base/6"
-                      placeholder="Função"
+                      placeholder="Função (até 40)"
                       aria-label={`Função do membro ${index + 1}`}
                     />
                   </div>

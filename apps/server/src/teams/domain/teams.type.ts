@@ -1,15 +1,23 @@
 import { t, type Static } from "elysia";
 
 export const teamMemberType = t.Object({
-  name: t.String({ minLength: 1, error: "teamMember.name is required" }),
-  role: t.String({ minLength: 1, error: "teamMember.role is required" }),
-  email: t.Optional(t.String({ format: "email" })),
-  imageUrl: t.Optional(t.String()),
+  name: t.String({
+    minLength: 1,
+    maxLength: 100,
+    error: "teamMember.name must be between 1 and 100 characters",
+  }),
+  role: t.String({
+    minLength: 1,
+    maxLength: 40,
+    error: "teamMember.role must be between 1 and 40 characters",
+  }),
+  email: t.Optional(t.String({ format: "email", maxLength: 254 })),
+  imageUrl: t.Optional(t.String({ maxLength: 500 })),
   links: t.Optional(
     t.Object({
-      website: t.Optional(t.String()),
-      linkedin: t.Optional(t.String()),
-      github: t.Optional(t.String()),
+      website: t.Optional(t.String({ maxLength: 500 })),
+      linkedin: t.Optional(t.String({ maxLength: 500 })),
+      github: t.Optional(t.String({ maxLength: 500 })),
     })
   ),
 });
@@ -60,7 +68,7 @@ export type TeamAuditLog = Static<typeof teamAuditLogType>;
 export const createTeamBody = t.Object(
   {
     name: t.String({ minLength: 1, error: "name is required" }),
-    description: t.Optional(t.String()),
+    description: t.Optional(t.String({ maxLength: 500, error: "description must be at most 500 characters" })),
     teamMembers: t.Optional(t.Array(teamMemberType)),
     videoUrl: t.Optional(t.Nullable(t.String())),
     secondaryVideoUrl: t.Optional(t.Nullable(t.String())),
@@ -73,7 +81,7 @@ export const createTeamBody = t.Object(
 export const updateTeamBody = t.Object(
   {
     name: t.Optional(t.String({ minLength: 1, error: "name is required" })),
-    description: t.Optional(t.Nullable(t.String())),
+    description: t.Optional(t.Nullable(t.String({ maxLength: 500, error: "description must be at most 500 characters" }))),
     teamMembers: t.Optional(t.Nullable(t.Array(teamMemberType))),
     videoUrl: t.Optional(t.Nullable(t.String())),
     secondaryVideoUrl: t.Optional(t.Nullable(t.String())),
@@ -84,7 +92,7 @@ export const updateTeamBody = t.Object(
 export const createLeaderTeamBody = t.Object(
   {
     name: t.String({ minLength: 1, error: "name is required" }),
-    description: t.Optional(t.String()),
+    description: t.Optional(t.String({ maxLength: 500, error: "description must be at most 500 characters" })),
     teamMembers: t.Optional(t.Array(teamMemberType, { maxItems: 11 })),
     videoUrl: t.Optional(t.Nullable(t.String())),
     secondaryVideoUrl: t.Optional(t.Nullable(t.String())),
@@ -97,7 +105,7 @@ export const createLeaderTeamBody = t.Object(
 export const updateLeaderTeamBody = t.Object(
   {
     name: t.Optional(t.String({ minLength: 1, error: "name is required" })),
-    description: t.Optional(t.Nullable(t.String())),
+    description: t.Optional(t.Nullable(t.String({ maxLength: 500, error: "description must be at most 500 characters" }))),
     teamMembers: t.Optional(t.Nullable(t.Array(teamMemberType, { maxItems: 11 }))),
     videoUrl: t.Optional(t.Nullable(t.String())),
     secondaryVideoUrl: t.Optional(t.Nullable(t.String())),
@@ -113,7 +121,7 @@ export type SolutionPillar = Static<typeof solutionPillarType>;
 export const createAdminTeamBody = t.Object(
   {
     name: t.String({ minLength: 1, error: "name is required" }),
-    description: t.Optional(t.String()),
+    description: t.Optional(t.String({ maxLength: 500, error: "description must be at most 500 characters" })),
     teamMembers: t.Optional(t.Array(teamMemberType, { maxItems: 11 })),
     videoUrl: t.Optional(t.Nullable(t.String())),
     secondaryVideoUrl: t.Optional(t.Nullable(t.String())),
