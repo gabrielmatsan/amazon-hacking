@@ -16,6 +16,8 @@ export function useLeaderTeam() {
     queryKey: ["leader", "team"],
     queryFn: getLeaderTeam,
     retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 

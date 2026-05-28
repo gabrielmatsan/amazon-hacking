@@ -32,7 +32,7 @@ export function MojuSection() {
           {m.moju_lead()}
         </p>
 
-        <div className="mt-14 grid gap-10 md:grid-cols-[1.6fr_1fr] md:items-start md:gap-16">
+        <div className="mt-14 grid gap-10 lg:grid-cols-[1.6fr_1fr] lg:items-start lg:gap-16">
           <div className="space-y-5 text-base leading-relaxed text-white/85 md:text-lg">
             <p>{edition2026.summary[locale]}</p>
             <p>
@@ -45,10 +45,10 @@ export function MojuSection() {
             </p>
           </div>
 
-          <dl className="grid grid-cols-3 gap-6 border-l-2 border-white/25 pl-8">
+          <dl className="grid grid-cols-1 gap-8 border-l-2 border-white/25 pl-6 lg:grid-cols-3 lg:gap-10 lg:pl-8">
             {stats.map((stat) => (
               <div key={stat.number}>
-                <dt className="text-3xl font-bold text-white md:text-5xl">
+                <dt className="text-3xl font-bold text-white lg:text-5xl">
                   {stat.number}
                 </dt>
                 <dd className="mt-2 text-[10px] tracking-[0.12em] text-white/70 uppercase md:text-xs">
