@@ -7,6 +7,7 @@ mock.module("@/shared/mail/resend/index", () => ({
   resendEmailClient: { sendEmail: mockSendEmail },
   ResendEmailClient: class { sendEmail = mockSendEmail },
 }));
+//
 
 import { SessionRepository } from "@/auth/infra/session.repository";
 import { appConfigSchema } from "@/config/domain/config.schema";
