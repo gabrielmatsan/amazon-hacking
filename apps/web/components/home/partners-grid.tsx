@@ -8,7 +8,7 @@ import type { Partner } from "@/lib/content/types";
 
 const tierLabels = {
   sponsors: { "pt-br": "Patrocinadoras", en: "Sponsors", es: "Patrocinadoras" },
-  support: { "pt-br": "Apoio", en: "Support", es: "Apoyo" },
+  support: { "pt-br": "Parceiros", en: "Partners", es: "Socios" },
   godmothers: { "pt-br": "Madrinhas", en: "Godmothers", es: "Madrinas" },
 } as const;
 
