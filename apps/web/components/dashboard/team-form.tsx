@@ -15,6 +15,15 @@ const PILLAR_OPTIONS: { value: SolutionPillar; label: string }[] = [
   { value: "health", label: "Saúde" },
 ];
 
+const MAX_LOGO_SIZE_BYTES = 4 * 1024 * 1024;
+const ALLOWED_LOGO_TYPES = ["image/png", "image/jpeg", "image/webp"];
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
 type TeamFormProps = {
   team?: Team;
   onSubmit: (data: CreateLeaderTeamInput) => void;
@@ -40,12 +49,31 @@ export function TeamForm({ team, onSubmit, loading }: TeamFormProps) {
     team?.teamMembers?.length ? team.teamMembers : [emptyMember()],
   );
   const [logoPreview, setLogoPreview] = useState<string | null>(team?.logoUrl ?? null);
+  const [logoError, setLogoError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadMutation = useUploadLeaderImage();
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    setLogoError(null);
+
+    if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
+      setLogoError(
+        `Formato "${file.type || "desconhecido"}" não é aceito. Envie uma imagem PNG, JPG ou WebP.`,
+      );
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    if (file.size > MAX_LOGO_SIZE_BYTES) {
+      setLogoError(
+        `A imagem tem ${formatBytes(file.size)} e ultrapassa o limite de 4 MB. Comprima ou escolha uma versão menor antes de enviar.`,
+      );
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     const preview = URL.createObjectURL(file);
     setLogoPreview(preview);
     try {
@@ -53,6 +81,9 @@ export function TeamForm({ team, onSubmit, loading }: TeamFormProps) {
       setLogoUrl(publicUrl);
     } catch {
       setLogoPreview(logoUrl);
+      setLogoError(
+        "Não conseguimos enviar a imagem agora. Verifique sua conexão e tente novamente.",
+      );
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
@@ -158,6 +189,14 @@ export function TeamForm({ team, onSubmit, loading }: TeamFormProps) {
             aria-label="Selecionar arquivo de logo"
           />
         </div>
+        {logoError && (
+          <p
+            role="alert"
+            className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"
+          >
+            {logoError}
+          </p>
+        )}
       </div>
 
       <div>
@@ -168,11 +207,19 @@ export function TeamForm({ team, onSubmit, loading }: TeamFormProps) {
           id="team-description"
           name="description"
           rows={4}
+          maxLength={500}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className="mt-1.5 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 outline-none ring-1 ring-transparent focus:border-primary-100 focus:ring-primary-100 max-sm:text-base/6"
           placeholder="Descreva a solução da equipe..."
+          aria-describedby="team-description-counter"
         />
+        <p
+          id="team-description-counter"
+          className="mt-1 text-right text-xs text-neutral-500"
+        >
+          {description.length}/500
+        </p>
       </div>
 
       <div>
@@ -254,22 +301,24 @@ export function TeamForm({ team, onSubmit, loading }: TeamFormProps) {
                   name={`member-name-${index}`}
                   type="text"
                   value={member.name}
+                  maxLength={100}
                   onChange={(e) =>
                     handleMemberChange(index, "name", e.target.value)
                   }
                   className="w-full rounded-md border border-neutral-300 px-2.5 py-1.5 text-sm text-neutral-900 outline-none ring-1 ring-transparent focus:border-primary-100 focus:ring-primary-100 max-sm:text-base/6"
-                  placeholder="Nome"
+                  placeholder="Nome (até 100)"
                   aria-label={`Nome do membro ${index + 1}`}
                 />
                 <input
                   name={`member-role-${index}`}
                   type="text"
                   value={member.role}
+                  maxLength={40}
                   onChange={(e) =>
                     handleMemberChange(index, "role", e.target.value)
                   }
                   className="w-full rounded-md border border-neutral-300 px-2.5 py-1.5 text-sm text-neutral-900 outline-none ring-1 ring-transparent focus:border-primary-100 focus:ring-primary-100 max-sm:text-base/6"
-                  placeholder="Função"
+                  placeholder="Função (até 40)"
                   aria-label={`Função do membro ${index + 1}`}
                 />
               </div>

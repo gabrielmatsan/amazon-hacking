@@ -1,0 +1,1 @@
+ALTER TABLE "teams" ALTER COLUMN "description" SET DATA TYPE varchar(500);
