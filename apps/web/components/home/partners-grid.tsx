@@ -10,6 +10,7 @@ const tierLabels = {
   sponsors: { "pt-br": "Patrocinadoras", en: "Sponsors", es: "Patrocinadoras" },
   support: { "pt-br": "Parceiros", en: "Partners", es: "Socios" },
   godmothers: { "pt-br": "Madrinhas", en: "Godmothers", es: "Madrinas" },
+  ticketing: { "pt-br": "Ticketeira Oficial", en: "Official Ticketing", es: "Ticketera Oficial" },
 } as const;
 
 function LogoRow({
@@ -32,7 +33,7 @@ function LogoRow({
             src={partner.logoUrl}
             alt={partner.name}
             fill
-            className="object-contain brightness-0 invert transition hover:scale-105"
+            className={`object-contain transition hover:scale-105 ${partner.skipFilter ? "mix-blend-screen" : "brightness-0 invert"}`}
           />
         </Reveal>
       ))}
@@ -85,7 +86,17 @@ export function PartnersGrid() {
             <LogoRow items={partnersByTier.silver} size="sm" />
           </div>
         </div>
-        <WaveDivider from="#0a0a0a" to="#ffffff" />
+
+        <WaveDivider from="#0a0a0a" to="#014780" />
+        <div className="bg-primary-300 px-8 pb-16 text-center">
+          <Reveal as="h3" className="text-2xl font-bold text-white md:text-4xl">
+            {tierLabels.ticketing[locale]}
+          </Reveal>
+          <div className="mt-10">
+            <LogoRow items={partnersByTier.ticketing} size="md" />
+          </div>
+        </div>
+        <WaveDivider from="#014780" to="#ffffff" />
       </div>
     </section>
   );

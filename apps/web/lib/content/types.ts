@@ -64,7 +64,8 @@ export type Partner = {
   name: string;
   logoUrl: string;
   href?: string;
-  tier: "platinum" | "gold" | "silver" | "supporter";
+  tier: "platinum" | "gold" | "silver" | "ticketing" | "supporter";
+  skipFilter?: boolean;
 };
 
 export type SocialLink = {
