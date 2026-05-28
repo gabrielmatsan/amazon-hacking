@@ -4,9 +4,10 @@ import { UsersRepository } from "@/users/infra/users.repository";
 
 import { logger } from "@/shared/infra/observability";
 import type { Team } from "../domain/teams.type";
+import { TeamAuditLogsRepository } from "../infra/team-audit-logs.repository";
 import { TeamsRepository } from "../infra/teams.repository";
 
-export async function rejectTeamUseCase(id: string, reason: string): Promise<Team> {
+export async function rejectTeamUseCase(id: string, reason: string, performedBy: string): Promise<Team> {
   const existing = await TeamsRepository.findById(id);
   if (!existing) {
     throw new NotFoundError("Team not found");
@@ -15,6 +16,13 @@ export async function rejectTeamUseCase(id: string, reason: string): Promise<Tea
   const team = await TeamsRepository.update(id, {
     status: "rejected",
     rejectionReason: reason,
+  });
+
+  await TeamAuditLogsRepository.create({
+    teamId: id,
+    action: "rejected",
+    performedBy,
+    reason,
   });
 
   const leader = await UsersRepository.findByTeamId(id);

@@ -27,6 +27,10 @@ mock.module("@/shared/infra/proxy-api/proxy-api-client", () => ({
   },
 }));
 
+mock.module("@/shared/infra/turnstile/verify-turnstile", () => ({
+  verifyTurnstileToken: mock(() => Promise.resolve()),
+}));
+
 describe("createVoteTokenUseCase (integration)", () => {
   beforeAll(async () => {
     await IntegrationTestHelper.setupTestDatabase();
@@ -59,6 +63,7 @@ describe("createVoteTokenUseCase (integration)", () => {
 
     const result = await createVoteTokenUseCase(user.id, {
       phoneNumber: "+5591988887777",
+      turnstileToken: "test-token",
     });
 
     expect(result.channel).toBe("whatsapp");
@@ -82,6 +87,7 @@ describe("createVoteTokenUseCase (integration)", () => {
 
     const result = await createVoteTokenUseCase(user.id, {
       phoneNumber: "+5591988886666",
+      turnstileToken: "test-token",
     });
 
     expect(result.channel).toBe("email");
@@ -109,6 +115,7 @@ describe("createVoteTokenUseCase (integration)", () => {
 
     const result = await createVoteTokenUseCase(user.id, {
       phoneNumber: "+5591988885555",
+      turnstileToken: "test-token",
     });
 
     expect(result.channel).toBe("email");
@@ -139,7 +146,7 @@ describe("createVoteTokenUseCase (integration)", () => {
     });
 
     await expect(
-      createVoteTokenUseCase(user.id, { phoneNumber: "+5591988884444" }),
+      createVoteTokenUseCase(user.id, { phoneNumber: "+5591988884444", turnstileToken: "test-token" }),
     ).rejects.toThrow(ConflictError);
   });
 
@@ -165,7 +172,7 @@ describe("createVoteTokenUseCase (integration)", () => {
     });
 
     await expect(
-      createVoteTokenUseCase(user2.id, { phoneNumber: phone }),
+      createVoteTokenUseCase(user2.id, { phoneNumber: phone, turnstileToken: "test-token" }),
     ).rejects.toThrow(ConflictError);
   });
 });

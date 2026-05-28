@@ -12,7 +12,7 @@ import { SessionRepository } from "@/auth/infra/session.repository";
 import { appConfigSchema } from "@/config/domain/config.schema";
 import { db } from "@/shared/infra/databases/postgres";
 import { IntegrationTestHelper } from "@/shared/utils/test-helpers/integration-test-helper";
-import { teamsSchema } from "@/teams/domain/teams.schema";
+import { teamAuditLogsSchema, teamsSchema } from "@/teams/domain/teams.schema";
 import { usersSchema } from "@/users/domain/users.schema";
 import type { UserRole } from "@/users/domain/users.type";
 import { votesSchema } from "@/votes/domain/votes.schema";
@@ -103,8 +103,8 @@ describe("Admin teams controller (integration)", () => {
   });
 
   describe("POST /admin/teams", () => {
-    it("creates a team and returns 201 with the entity", async () => {
-      const { sid } = await seedUser("admin");
+    it("creates a team and returns 201 with the entity and createdBy", async () => {
+      const { sid, user } = await seedUser("admin");
 
       const response = await app.handle(
         new Request("http://localhost/admin/teams", {
@@ -129,6 +129,7 @@ describe("Admin teams controller (integration)", () => {
         description: "A primeira equipe",
         logoUrl: null,
         teamMembers: [{ name: "João", role: "dev" }],
+        createdBy: user.id,
       });
       expect(data.id).toBeString();
     });
@@ -192,7 +193,7 @@ describe("Admin teams controller (integration)", () => {
       expect(response.status).toBe(422);
     });
 
-    it("ignores logoUrl in body (logoUrl vem do slice de upload, não persiste)", async () => {
+    it("persists logoUrl from body (URL pública do R2 após upload)", async () => {
       const { sid } = await seedUser("admin");
 
       const response = await app.handle(
@@ -212,7 +213,7 @@ describe("Admin teams controller (integration)", () => {
 
       expect(response.status).toBe(201);
       const { data } = await response.json();
-      expect(data.logoUrl).toBeNull();
+      expect(data.logoUrl).toBe("https://cdn.example.com/logo.png");
     });
   });
 
@@ -406,8 +407,8 @@ describe("Admin teams controller (integration)", () => {
   });
 
   describe("PUT /admin/teams/:id/approve", () => {
-    it("approves a team in review and sets status to active", async () => {
-      const { sid } = await seedUser("admin");
+    it("approves a team in review and creates an audit log", async () => {
+      const { sid, user } = await seedUser("admin");
       const [team] = await db
         .insert(teamsSchema)
         .values({ name: "Pending", slug: "pending-team", status: "review" })
@@ -424,6 +425,18 @@ describe("Admin teams controller (integration)", () => {
       const { data } = await response.json();
       expect(data.status).toBe("active");
       expect(data.rejectionReason).toBeNull();
+
+      const logs = await db
+        .select()
+        .from(teamAuditLogsSchema)
+        .where(eq(teamAuditLogsSchema.teamId, team.id));
+      expect(logs).toHaveLength(1);
+      expect(logs[0]).toMatchObject({
+        teamId: team.id,
+        action: "approved",
+        performedBy: user.id,
+        reason: null,
+      });
     });
 
     it("clears rejectionReason when approving a rejected team", async () => {
@@ -466,8 +479,8 @@ describe("Admin teams controller (integration)", () => {
   });
 
   describe("PUT /admin/teams/:id/reject", () => {
-    it("rejects a team and stores the reason", async () => {
-      const { sid } = await seedUser("admin");
+    it("rejects a team, stores the reason and creates an audit log", async () => {
+      const { sid, user: admin } = await seedUser("admin");
       const [leader] = await db
         .insert(usersSchema)
         .values({
@@ -503,6 +516,18 @@ describe("Admin teams controller (integration)", () => {
       const { data } = await response.json();
       expect(data.status).toBe("rejected");
       expect(data.rejectionReason).toBe("Logo is missing");
+
+      const logs = await db
+        .select()
+        .from(teamAuditLogsSchema)
+        .where(eq(teamAuditLogsSchema.teamId, team.id));
+      expect(logs).toHaveLength(1);
+      expect(logs[0]).toMatchObject({
+        teamId: team.id,
+        action: "rejected",
+        performedBy: admin.id,
+        reason: "Logo is missing",
+      });
     });
 
     it("returns 404 for non-existent team", async () => {
@@ -541,6 +566,63 @@ describe("Admin teams controller (integration)", () => {
       );
 
       expect(response.status).toBe(422);
+    });
+  });
+
+  describe("GET /admin/teams/:id/audit-logs", () => {
+    it("returns audit logs for a team ordered by most recent", async () => {
+      const { sid, user: admin } = await seedUser("admin");
+      const [team] = await db
+        .insert(teamsSchema)
+        .values({ name: "Audited Team", slug: "audited-team", status: "review" })
+        .returning();
+
+      await db.insert(teamAuditLogsSchema).values([
+        {
+          teamId: team.id,
+          action: "rejected",
+          performedBy: admin.id,
+          reason: "Missing logo",
+          createdAt: new Date("2026-01-01T01:00:00Z"),
+        },
+        {
+          teamId: team.id,
+          action: "approved",
+          performedBy: admin.id,
+          createdAt: new Date("2026-01-02T01:00:00Z"),
+        },
+      ]);
+
+      const response = await app.handle(
+        new Request(`http://localhost/admin/teams/${team.id}/audit-logs`, {
+          headers: { cookie: authCookie(sid) },
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      const { data } = await response.json();
+      expect(data).toHaveLength(2);
+      expect(data[0].action).toBe("approved");
+      expect(data[1].action).toBe("rejected");
+      expect(data[1].reason).toBe("Missing logo");
+    });
+
+    it("returns empty array when team has no audit logs", async () => {
+      const { sid } = await seedUser("admin");
+      const [team] = await db
+        .insert(teamsSchema)
+        .values({ name: "No Logs", slug: "no-logs-team", status: "review" })
+        .returning();
+
+      const response = await app.handle(
+        new Request(`http://localhost/admin/teams/${team.id}/audit-logs`, {
+          headers: { cookie: authCookie(sid) },
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      const { data } = await response.json();
+      expect(data).toEqual([]);
     });
   });
 

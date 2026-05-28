@@ -38,6 +38,7 @@ export async function createLeaderTeamUseCase(
     logoUrl: input.logoUrl ?? null,
     slug,
     status: "review",
+    createdBy: userId,
   });
 
   await UsersRepository.updateTeamId(userId, team.id);
