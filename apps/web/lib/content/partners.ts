@@ -20,7 +20,7 @@ export const partners: Partner[] = [
   { id: "gsa", name: "GSA", logoUrl: `${CDN}/madrinhas/GSA.png`, tier: "silver" },
   { id: "boa-esperanca", name: "Boa Esperança", logoUrl: "/partners/logo-boa-esperanca.png", tier: "silver" },
   { id: "techlead", name: "TechLead", logoUrl: `${CDN}/madrinhas/TechLead.png`, tier: "silver" },
-  { id: "tucupy", name: "Tucupy", logoUrl: "/illustrations/tucupy-logo.svg", tier: "silver" },
+  { id: "tucupy", name: "Tucupy", logoUrl: "/illustrations/tucupy-logo.svg", tier: "silver", logoClassName: "scale-75" },
 
   { id: "tickzi", name: "Tickzi", logoUrl: "/partners/logo-tickzi.png", tier: "ticketing" },
 ];

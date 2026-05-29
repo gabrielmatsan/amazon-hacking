@@ -33,7 +33,7 @@ function LogoRow({
             src={partner.logoUrl}
             alt={partner.name}
             fill
-            className={`object-contain transition hover:scale-105 ${partner.skipFilter ? "mix-blend-screen" : "brightness-0 invert"}`}
+            className={`object-contain transition hover:scale-105 ${partner.skipFilter ? "mix-blend-screen" : "brightness-0 invert"} ${partner.logoClassName ?? ""}`}
           />
         </Reveal>
       ))}

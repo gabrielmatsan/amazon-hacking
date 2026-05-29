@@ -66,6 +66,8 @@ export type Partner = {
   href?: string;
   tier: "platinum" | "gold" | "silver" | "ticketing" | "supporter";
   skipFilter?: boolean;
+  /** Extra classes for the logo image, e.g. to scale a logo that renders too large. */
+  logoClassName?: string;
 };
 
 export type SocialLink = {

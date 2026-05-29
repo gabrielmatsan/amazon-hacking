@@ -7,7 +7,7 @@ import { db, shutdownPools } from "../src/shared/infra/databases/postgres";
 import { normalizeEmail } from "../src/shared/utils/normalize-email";
 import { type NewUser, usersSchema } from "../src/users/domain/users.schema";
 
-const EXCEL_PATH = resolve(import.meta.dir, "../excels/lideres_ecosphere.xlsx");
+const EXCEL_PATH = resolve(import.meta.dir, "../excels/lideres-ah.xlsx");
 
 type LeaderRow = {
   name: string;
