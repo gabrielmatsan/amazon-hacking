@@ -1,6 +1,5 @@
 import { getLocale } from "@/lib/paraglide/runtime";
 import { m } from "@/lib/paraglide/messages";
-import { edition2026 } from "@/lib/content/editions";
 import { Reveal } from "@/components/site/reveal";
 
 const stats = [
@@ -34,15 +33,7 @@ export function MojuSection() {
 
         <div className="mt-14 grid gap-10 lg:grid-cols-[1.6fr_1fr] lg:items-start lg:gap-16">
           <div className="space-y-5 text-base leading-relaxed text-white/85 md:text-lg">
-            <p>{edition2026.summary[locale]}</p>
-            <p>
-              {locale === "pt-br" &&
-                "Comunidades quilombolas e ribeirinhas vivem da agricultura familiar — mandioca, açaí, cacau, andiroba — sustentando uma bioeconomia que respeita a floresta viva."}
-              {locale === "en" &&
-                "Quilombola and riverside communities live from family farming — cassava, açaí, cocoa, andiroba — sustaining a bioeconomy that respects the living forest."}
-              {locale === "es" &&
-                "Comunidades quilombolas y ribereñas viven de la agricultura familiar — mandioca, açaí, cacao, andiroba — sosteniendo una bioeconomía que respeta la selva viva."}
-            </p>
+            <p>{m.moju_summary()}</p>
           </div>
 
           <dl className="grid grid-cols-1 gap-8 border-l-2 border-white/25 pl-6 lg:grid-cols-3 lg:gap-10 lg:pl-8">
