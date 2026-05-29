@@ -1,1 +1,0 @@
-ALTER TABLE "teams" ADD COLUMN "secondary_video_url" varchar(500);

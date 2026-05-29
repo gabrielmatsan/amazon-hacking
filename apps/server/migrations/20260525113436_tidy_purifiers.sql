@@ -1,1 +1,0 @@
-ALTER TABLE "votes" ADD COLUMN "fingerprint" varchar(64);

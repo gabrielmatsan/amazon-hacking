@@ -1,30 +1,44 @@
 {
-  "id": "d2a34b3b-b469-4622-8c66-92a10a50e229",
-  "prevId": "0e56224c-3d37-4c56-8b3b-50ad1c32c707",
+  "id": "3d9f5d01-7b20-448e-a6e1-dda0bbb15205",
+  "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.items": {
-      "name": "items",
+    "public.app_config": {
+      "name": "app_config",
       "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "varchar(34)",
           "primaryKey": true,
           "notNull": true
         },
-        "name": {
-          "name": "name",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "description": {
-          "name": "description",
-          "type": "text",
+        "voting_starts_at": {
+          "name": "voting_starts_at",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
+        },
+        "voting_ends_at": {
+          "name": "voting_ends_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "voting_enabled": {
+          "name": "voting_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "max_risk_score": {
+          "name": "max_risk_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 100
         },
         "created_at": {
           "name": "created_at",
@@ -49,6 +63,84 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.team_audit_logs": {
+      "name": "team_audit_logs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(34)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "varchar(34)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "action": {
+          "name": "action",
+          "type": "team_audit_action",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "performed_by": {
+          "name": "performed_by",
+          "type": "varchar(34)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "team_audit_logs_team_id_teams_id_fk": {
+          "name": "team_audit_logs_team_id_teams_id_fk",
+          "tableFrom": "team_audit_logs",
+          "tableTo": "teams",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "team_audit_logs_performed_by_users_id_fk": {
+          "name": "team_audit_logs_performed_by_users_id_fk",
+          "tableFrom": "team_audit_logs",
+          "tableTo": "users",
+          "columnsFrom": [
+            "performed_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.teams": {
       "name": "teams",
       "schema": "",
@@ -67,7 +159,7 @@
         },
         "description": {
           "name": "description",
-          "type": "text",
+          "type": "varchar(500)",
           "primaryKey": false,
           "notNull": false
         },
@@ -76,6 +168,12 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "slug": {
+          "name": "slug",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
         },
         "team_members": {
           "name": "team_members",
@@ -91,9 +189,35 @@
           "notNull": true,
           "default": "'default'"
         },
+        "status": {
+          "name": "status",
+          "type": "team_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'review'"
+        },
+        "rejection_reason": {
+          "name": "rejection_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "video_url": {
           "name": "video_url",
           "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "secondary_video_url": {
+          "name": "secondary_video_url",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "varchar(34)",
           "primaryKey": false,
           "notNull": false
         },
@@ -115,7 +239,15 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "teams_slug_unique": {
+          "name": "teams_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "slug"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -142,6 +274,18 @@
           "primaryKey": false,
           "notNull": true
         },
+        "team_id": {
+          "name": "team_id",
+          "type": "varchar(34)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "normalized_email": {
+          "name": "normalized_email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
         "role": {
           "name": "role",
           "type": "user_roles",
@@ -159,7 +303,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "users_team_id_teams_id_fk": {
+          "name": "users_team_id_teams_id_fk",
+          "tableFrom": "users",
+          "tableTo": "teams",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "users_email_unique": {
@@ -200,7 +358,21 @@
           "name": "phone_number",
           "type": "varchar(20)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "ip_address": {
+          "name": "ip_address",
+          "type": "varchar(45)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "channel": {
+          "name": "channel",
+          "type": "vote_token_channel",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'whatsapp'"
         },
         "status": {
           "name": "status",
@@ -283,6 +455,21 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "votes_tokens_ip_address_index": {
+          "name": "votes_tokens_ip_address_index",
+          "columns": [
+            {
+              "expression": "ip_address",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -332,7 +519,15 @@
           "name": "phone_number",
           "type": "varchar(20)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "channel": {
+          "name": "channel",
+          "type": "vote_token_channel",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'whatsapp'"
         },
         "status": {
           "name": "status",
@@ -357,6 +552,12 @@
         "user_agent": {
           "name": "user_agent",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fingerprint": {
+          "name": "fingerprint",
+          "type": "varchar(64)",
           "primaryKey": false,
           "notNull": false
         },
@@ -453,13 +654,39 @@
         "default"
       ]
     },
+    "public.team_audit_action": {
+      "name": "team_audit_action",
+      "schema": "public",
+      "values": [
+        "approved",
+        "rejected"
+      ]
+    },
+    "public.team_status": {
+      "name": "team_status",
+      "schema": "public",
+      "values": [
+        "active",
+        "review",
+        "rejected"
+      ]
+    },
     "public.user_roles": {
       "name": "user_roles",
       "schema": "public",
       "values": [
         "user",
         "mentor",
-        "admin"
+        "admin",
+        "leader"
+      ]
+    },
+    "public.vote_token_channel": {
+      "name": "vote_token_channel",
+      "schema": "public",
+      "values": [
+        "whatsapp",
+        "email"
       ]
     },
     "public.vote_token_status": {
