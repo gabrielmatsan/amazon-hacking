@@ -221,7 +221,7 @@ function TeamCard({
             alt=""
             fill
             sizes="64px"
-            className="object-contain p-1.5"
+            className="object-cover"
           />
         ) : (
           <span className="flex size-full items-center justify-center text-xl font-semibold text-white">
