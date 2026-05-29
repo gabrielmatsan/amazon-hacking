@@ -1,12 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { PencilIcon, AlertTriangleIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AlertTriangleIcon } from "lucide-react";
 import {
   useLeaderTeam,
   useCreateLeaderTeam,
-  useUpdateLeaderTeam,
 } from "@/hooks/use-leader-team";
 import { TeamForm } from "./team-form";
 import { TeamStatusBadge } from "./team-status-badge";
@@ -24,8 +21,6 @@ const PILLAR_LABELS: Record<string, string> = {
 export function LeaderDashboard({ locale }: { locale: string }) {
   const { data: team, isLoading, error } = useLeaderTeam();
   const createMutation = useCreateLeaderTeam();
-  const updateMutation = useUpdateLeaderTeam();
-  const [editing, setEditing] = useState(false);
 
   const hasNoTeam = error && !isLoading;
 
@@ -62,54 +57,11 @@ export function LeaderDashboard({ locale }: { locale: string }) {
 
   if (!team) return null;
 
-  if (editing) {
-    return (
-      <div>
-        <div className="flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-neutral-900 tracking-tight">
-            Editar equipe
-          </h1>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setEditing(false)}
-          >
-            Cancelar
-          </Button>
-        </div>
-        <p className="mt-1 text-sm text-neutral-500">
-          As alterações serão enviadas para revisão da organização.
-        </p>
-        <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-6">
-          <TeamForm
-            team={team}
-            onSubmit={(data: CreateLeaderTeamInput) =>
-              updateMutation.mutate(data, {
-                onSuccess: () => setEditing(false),
-              })
-            }
-            loading={updateMutation.isPending}
-          />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-neutral-900 tracking-tight">
-          Minha Equipe
-        </h1>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setEditing(true)}
-        >
-          <PencilIcon />
-          Editar
-        </Button>
-      </div>
+      <h1 className="text-lg font-semibold text-neutral-900 tracking-tight">
+        Minha Equipe
+      </h1>
 
       {team.status === "rejected" && team.rejectionReason && (
         <div className="mt-4 flex gap-3 rounded-lg border border-red-200 bg-red-50 p-4">

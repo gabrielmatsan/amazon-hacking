@@ -30,6 +30,11 @@ switch (env.NODE_ENV) {
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
       query_timeout: 30000,
+      // Railway Postgres usa cert autoassinado, entao rejectUnauthorized: false.
+      // A conexao continua criptografada, so nao valida a cadeia de CA.
+      ...(env.DATABASE_SSL && {
+        ssl: { rejectUnauthorized: false },
+      }),
     });
 
     activePools.push(devDb);
