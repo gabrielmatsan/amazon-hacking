@@ -184,7 +184,7 @@ export function TeamForm({ team, onSubmit, loading }: TeamFormProps) {
         <fieldset disabled={loading} className="contents">
       <div>
         <label htmlFor="team-name" className="text-sm font-medium text-neutral-900">
-          Nome da equipe
+          Nome do projeto
         </label>
         <input
           id="team-name"

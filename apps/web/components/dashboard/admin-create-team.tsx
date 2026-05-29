@@ -365,7 +365,7 @@ export function AdminCreateTeam() {
         <form onSubmit={handleSubmit} className="mt-4 space-y-6">
           <div>
             <label htmlFor="admin-team-name" className="text-sm font-medium text-neutral-900">
-              Nome da equipe
+              Nome do projeto
             </label>
             <input
               id="admin-team-name"
