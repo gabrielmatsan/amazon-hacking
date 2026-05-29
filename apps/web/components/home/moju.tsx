@@ -27,16 +27,17 @@ export function MojuSection() {
         <h2 className="mt-6 max-w-3xl text-3xl leading-tight font-bold sm:text-4xl md:text-5xl lg:text-6xl">
           {m.moju_title()}
         </h2>
-        <p className="mt-6 max-w-3xl text-lg leading-relaxed text-white/90 md:text-xl">
-          {m.moju_lead()}
-        </p>
-
-        <div className="mt-14 grid gap-10 lg:grid-cols-[1.6fr_1fr] lg:items-start lg:gap-16">
-          <div className="space-y-5 text-base leading-relaxed text-white/85 md:text-lg">
-            <p>{m.moju_summary()}</p>
+        <div className="mt-10 grid gap-10 lg:grid-cols-[1.6fr_1fr] lg:items-start lg:gap-16">
+          <div className="space-y-8">
+            <p className="text-lg leading-relaxed text-white/90 md:text-xl">
+              {m.moju_lead()}
+            </p>
+            <p className="text-base leading-relaxed text-white/80 md:text-lg">
+              {m.moju_summary()}
+            </p>
           </div>
 
-          <dl className="grid grid-cols-1 gap-8 border-l-2 border-white/25 pl-6 lg:grid-cols-3 lg:gap-10 lg:pl-8">
+          <dl className="grid grid-cols-1 gap-8 border-l-2 border-white/25 pl-6 lg:mt-1.8 lg:grid-cols-3 lg:gap-10 lg:pl-8">
             {stats.map((stat) => (
               <div key={stat.number}>
                 <dt className="text-3xl font-bold text-white lg:text-5xl">
