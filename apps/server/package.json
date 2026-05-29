@@ -72,7 +72,8 @@
     "eslint": "^9.32.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-unused-imports": "^4.3.0",
-    "wrangler": "^4.94.0"
+    "wrangler": "^4.94.0",
+    "xlsx": "^0.18.5"
   },
   "module": "src/index.js"
 }
