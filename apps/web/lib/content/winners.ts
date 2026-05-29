@@ -33,7 +33,9 @@ export const winners: Winner[] = [
     year: 2025,
     name: "Tasabido",
     description: "A TaSabido é uma plataforma digital criada para melhorar a comunicação entre pais, responsáveis e profissionais que acompanham pessoas neurodivergentes. A solução centraliza relatórios mensais, atividades personalizadas e feedbacks, permitindo um acompanhamento mais claro, contínuo e eficaz do desenvolvimento dos usuários. A plataforma promove inclusão, apoio mútuo e intervenções mais alinhadas às necessidades de cada pessoa.",
-    team: names(),
+    team: names(
+      "Ana Luiza"
+    ),
     logoUrl: "/projects/tasabido.jpeg",
     prizes: ["second_place"],
     videoUrl: "https://www.youtube.com/embed/cyEPaZoazsU",
@@ -46,7 +48,9 @@ export const winners: Winner[] = [
     description: "A TEP – Tokenização Empresarial Paraense é uma startup que apoia pequenos negócios da Amazônia, transformando produtos regionais em ativos digitais por meio de tecnologias como blockchain e contratos inteligentes. Com isso, facilita o acesso a investimentos, amplia as vendas e impulsiona o desenvolvimento econômico com valorização cultural.",
     logoUrl: "/projects/tep.jpeg",
     videoUrl: "https://www.youtube.com/embed/nzwFM8lZedQ",
-    team: names(),
+    team: names(
+      "João Pedro"
+    ),
     prizes: ["third_place"],
   },
 
