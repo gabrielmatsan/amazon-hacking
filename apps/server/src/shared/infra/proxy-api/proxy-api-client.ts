@@ -1,5 +1,6 @@
 import type { AxiosInstance } from "axios";
 import axios from "axios";
+import { cacheFirst, cacheTTL } from "../databases/redis";
 import { env } from "../env/env";
 import { logger } from "../observability";
 
@@ -115,6 +116,13 @@ export type IpRiskAssessment = {
 const RISK_SCORE_THRESHOLD = 33;
 const TIMEOUT_MS = 3_000;
 
+// Cache de reputação de IP no Redis (cacheFirst) para economizar a cota do
+// proxycheck. TTL conservador: a reputação de um IP muda com o tempo (um IP limpo
+// pode virar VPN/proxy), então não vale cachear por muito tempo — 6h re-checa com
+// frequência suficiente sem deixar passar voto sem análise por uma janela longa.
+const CACHE_PREFIX = "proxycheck:ip:";
+const CACHE_TTL_HOURS = 6; // 6h
+
 export class ProxyApiClient {
   private readonly client: AxiosInstance;
 
@@ -128,17 +136,34 @@ export class ProxyApiClient {
     });
   }
 
+  // Consulta o proxycheck. Lança em qualquer falha (rede, status != ok, vazio)
+  // para que o cacheFirst NÃO cacheie o resultado — só sucesso é cacheado.
+  private async fetchIp(ip: string): Promise<ProxyCheckIpResult> {
+    const { data } = await this.client.get<ProxyCheckApiResponse>(
+      `/${encodeURIComponent(ip)}`,
+    );
+
+    if (data.status !== "ok") {
+      throw new Error(`proxycheck status: ${data.status}`);
+    }
+
+    const result = data[ip] as ProxyCheckIpResult | undefined;
+    if (!result) {
+      throw new Error("proxycheck returned no result for ip");
+    }
+
+    return result;
+  }
+
   async checkIp(ip: string): Promise<ProxyCheckIpResult | null> {
     try {
-      const { data } = await this.client.get<ProxyCheckApiResponse>(
-        `/${encodeURIComponent(ip)}`,
+      return await cacheFirst<ProxyCheckIpResult>(
+        `${CACHE_PREFIX}${ip}`,
+        () => this.fetchIp(ip),
+        cacheTTL({ time: CACHE_TTL_HOURS, type: "hours" }),
       );
-
-      if (data.status !== "ok") return null;
-
-      const result = data[ip] as ProxyCheckIpResult | undefined;
-      return result ?? null;
     } catch (err) {
+      // fetchIp lançou (falha real) ou o cache lançou → não cacheia, devolve null.
       logger.warn({ err, ip }, "proxycheck.io lookup failed");
       return null;
     }

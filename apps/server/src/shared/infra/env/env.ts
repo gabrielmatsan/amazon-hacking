@@ -52,7 +52,7 @@ const envSchema = z.object({
   METRICS_PREFIX: z.string().default("my_api"),
 
   // X-API-Token
-  X_API_TOKEN: z.string().min(1).default("B#^$Pj&%u8*qK5VGHmgofk77wn4&@A"),
+  X_API_TOKEN: z.string().min(1).default("development-token"),
 
   // Messaging (WhatsApp via Evolution API)
   MESSAGE_SENDER: z.enum(["evolution", "mock"]).default("evolution"),

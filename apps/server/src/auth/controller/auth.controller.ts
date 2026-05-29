@@ -41,6 +41,21 @@ function getIp(request: Request): string | undefined {
   );
 }
 
+// Garante que returnTo seja um caminho interno relativo, evitando open redirect.
+// Rejeita URLs absolutas ("https://evil.com"), protocol-relative ("//evil.com"),
+// backslash ("/\evil.com") e o truque de userinfo ("@evil.com" concatenado ao host).
+function safeReturnTo(value: string | undefined): string {
+  if (
+    !value ||
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    value.startsWith("/\\")
+  ) {
+    return "/";
+  }
+  return value;
+}
+
 export const authController = createController({ prefix: "/auth" })
   .use(
     oauth2({
@@ -62,7 +77,9 @@ export const authController = createController({ prefix: "/auth" })
   .get("/google/login", ({ oauth2, query, cookie, redirect }) => {
     const url = oauth2.createURL("Google", ["openid", "email", "profile"]);
 
-    const returnTo = typeof query.returnTo === "string" ? query.returnTo : "/";
+    const returnTo = safeReturnTo(
+      typeof query.returnTo === "string" ? query.returnTo : undefined,
+    );
 
     cookie.oauth_return_to.set({
       value: returnTo,
@@ -105,7 +122,7 @@ export const authController = createController({ prefix: "/auth" })
 
       setSessionCookie(session_id, result.sid);
 
-      const returnTo = oauth_return_to.value || "/";
+      const returnTo = safeReturnTo(oauth_return_to.value);
       oauth_return_to.set({ ...cookieOptions, value: "", maxAge: 0 });
 
       return redirect(`${env.FRONTEND_URL}${returnTo}`);
