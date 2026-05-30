@@ -1,4 +1,5 @@
 import { NotFoundError } from "@/shared/infra/errors/not-found-error";
+import { logger } from "@/shared/infra/observability";
 
 import type { Team, UpdateLeaderTeamBody } from "../domain/teams.type";
 import { TeamsRepository } from "../infra/teams.repository";
@@ -8,6 +9,7 @@ export async function updateLeaderTeamUseCase(
   input: UpdateLeaderTeamBody,
 ): Promise<Team> {
   if (!teamId) {
+    logger.warn("Leader update aborted: caller has no team associated");
     throw new NotFoundError("You don't have a team");
   }
 
@@ -18,8 +20,14 @@ export async function updateLeaderTeamUseCase(
   });
 
   if (!team) {
+    logger.warn({ teamId }, "Leader update aborted: team not found");
     throw new NotFoundError("Team not found");
   }
+
+  logger.info(
+    { teamId, teamName: team.name, updatedFields: Object.keys(input) },
+    "Leader updated their team, status reset to review",
+  );
 
   return team;
 }

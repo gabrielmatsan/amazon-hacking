@@ -4,6 +4,7 @@ import { SessionRepository } from "@/auth/infra/session.repository";
 
 import { env } from "./env/env";
 import { UnauthorizedError } from "./errors/unauthorized-error";
+import { logger } from "./observability";
 
 export interface AuthUser {
   id: string;
@@ -54,15 +55,24 @@ export const authMiddleware = new Elysia({
     return {
       validateToken: async (request: Request): Promise<AuthUser> => {
         const sid = getCookie(request, "session_id");
-        if (!sid) throw new UnauthorizedError("Session not found");
+
+        if (!sid) {
+          logger.warn({ request }, "Session not found");
+          throw new UnauthorizedError("Session not found");
+        }
 
         const session = await SessionRepository.get(sid);
-        if (!session) throw new UnauthorizedError("Invalid session");
+        if (!session) {
+          logger.warn({ sid }, "Invalid session");
+          throw new UnauthorizedError("Invalid session");
+        }
 
         void SessionRepository.touch(sid).catch(() => {
-          console.error("Error renewing session TTL", { sid });
+          logger.error({ sid }, "Error renewing session TTL");
           // se der erro, nao vai dar problema, apenas nao vai renovar o TTL
         });
+
+        logger.info({ session }, "Session validated");
 
         return {
           id: session.userId,
