@@ -1,4 +1,5 @@
 import { ConflictError } from "@/shared/infra/errors/conflict-error";
+import { logger } from "@/shared/infra/observability";
 import { UsersRepository } from "@/users/infra/users.repository";
 
 import type { CreateLeaderTeamBody, Team } from "../domain/teams.type";
@@ -19,6 +20,7 @@ export async function createLeaderTeamUseCase(
   input: CreateLeaderTeamBody,
 ): Promise<Team> {
   if (teamId) {
+    logger.warn({ userId, existingTeamId: teamId }, "Leader tried to create a team but already owns one");
     throw new ConflictError("You already have a team");
   }
 
@@ -26,6 +28,7 @@ export async function createLeaderTeamUseCase(
   const exists = await TeamsRepository.slugExists(slug);
   if (exists) {
     slug = `${slug}-${Date.now()}`;
+    logger.info({ userId, baseSlug: generateSlug(input.name), resolvedSlug: slug }, "Slug collision resolved with timestamp suffix");
   }
 
   const team = await TeamsRepository.create({
@@ -42,6 +45,11 @@ export async function createLeaderTeamUseCase(
   });
 
   await UsersRepository.updateTeamId(userId, team.id);
+
+  logger.info(
+    { userId, teamId: team.id, teamName: team.name, slug: team.slug, status: team.status },
+    "Leader created their team and is now associated with it (pending review)",
+  );
 
   return team;
 }

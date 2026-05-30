@@ -10,6 +10,7 @@ import { TeamsRepository } from "../infra/teams.repository";
 export async function rejectTeamUseCase(id: string, reason: string, performedBy: string): Promise<Team> {
   const existing = await TeamsRepository.findById(id);
   if (!existing) {
+    logger.warn({ teamId: id, performedBy }, "Reject team aborted: team not found");
     throw new NotFoundError("Team not found");
   }
 
@@ -25,10 +26,17 @@ export async function rejectTeamUseCase(id: string, reason: string, performedBy:
     reason,
   });
 
+  logger.info(
+    { teamId: id, teamName: existing.name, previousStatus: existing.status, performedBy, reason },
+    "Team rejected and sent back for revision",
+  );
+
   const leader = await UsersRepository.findByTeamId(id);
-  logger.info({ leader: leader?.email }, "Leader found");
   if (leader) {
-    logger.info({ leader }, "Sending email to leader");
+    logger.info(
+      { teamId: id, leaderEmail: leader.email },
+      "Notifying team leader about rejection via email",
+    );
     await resendEmailClient.sendEmail({
       to: leader.email,
       subject: `Equipe "${existing.name}" — Revisão necessária`,
@@ -40,6 +48,9 @@ export async function rejectTeamUseCase(id: string, reason: string, performedBy:
         <p>Acesse a plataforma para fazer as correções necessárias.</p>
       `,
     });
+    logger.info({ teamId: id, leaderEmail: leader.email }, "Rejection email sent to team leader");
+  } else {
+    logger.warn({ teamId: id }, "Team rejected but no leader is associated, skipping email notification");
   }
 
   return team!;

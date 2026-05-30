@@ -1,5 +1,6 @@
 import { ConflictError } from "@/shared/infra/errors/conflict-error";
 import { NotFoundError } from "@/shared/infra/errors/not-found-error";
+import { logger } from "@/shared/infra/observability";
 import { UsersRepository } from "@/users/infra/users.repository";
 
 import { db } from "@/shared/infra/databases/postgres";
@@ -26,14 +27,17 @@ export async function createAdminTeamUseCase(
     const leader = await UsersRepository.findById(input.leaderId);
 
     if (!leader) {
+      logger.warn({ createdBy, leaderId: input.leaderId }, "Admin team creation aborted: leader id not found");
       throw new NotFoundError("Leader not found with the provided id");
     }
 
     if (leader.role === 'admin') {
+      logger.warn({ createdBy, leaderId: input.leaderId }, "Admin team creation aborted: cannot assign an admin as leader");
       throw new ConflictError("Cannot create a team with an admin as leader");
     }
 
     if (leader.teamId) {
+      logger.warn({ createdBy, leaderId: input.leaderId, existingTeamId: leader.teamId }, "Admin team creation aborted: leader already owns a team");
       throw new ConflictError("This leader already has a team");
     }
 
@@ -64,7 +68,13 @@ export async function createAdminTeamUseCase(
 
     if (createLeaderTeam && input.leaderId) {
       await UsersRepository.updateTeamId(input.leaderId, team.id);
+      logger.info({ teamId: team.id, leaderId: input.leaderId }, "Leader associated with admin-created team");
     }
+
+    logger.info(
+      { teamId: team.id, teamName: team.name, slug: team.slug, status: team.status, createdBy, leaderId: input.leaderId ?? null },
+      "Team created by admin (active)",
+    );
 
     return team;
   })
