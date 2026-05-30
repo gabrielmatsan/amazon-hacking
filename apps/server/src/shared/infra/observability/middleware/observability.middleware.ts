@@ -36,7 +36,7 @@ function normalizePath(url: string): string {
 
 function shouldSkip(path: string): boolean {
   return path === "/health" || path === "/metrics" || path === "/" ||
-    path.startsWith("/health/");
+    path === "/favicon.ico" || path.startsWith("/health/");
 }
 
 export interface RequestContext {
