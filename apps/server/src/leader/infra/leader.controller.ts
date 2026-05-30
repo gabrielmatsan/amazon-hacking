@@ -3,7 +3,6 @@ import { t } from "elysia";
 import { createController, errorResponse } from "@/shared/infra/base.controller";
 import { requireRole } from "@/shared/infra/require-role.middleware";
 
-import { ForbiddenError } from "@/shared/infra/errors/forbidden-error";
 import { checkSlugUseCase } from "@/teams/applications/check-slug.usecase";
 import { createLeaderTeamUseCase } from "@/teams/applications/create-leader-team.usecase";
 import { getLeaderTeamUseCase } from "@/teams/applications/get-leader-team.usecase";
@@ -15,10 +14,9 @@ import {
   updateLeaderTeamBody,
 } from "@/teams/domain/teams.type";
 import { UsersRepository } from "@/users/infra/users.repository";
-import { env } from "bun";
 
 export const leaderController = createController({ prefix: "/leader", normalize: false })
-  .use(requireRole("leader"))
+  .use(requireRole("admin", "leader"))
   .post("/teams", async ({ user, body, set }) => {
     const fullUser = await UsersRepository.findById(user.id);
     const team = await createLeaderTeamUseCase(user.id, fullUser?.teamId ?? null, body);
@@ -36,11 +34,6 @@ export const leaderController = createController({ prefix: "/leader", normalize:
     detail: { tags: ["Leader", "Teams"], summary: "Create team (leader only)" },
   })
   .put("/teams", async ({ user, body }) => {
-
-    if (env.NODE_ENV === "production") {
-      throw new ForbiddenError("Team editing is disabled");
-    }
-
     const fullUser = await UsersRepository.findById(user.id);
     const team = await updateLeaderTeamUseCase(fullUser?.teamId ?? null, body);
     return { data: team };
