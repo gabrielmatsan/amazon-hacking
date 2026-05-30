@@ -87,6 +87,7 @@
   "pillar_logistics": "Logistics",
   "pillar_education": "Education",
   "pillar_health": "Health",
+  "pillar_verticalization": "Verticalization",
   "pillar_default": "Other",
   "solutions_teams_count": "{count} teams",
   "vote_login_prompt": "Sign in with your Google account to vote for this solution.",
