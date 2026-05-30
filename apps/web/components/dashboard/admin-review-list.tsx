@@ -16,9 +16,10 @@ const PILLAR_LABELS: Record<string, string> = {
   digital_agriculture: "Agricultura Digital",
   bioeconomy: "Bioeconomia",
   logistics: "Logística",
-  education: "Educação",
-  health: "Saúde",
+  education: "Educação comunitária",
+  health: "Saúde e segurança sanitária",
   verticalization: "Verticalização",
+  governance_financial_sustainability: "Governança e sustentabilidade financeira",
   default: "Outro",
 };
 

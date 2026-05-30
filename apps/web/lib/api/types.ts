@@ -5,6 +5,7 @@ export type SolutionPillar =
   | "education"
   | "health"
   | "verticalization"
+  | "governance_financial_sustainability"
   | "default";
 
 export type TeamMember = {

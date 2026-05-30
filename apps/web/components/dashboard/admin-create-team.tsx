@@ -23,12 +23,11 @@ import type { AuthUser } from "@/lib/api/types";
 import type { SolutionPillar, TeamMember } from "@/lib/api/types";
 
 const PILLAR_OPTIONS: { value: SolutionPillar; label: string }[] = [
-  { value: "digital_agriculture", label: "Agricultura Digital" },
-  { value: "bioeconomy", label: "Bioeconomia" },
-  { value: "education", label: "Educação" },
-  { value: "logistics", label: "Logística" },
-  { value: "health", label: "Saúde" },
   { value: "verticalization", label: "Verticalização" },
+  { value: "health", label: "Saúde e segurança sanitária" },
+  { value: "education", label: "Educação comunitária" },
+  { value: "logistics", label: "Logística" },
+  { value: "governance_financial_sustainability", label: "Governança e sustentabilidade financeira" },
 ];
 
 const ROLE_LABELS: Record<string, string> = {
