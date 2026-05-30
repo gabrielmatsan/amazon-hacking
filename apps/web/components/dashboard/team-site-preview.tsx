@@ -9,6 +9,7 @@ const PILLAR_LABELS: Record<string, string> = {
   logistics: "Logística",
   education: "Educação",
   health: "Saúde",
+  verticalization: "Verticalização",
   default: "Outro",
 };
 
@@ -18,6 +19,7 @@ const PILLAR_COLORS: Record<string, { bg: string; text: string; ring: string }> 
   logistics: { bg: "bg-amber-50", text: "text-amber-700", ring: "ring-amber-200" },
   education: { bg: "bg-sky-50", text: "text-sky-700", ring: "ring-sky-200" },
   health: { bg: "bg-rose-50", text: "text-rose-700", ring: "ring-rose-200" },
+  verticalization: { bg: "bg-violet-50", text: "text-violet-700", ring: "ring-violet-200" },
   default: { bg: "bg-neutral-100", text: "text-neutral-600", ring: "ring-neutral-200" },
 };
 

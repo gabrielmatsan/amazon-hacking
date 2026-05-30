@@ -4,6 +4,7 @@ export type SolutionPillar =
   | "logistics"
   | "education"
   | "health"
+  | "verticalization"
   | "default";
 
 export type TeamMember = {

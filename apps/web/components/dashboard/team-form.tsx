@@ -13,6 +13,7 @@ const PILLAR_OPTIONS: { value: SolutionPillar; label: string }[] = [
   { value: "education", label: "Educação" },
   { value: "logistics", label: "Logística" },
   { value: "health", label: "Saúde" },
+  { value: "verticalization", label: "Verticalização" },
 ];
 
 const MAX_LOGO_SIZE_BYTES = 4 * 1024 * 1024;

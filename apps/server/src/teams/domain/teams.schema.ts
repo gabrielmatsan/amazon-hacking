@@ -12,6 +12,7 @@ export const solutionPillarEnum = pgEnum("solution_pillar", [
   "logistics",
   "education",
   "health",
+  "verticalization",
   "default"
 ]);
 
