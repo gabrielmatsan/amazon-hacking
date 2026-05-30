@@ -18,6 +18,7 @@ const PILLAR_LABELS: Record<string, string> = {
   logistics: "Logística",
   education: "Educação",
   health: "Saúde",
+  verticalization: "Verticalização",
   default: "Outro",
 };
 

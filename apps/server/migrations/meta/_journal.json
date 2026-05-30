@@ -8,6 +8,13 @@
       "when": 1780042976508,
       "tag": "20260529082256_safe_mordo",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1780153370551,
+      "tag": "20260530150250_amused_living_tribunal",
+      "breakpoints": true
     }
   ]
 }

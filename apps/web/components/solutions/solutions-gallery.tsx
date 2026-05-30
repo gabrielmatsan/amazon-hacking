@@ -14,6 +14,7 @@ const PILLAR_ORDER: SolutionPillar[] = [
   "logistics",
   "education",
   "health",
+  "verticalization",
   "default",
 ];
 
@@ -24,6 +25,7 @@ function pillarLabel(pillar: SolutionPillar, locale: Locale): string {
     logistics: () => m.pillar_logistics({}, { locale }),
     education: () => m.pillar_education({}, { locale }),
     health: () => m.pillar_health({}, { locale }),
+    verticalization: () => m.pillar_verticalization({}, { locale }),
     default: () => m.pillar_default({}, { locale }),
   };
   return labels[pillar]();
@@ -35,6 +37,7 @@ const PILLAR_COLORS: Record<SolutionPillar, { bg: string; text: string; ring: st
   logistics: { bg: "bg-amber-50", text: "text-amber-700", ring: "ring-amber-200" },
   education: { bg: "bg-sky-50", text: "text-sky-700", ring: "ring-sky-200" },
   health: { bg: "bg-rose-50", text: "text-rose-700", ring: "ring-rose-200" },
+  verticalization: { bg: "bg-violet-50", text: "text-violet-700", ring: "ring-violet-200" },
   default: { bg: "bg-neutrals-100", text: "text-neutrals-600", ring: "ring-neutrals-200" },
 };
 
@@ -44,6 +47,7 @@ const PILLAR_ACCENT: Record<SolutionPillar, string> = {
   logistics: "bg-amber-500",
   education: "bg-sky-500",
   health: "bg-rose-500",
+  verticalization: "bg-violet-500",
   default: "bg-neutrals-400",
 };
 

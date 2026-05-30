@@ -28,6 +28,7 @@ export const solutionPillarType = t.Union([
   t.Literal("logistics"),
   t.Literal("education"),
   t.Literal("health"),
+  t.Literal("verticalization"),
   t.Literal("default"),
 ]);
 

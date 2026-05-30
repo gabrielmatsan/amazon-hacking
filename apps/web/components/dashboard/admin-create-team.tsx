@@ -28,6 +28,7 @@ const PILLAR_OPTIONS: { value: SolutionPillar; label: string }[] = [
   { value: "education", label: "Educação" },
   { value: "logistics", label: "Logística" },
   { value: "health", label: "Saúde" },
+  { value: "verticalization", label: "Verticalização" },
 ];
 
 const ROLE_LABELS: Record<string, string> = {
