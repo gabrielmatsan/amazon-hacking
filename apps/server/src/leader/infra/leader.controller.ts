@@ -3,6 +3,7 @@ import { t } from "elysia";
 import { createController, errorResponse } from "@/shared/infra/base.controller";
 import { requireRole } from "@/shared/infra/require-role.middleware";
 
+import { logger } from "@/shared/infra/observability";
 import { checkSlugUseCase } from "@/teams/applications/check-slug.usecase";
 import { createLeaderTeamUseCase } from "@/teams/applications/create-leader-team.usecase";
 import { getLeaderTeamUseCase } from "@/teams/applications/get-leader-team.usecase";
@@ -51,6 +52,7 @@ export const leaderController = createController({ prefix: "/leader", normalize:
   .get("/teams", async ({ user }) => {
     const fullUser = await UsersRepository.findById(user.id);
     const team = await getLeaderTeamUseCase(fullUser?.teamId ?? null);
+    logger.info({ teamId: team.id, teamName: team.name, userEmail: fullUser?.email, userId: user.id }, "Team retrieved");
     return { data: team };
   }, {
     response: {
