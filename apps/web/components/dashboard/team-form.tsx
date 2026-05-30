@@ -8,12 +8,11 @@ import { PlusIcon, TrashIcon, UploadIcon, XIcon } from "lucide-react";
 import { useRef, useState } from "react";
 
 const PILLAR_OPTIONS: { value: SolutionPillar; label: string }[] = [
-  { value: "digital_agriculture", label: "Agricultura Digital" },
-  { value: "bioeconomy", label: "Bioeconomia" },
-  { value: "education", label: "Educação" },
-  { value: "logistics", label: "Logística" },
-  { value: "health", label: "Saúde" },
   { value: "verticalization", label: "Verticalização" },
+  { value: "health", label: "Saúde e segurança sanitária" },
+  { value: "education", label: "Educação comunitária" },
+  { value: "logistics", label: "Logística" },
+  { value: "governance_financial_sustainability", label: "Governança e sustentabilidade financeira" },
 ];
 
 const MAX_LOGO_SIZE_BYTES = 4 * 1024 * 1024;

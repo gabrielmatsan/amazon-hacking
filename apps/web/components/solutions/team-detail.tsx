@@ -23,6 +23,8 @@ function pillarLabel(pillar: SolutionPillar, locale: Locale): string {
     education: () => m.pillar_education({}, { locale }),
     health: () => m.pillar_health({}, { locale }),
     verticalization: () => m.pillar_verticalization({}, { locale }),
+    governance_financial_sustainability: () =>
+      m.pillar_governance_financial_sustainability({}, { locale }),
     default: () => m.pillar_default({}, { locale }),
   };
   return labels[pillar]();
@@ -35,6 +37,7 @@ const PILLAR_COLORS: Record<SolutionPillar, { bg: string; text: string; ring: st
   education: { bg: "bg-sky-50", text: "text-sky-700", ring: "ring-sky-200" },
   health: { bg: "bg-rose-50", text: "text-rose-700", ring: "ring-rose-200" },
   verticalization: { bg: "bg-violet-50", text: "text-violet-700", ring: "ring-violet-200" },
+  governance_financial_sustainability: { bg: "bg-teal-50", text: "text-teal-700", ring: "ring-teal-200" },
   default: { bg: "bg-neutrals-100", text: "text-neutrals-600", ring: "ring-neutrals-200" },
 };
 

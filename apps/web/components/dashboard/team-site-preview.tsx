@@ -7,9 +7,10 @@ const PILLAR_LABELS: Record<string, string> = {
   digital_agriculture: "Agricultura Digital",
   bioeconomy: "Bioeconomia",
   logistics: "Logística",
-  education: "Educação",
-  health: "Saúde",
+  education: "Educação comunitária",
+  health: "Saúde e segurança sanitária",
   verticalization: "Verticalização",
+  governance_financial_sustainability: "Governança e sustentabilidade financeira",
   default: "Outro",
 };
 
@@ -20,6 +21,7 @@ const PILLAR_COLORS: Record<string, { bg: string; text: string; ring: string }> 
   education: { bg: "bg-sky-50", text: "text-sky-700", ring: "ring-sky-200" },
   health: { bg: "bg-rose-50", text: "text-rose-700", ring: "ring-rose-200" },
   verticalization: { bg: "bg-violet-50", text: "text-violet-700", ring: "ring-violet-200" },
+  governance_financial_sustainability: { bg: "bg-teal-50", text: "text-teal-700", ring: "ring-teal-200" },
   default: { bg: "bg-neutral-100", text: "text-neutral-600", ring: "ring-neutral-200" },
 };
 

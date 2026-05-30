@@ -1,0 +1,1 @@
+ALTER TYPE "public"."solution_pillar" ADD VALUE 'governance_financial_sustainability' BEFORE 'default';

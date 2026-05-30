@@ -15,6 +15,13 @@
       "when": 1780153370551,
       "tag": "20260530150250_amused_living_tribunal",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780154205786,
+      "tag": "20260530151645_slimy_maestro",
+      "breakpoints": true
     }
   ]
 }
