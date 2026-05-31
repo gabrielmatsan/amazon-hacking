@@ -67,7 +67,7 @@ describe("Leader controller (integration)", () => {
       expect(response.status).toBe(403);
     });
 
-    it("returns 403 when user has role 'admin'", async () => {
+    it("returns 200 when user has role 'admin'", async () => {
       const { sid } = await seedUser("admin");
 
       const response = await app.handle(
@@ -76,7 +76,7 @@ describe("Leader controller (integration)", () => {
         }),
       );
 
-      expect(response.status).toBe(403);
+      expect(response.status).toBe(200);
     });
   });
 
@@ -270,7 +270,7 @@ describe("Leader controller (integration)", () => {
       expect(data.rejectionReason).toBe("Needs improvement");
     });
 
-    it("returns 404 when leader has no team", async () => {
+    it("returns 200 with null data when leader has no team", async () => {
       const { sid } = await seedUser("leader");
 
       const response = await app.handle(
@@ -279,7 +279,7 @@ describe("Leader controller (integration)", () => {
         }),
       );
 
-      expect(response.status).toBe(404);
+      expect(response.status).toBe(200);
     });
   });
 

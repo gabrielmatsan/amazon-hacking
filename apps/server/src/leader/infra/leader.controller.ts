@@ -52,11 +52,14 @@ export const leaderController = createController({ prefix: "/leader", normalize:
   .get("/teams", async ({ user }) => {
     const fullUser = await UsersRepository.findById(user.id);
     const team = await getLeaderTeamUseCase(fullUser?.teamId ?? null);
-    logger.info({ teamId: team.id, teamName: team.name, userEmail: fullUser?.email, userId: user.id }, "Team retrieved");
+
+    if (team) {
+      logger.info({ teamId: team.id, teamName: team.name, userEmail: fullUser?.email, userId: user.id }, "Team retrieved");
+    }
     return { data: team };
   }, {
     response: {
-      200: t.Object({ data: teamType }),
+      200: t.Object({ data: t.Nullable(teamType) }),
       401: errorResponse,
       403: errorResponse,
       404: errorResponse,
