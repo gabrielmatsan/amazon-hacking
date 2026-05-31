@@ -1,4 +1,5 @@
 import { env } from "../env/env";
+import { araraSender } from "./arara-sender";
 import { evolutionSender, sendEvolutionAlert } from "./evolution-sender";
 import type { MessageSender } from "./message-sender";
 import { mockSender } from "./mock-sender";
@@ -10,6 +11,8 @@ export function getMessageSender(): MessageSender {
 
   if (env.NODE_ENV === "test" || env.MESSAGE_SENDER === "mock") {
     cached = mockSender;
+  } else if (env.MESSAGE_SENDER === "arara") {
+    cached = araraSender;
   } else {
     cached = evolutionSender;
   }

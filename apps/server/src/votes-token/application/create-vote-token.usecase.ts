@@ -133,6 +133,7 @@ export async function createVoteTokenUseCase(
       await sender.send(
         phoneNumber,
         `Seu codigo de verificacao e ${code}. Expira em ${ttlMinutes} min.`,
+        { code },
       );
 
       await VoteTokensRepository.create(
