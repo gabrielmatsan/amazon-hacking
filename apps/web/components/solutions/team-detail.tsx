@@ -111,7 +111,9 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
       </Link>
 
       <div className="mt-8 flex items-center gap-5">
-        <div className="relative size-20 shrink-0 overflow-hidden rounded-2xl bg-primary-400 md:size-24">
+        <div
+          className={`relative size-20 shrink-0 overflow-hidden rounded-2xl md:size-24 ${team.logoUrl ? "bg-white" : "bg-primary-400"}`}
+        >
           {team.logoUrl ? (
             <Image src={team.logoUrl} alt="" fill sizes="96px" className="object-contain p-2" />
           ) : (

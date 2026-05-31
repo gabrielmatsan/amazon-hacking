@@ -221,7 +221,9 @@ function TeamCard({
       href={teamHref(team.slug, locale)}
       className="group flex w-full flex-col items-center gap-4 rounded-2xl bg-white p-5 text-center ring-1 ring-black/5 hover:-translate-y-0.5 hover:shadow-xl md:p-6"
     >
-      <div className="relative size-16 shrink-0 overflow-hidden rounded-full bg-primary-400 ring-2 ring-primary-100/10">
+      <div
+        className={`relative size-16 shrink-0 overflow-hidden rounded-full ring-2 ring-primary-100/10 ${team.logoUrl ? "bg-white" : "bg-primary-400"}`}
+      >
         {team.logoUrl ? (
           <Image
             src={team.logoUrl}
