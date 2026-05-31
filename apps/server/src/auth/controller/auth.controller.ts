@@ -35,6 +35,7 @@ function clearSessionCookie(cookie: SessionCookie) {
 
 function getIp(request: Request): string | undefined {
   return (
+    request.headers.get("x-real-client-ip") ??
     request.headers.get("cf-connecting-ip") ??
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     undefined

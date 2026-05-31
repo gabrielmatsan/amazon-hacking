@@ -9,6 +9,9 @@ export const httpMiddleware = new Elysia({
   }, () => {
     return {
       getIpClient: async (request: Request, server?: any) => {
+        const realClientIp = request.headers.get("x-real-client-ip");
+        if (realClientIp) return realClientIp;
+
         const cfConnectingIp = request.headers.get("cf-connecting-ip");
         if (cfConnectingIp) return cfConnectingIp;
 

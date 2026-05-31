@@ -21,6 +21,7 @@ export const votesTokensController = createController({
       max: 10,
       generator: (request: Request) => {
         return (
+          request.headers.get("x-real-client-ip") ??
           request.headers.get("cf-connecting-ip") ??
           request.headers.get("x-forwarded-for") ??
           request.headers.get("x-real-ip") ??
