@@ -6,19 +6,21 @@ export function getIpClient(request: Request, server?: any): string {
   // proxy de borda STRIPA `x-real-client-ip`, `x-forwarded-for` e `x-real-ip`
   // vindos do cliente; caso contrário o IP continua spoofável.
 
-  // 1. Cloudflare CF-Connecting-IP: setado pela borda da Cloudflare e sobrescreve
+
+  // 1. Real client IP encaminhado pelo proxy Next.js (confiável apenas se o
+  //    proxy stripar o header recebido do cliente antes de re-setá-lo).
+  const realClientIp = request.headers.get("x-real-client-ip");
+  if (realClientIp) {
+    return realClientIp;
+  }
+
+  // 2. Cloudflare CF-Connecting-IP: setado pela borda da Cloudflare e sobrescreve
   //    qualquer valor enviado pelo cliente — mais confiável quando atrás da CF.
   const cfConnectingIp = request.headers.get("cf-connecting-ip");
   if (cfConnectingIp) {
     return cfConnectingIp;
   }
 
-  // 2. Real client IP encaminhado pelo proxy Next.js (confiável apenas se o
-  //    proxy stripar o header recebido do cliente antes de re-setá-lo).
-  const realClientIp = request.headers.get("x-real-client-ip");
-  if (realClientIp) {
-    return realClientIp;
-  }
 
   // 3. X-Forwarded-For (fallback)
   const xForwardedFor = request.headers.get("x-forwarded-for");
