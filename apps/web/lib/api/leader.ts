@@ -19,8 +19,8 @@ export type CreateLeaderTeamInput = {
 
 export type UpdateLeaderTeamInput = Partial<CreateLeaderTeamInput>;
 
-export async function getLeaderTeam() {
-  const { data } = await api.get<{ data: Team }>("/leader/teams");
+export async function getLeaderTeam(): Promise<Team | null> {
+  const { data } = await api.get<{ data: Team | null }>("/leader/teams");
   return data.data;
 }
 

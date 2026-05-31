@@ -29,13 +29,30 @@ export function LeaderDashboard({ locale }: { locale: string }) {
   const updateMutation = useUpdateLeaderTeam();
   const [editing, setEditing] = useState(false);
 
-  const hasNoTeam = error && !isLoading;
+  const hasNoTeam = !team; // isLoading e error já retornaram acima → team === null
 
   if (isLoading) {
     return (
       <div className="space-y-4">
         <div className="h-8 w-48 animate-pulse rounded-lg bg-neutral-200" />
         <div className="h-64 animate-pulse rounded-xl bg-neutral-200" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+        <AlertTriangleIcon className="mt-0.5 size-4 shrink-0 stroke-red-600" />
+        <div>
+          <p className="text-sm font-medium text-red-800">
+            Não foi possível carregar sua equipe
+          </p>
+          <p className="mt-1 text-sm text-red-700">
+            Tente recarregar a página. Se o problema persistir, contate a
+            organização.
+          </p>
+        </div>
       </div>
     );
   }
