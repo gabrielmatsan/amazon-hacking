@@ -54,13 +54,15 @@ const envSchema = z.object({
   // X-API-Token
   X_API_TOKEN: z.string().min(1).default("development-token"),
 
-  // Messaging (WhatsApp via Evolution API)
-  MESSAGE_SENDER: z.enum(["evolution", "mock"]).default("evolution"),
+  // Messaging (WhatsApp via Evolution API or Arara)
+  MESSAGE_SENDER: z.enum(["evolution", "arara", "mock"]).default("arara"),
   EVOLUTION_URL: z.string().url().optional(),
   EVOLUTION_API_KEY: z.string().optional(),
   EVOLUTION_INSTANCE: z.string().optional(),
   EVOLUTION_ALERT_GROUP_ID: z.string().optional(),
   EVOLUTION_ALERTS_ENABLED: z.string().transform((val) => val === "true").default("false"),
+  ARARA_URL: z.string().url().default("https://api.ararahq.com/api/v1"),
+  ARARA_API_KEY: z.string().optional(),
   VOTE_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(300),
   VOTE_TOKEN_RATE_LIMIT_COUNT: z.coerce.number().int().positive().default(3),
   VOTE_TOKEN_RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().positive().default(600),
