@@ -95,15 +95,19 @@ UMAMI_OVERVIEW_CACHE_SECONDS=300   # 5min overview cache
 ```
 GET /admin/analytics/umami/overview?range=24h|7d|30d|90d
     → { data: { range, stats{+comparison}, series[], topPages[], referrers[],
-                 countries[], browsers[], os[], devices[], events[] } }
+                 countries[], browsers[], os[], devices[], events[],
+                 webVitals{lcp,inp,cls,fcp,ttfb,count}, utm{source,medium,campaign},
+                 funnel[{value,visitors,dropoff,remaining}] } }
 
 GET /admin/analytics/umami/realtime
     → { data: { online: number } }
 ```
 
 `overview` fans out (in parallel) to: `/stats?compare=prev`, `/pageviews`,
-`/metrics?type=path|referrer|country|browser|os|device|event`. `realtime` calls
-`/websites/:id/active`.
+`/metrics?type=path|referrer|country|browser|os|device|event`, and the Reports API
+(`POST /reports/performance`, `/reports/utm`, `/reports/funnel`). The three report calls
+are wrapped in `safe()` — a missing/empty report degrades to zeros, never a 500.
+`realtime` calls `/websites/:id/active`.
 
 ---
 
@@ -132,6 +136,13 @@ voting flow in `components/solutions/team-detail.tsx`:
 | `vote-token-requested` | token sent | `{ channel }` |
 | `vote-token-failed` | token/vote error | `{ step, reason }` |
 | `vote-submitted` | vote succeeds | `{ teamId, channel }` |
+| `section-viewed` | home section enters viewport | `{ section }` |
+| `winner-video-play` | winner video opens | `{ winnerId, year }` |
+| `solutions-search` | gallery search (debounced) | `{ length, hasResults }` |
+| `cta-click` | key CTA clicked (declarative `data-umami-event`) | `{ target }` |
+
+`section-viewed` is fired by `components/site/track-section.tsx` (IntersectionObserver,
+once). CTAs use Umami's declarative `data-umami-event` / `data-umami-event-*` attributes.
 
 **Vote ↔ session link.** On a successful vote we call
 `identifyVisitor(fingerprint)` (the FingerprintJS `visitorId`). Umami binds that

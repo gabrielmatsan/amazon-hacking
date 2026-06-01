@@ -97,6 +97,9 @@ export type UmamiOverview = {
   os: UmamiMetricRow[];
   devices: UmamiMetricRow[];
   events: UmamiMetricRow[];
+  webVitals: { lcp: number; inp: number; cls: number; fcp: number; ttfb: number; count: number };
+  utm: { source: UmamiMetricRow[]; medium: UmamiMetricRow[]; campaign: UmamiMetricRow[] };
+  funnel: Array<{ value: string; visitors: number; dropoff: number; remaining: number }>;
 };
 
 export async function getUmamiOverview(range: UmamiRange) {

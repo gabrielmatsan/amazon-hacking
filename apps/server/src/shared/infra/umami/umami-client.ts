@@ -65,32 +65,60 @@ function buildUrl(config: UmamiConfig, path: string, params?: Record<string, str
   return url.toString();
 }
 
-async function authedFetch<T>(
-  config: UmamiConfig,
-  token: string,
-  url: string,
-): Promise<{ status: number; data: T }> {
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
-  });
+type Attempt<T> = (token: string) => Promise<{ status: number; data: T }>;
+
+async function readResponse<T>(res: Response): Promise<{ status: number; data: T }> {
   const data = res.ok ? ((await res.json()) as T) : (null as T);
   return { status: res.status, data };
 }
 
-// Calls an authenticated Umami endpoint. On a 401 (expired/revoked token) it
-// re-logs-in once and retries before giving up.
-export async function umamiGet<T>(path: string, params?: Record<string, string | number>): Promise<T> {
-  const config = requireConfig();
-  const url = buildUrl(config, path, params);
-
+// Runs an authenticated attempt; on a 401 (expired/revoked token) it re-logs-in
+// once and retries before giving up.
+async function withAuthRetry<T>(config: UmamiConfig, attempt: Attempt<T>): Promise<{ status: number; data: T }> {
   let token = await getToken(config);
-  let res = await authedFetch<T>(config, token, url);
+  let res = await attempt(token);
 
   if (res.status === 401) {
     await redis.del(TOKEN_CACHE_KEY);
     token = await login(config);
-    res = await authedFetch<T>(config, token, url);
+    res = await attempt(token);
   }
+
+  return res;
+}
+
+export async function umamiGet<T>(path: string, params?: Record<string, string | number>): Promise<T> {
+  const config = requireConfig();
+  const url = buildUrl(config, path, params);
+
+  const res = await withAuthRetry<T>(config, (token) =>
+    fetch(url, {
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+    }).then(readResponse<T>),
+  );
+
+  if (res.status < 200 || res.status >= 300) {
+    throw new BadRequestError(`Umami request failed (${res.status}) for ${path}`);
+  }
+
+  return res.data;
+}
+
+export async function umamiPost<T>(path: string, body: unknown): Promise<T> {
+  const config = requireConfig();
+  const url = `${config.apiUrl}/api${path}`;
+
+  const res = await withAuthRetry<T>(config, (token) =>
+    fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    }).then(readResponse<T>),
+  );
 
   if (res.status < 200 || res.status >= 300) {
     throw new BadRequestError(`Umami request failed (${res.status}) for ${path}`);
