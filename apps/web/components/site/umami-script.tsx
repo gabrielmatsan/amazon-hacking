@@ -13,9 +13,8 @@ export function UmamiScript() {
 
   if (!src || !websiteId) return null;
 
-  // Session replay is opt-in (privacy/LGPD): only loaded when explicitly enabled.
-  // Disclose its use in /privacy-policy before enabling in production.
-  const recorderEnabled = process.env.NEXT_PUBLIC_UMAMI_RECORDER === "true";
+  // Session replay loads by default; set NEXT_PUBLIC_UMAMI_RECORDER=false to opt out.
+  const recorderEnabled = process.env.NEXT_PUBLIC_UMAMI_RECORDER !== "false";
   const sampleRate = process.env.NEXT_PUBLIC_UMAMI_RECORDER_SAMPLE_RATE ?? "0.15";
   const maskLevel = process.env.NEXT_PUBLIC_UMAMI_RECORDER_MASK_LEVEL ?? "moderate";
   const maxDuration = process.env.NEXT_PUBLIC_UMAMI_RECORDER_MAX_DURATION ?? "300000";
