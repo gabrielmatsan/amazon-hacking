@@ -94,7 +94,7 @@
   "vote_login_prompt": "Entre com sua conta Google para votar nesta solução.",
   "vote_login_button": "Entrar com Google",
   "vote_phone_label": "Informe seu telefone para receber o código de verificação",
-  "vote_phone_placeholder": "(91) 98888-7777",
+  "vote_phone_placeholder": "Número de telefone",
   "vote_phone_submit": "Enviar código",
   "vote_code_sent_whatsapp": "Código enviado para seu WhatsApp.",
   "vote_code_sent_email": "Não conseguimos enviar via WhatsApp. O código foi enviado para seu email.",

@@ -6,6 +6,7 @@ import {
   approveTeam,
   rejectTeam,
   getVotesDashboard,
+  getVisitorsAnalytics,
   getFlaggedVotes,
   approveVote,
   invalidateVote,
@@ -53,6 +54,16 @@ export function useVotesDashboard() {
   return useQuery({
     queryKey: ["admin", "votes", "dashboard"],
     queryFn: getVotesDashboard,
+  });
+}
+
+export function useVisitorsAnalytics() {
+  return useQuery({
+    queryKey: ["admin", "analytics", "visitors"],
+    queryFn: getVisitorsAnalytics,
+    // Cloudflare analytics update slowly; avoid hammering the GraphQL API.
+    staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 }
 
