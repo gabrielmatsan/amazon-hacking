@@ -7,6 +7,8 @@ import {
   rejectTeam,
   getVotesDashboard,
   getVisitorsAnalytics,
+  getUmamiOverview,
+  getUmamiRealtime,
   getFlaggedVotes,
   approveVote,
   invalidateVote,
@@ -17,6 +19,7 @@ import {
   uploadAdminImage,
   uploadFileToPresignedUrl,
   type CreateAdminTeamInput,
+  type UmamiRange,
 } from "@/lib/api/admin";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
@@ -63,6 +66,25 @@ export function useVisitorsAnalytics() {
     queryFn: getVisitorsAnalytics,
     // Cloudflare analytics update slowly; avoid hammering the GraphQL API.
     staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+}
+
+export function useUmamiOverview(range: UmamiRange) {
+  return useQuery({
+    queryKey: ["admin", "analytics", "umami", "overview", range],
+    queryFn: () => getUmamiOverview(range),
+    // Backend caches ~5 min; mirror that here to avoid redundant refetches.
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+}
+
+export function useUmamiRealtime() {
+  return useQuery({
+    queryKey: ["admin", "analytics", "umami", "realtime"],
+    queryFn: getUmamiRealtime,
+    refetchInterval: 30 * 1000,
     retry: false,
   });
 }
