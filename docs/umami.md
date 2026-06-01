@@ -31,24 +31,21 @@ nothing unless `NEXT_PUBLIC_UMAMI_SRC` and `NEXT_PUBLIC_UMAMI_WEBSITE_ID` are se
 NEXT_PUBLIC_UMAMI_SRC=https://umami-production-c594.up.railway.app/script.js
 NEXT_PUBLIC_UMAMI_WEBSITE_ID=ca0941d0-0c44-4608-88e4-e35250f45e27
 
-# Session replay (recorder) — opt-in. Disclose in /privacy-policy before enabling.
-NEXT_PUBLIC_UMAMI_RECORDER=false
+# Session replay (recorder) — on by default; set to false to opt out.
+NEXT_PUBLIC_UMAMI_RECORDER=true
 NEXT_PUBLIC_UMAMI_RECORDER_SAMPLE_RATE=0.15
 NEXT_PUBLIC_UMAMI_RECORDER_MASK_LEVEL=moderate     # strict | moderate
 NEXT_PUBLIC_UMAMI_RECORDER_MAX_DURATION=300000     # ms
 ```
 
-The recorder URL is derived from `_SRC` (`…/script.js` → `…/recorder.js`). When
-`NEXT_PUBLIC_UMAMI_RECORDER=true`, the component renders:
+The recorder URL is derived from `_SRC` (`…/script.js` → `…/recorder.js`). Unless
+`NEXT_PUBLIC_UMAMI_RECORDER=false`, the component renders:
 
 ```html
 <script defer src=".../script.js" data-website-id="ca0941d0-..."></script>
 <script defer src=".../recorder.js" data-website-id="ca0941d0-..."
   data-sample-rate="0.15" data-mask-level="moderate" data-max-duration="300000"></script>
 ```
-
-> ⚠️ **LGPD:** session replay records real user interactions. Disclose it in
-> `/privacy-policy` before turning it on in production.
 
 ### Tracking custom events (browser)
 
