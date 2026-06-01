@@ -120,6 +120,31 @@ The admin area is Portuguese-only (hardcoded strings, no i18n — matches `Admin
 
 ---
 
+## 3b. Vote tracking & session linking
+
+`lib/analytics/umami.ts` wraps the global tracker type-safely (`trackEvent`,
+`identifyVisitor` — no-ops on server or when the tracker is absent). Wired into the
+voting flow in `components/solutions/team-detail.tsx`:
+
+| Event | When | Data |
+| --- | --- | --- |
+| `solution-viewed` | team detail opens | `{ teamId }` |
+| `vote-token-requested` | token sent | `{ channel }` |
+| `vote-token-failed` | token/vote error | `{ step, reason }` |
+| `vote-submitted` | vote succeeds | `{ teamId, channel }` |
+
+**Vote ↔ session link.** On a successful vote we call
+`identifyVisitor(fingerprint)` (the FingerprintJS `visitorId`). Umami binds that
+**Distinct ID** to the cookieless session, so:
+
+- In Umami → **Sessions**, search the fingerprint to replay the journey that led to a vote.
+- The vote DB record already stores the same `fingerprint`, so a flagged vote
+  cross-references to its Umami session with no extra backend plumbing.
+
+Funnel to build in Umami: `solution-viewed` → `vote-token-requested` → `vote-submitted`.
+
+---
+
 ## 4. HTTP API reference
 
 Self-hosted base: `https://<instance>/api`. Auth: `Authorization: Bearer <token>`
