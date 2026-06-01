@@ -38,7 +38,8 @@ function bounceRate(stats: UmamiTotals): number {
 }
 
 function formatAxisTime(iso: string, range: UmamiRange): string {
-  const date = new Date(iso);
+  // Umami returns "YYYY-MM-DD HH:mm:ss" (space). Safari rejects that — normalize to ISO.
+  const date = new Date(iso.includes("T") ? iso : iso.replace(" ", "T"));
   if (range === "24h") {
     return date.toLocaleTimeString("pt-BR", { hour: "2-digit", timeZone: "America/Belem" });
   }
