@@ -15,7 +15,7 @@ export default async function TeamPage({
 
   return (
     <>
-      <Header locale={resolved} theme="blue" />
+      <Header locale={resolved} variant="inner" />
       <main className="min-h-dvh bg-white pt-24 pb-16 md:pt-32">
         <TeamDetail slug={slug} locale={resolved} />
       </main>
