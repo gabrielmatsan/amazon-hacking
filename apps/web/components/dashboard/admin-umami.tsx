@@ -11,6 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import { useUmamiOverview, useUmamiRealtime } from "@/hooks/use-admin-teams";
+import { UmamiSessions } from "./admin-umami-sessions";
 import type {
   UmamiMetricRow,
   UmamiOverview,
@@ -465,6 +466,8 @@ export function AdminUmami() {
               emptyLabel="Nenhum evento registrado no período."
             />
           </div>
+
+          <UmamiSessions range={range} />
         </>
       )}
     </div>

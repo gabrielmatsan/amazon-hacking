@@ -103,7 +103,17 @@ GET /admin/analytics/umami/overview?range=24h|7d|30d|90d
 
 GET /admin/analytics/umami/realtime
     → { data: { online: number } }
+
+GET /admin/analytics/umami/sessions?range=&page=&search=
+    → { data: { count, page, items[{id,browser,os,device,country,city,firstAt,lastAt,visits,views}] } }
+GET /admin/analytics/umami/sessions/:sessionId?range=
+    → { data: { session{…,distinctId,events,totaltime}, activity[{createdAt,urlPath,eventType,eventName}], properties[{key,value}] } }
 ```
+
+The **sessions explorer** (`admin-umami-sessions.tsx`) lists sessions and expands each
+into its activity timeline + properties + Distinct ID — native fraud forensics, no
+external link. Umami quirk handled: session detail returns counts as strings (`"4"`)
+while the list returns numbers; `num()` coerces both.
 
 `overview` fans out (in parallel) to: `/stats?compare=prev`, `/pageviews`,
 `/metrics?type=path|referrer|country|browser|os|device|event`, and the Reports API
@@ -152,9 +162,10 @@ once). CTAs use Umami's declarative `data-umami-event` / `data-umami-event-*` at
 (`lib/analytics/umami-links.ts` → `umamiSessionUrl(fingerprint)`), deep-linking to the
 session(s) for that Distinct ID so an admin can inspect the journey and replay.
 
-**Vote ↔ session link.** On a successful vote we call
-`identifyVisitor(fingerprint)` (the FingerprintJS `visitorId`). Umami binds that
-**Distinct ID** to the cookieless session, so:
+**Vote ↔ session link.** On a successful vote we call `identifyVisitor`: for an
+authenticated voter the Distinct ID is their **email** (stable across devices), with
+`name` + `fingerprint` as session data; otherwise it falls back to the FingerprintJS
+`visitorId`. Umami binds that **Distinct ID** to the cookieless session, so:
 
 - In Umami → **Sessions**, search the fingerprint to replay the journey that led to a vote.
 - The vote DB record already stores the same `fingerprint`, so a flagged vote
