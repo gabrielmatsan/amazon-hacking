@@ -79,9 +79,10 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
   const loginUrl = getGoogleLoginUrl(pathname);
 
   const teamId = team?.id;
+  const teamName = team?.name;
   useEffect(() => {
-    if (teamId) trackEvent("solution-viewed", { teamId });
-  }, [teamId]);
+    if (teamId) trackEvent("solution-viewed", { teamId, teamName });
+  }, [teamId, teamName]);
 
   if (isLoading) {
     return (
@@ -211,7 +212,7 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
             </div>
           )
         ) : isLoggedIn ? (
-          <VoteFlow teamId={team.id} locale={locale} />
+          <VoteFlow teamId={team.id} teamName={team.name} locale={locale} />
         ) : (
           <>
             <p className="mt-3 text-sm text-neutrals-500">
@@ -236,7 +237,7 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
   );
 }
 
-function VoteFlow({ teamId, locale }: { teamId: string; locale: Locale }) {
+function VoteFlow({ teamId, teamName, locale }: { teamId: string; teamName: string; locale: Locale }) {
   const [step, setStep] = useState<"phone" | "code">("phone");
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
@@ -283,7 +284,7 @@ function VoteFlow({ teamId, locale }: { teamId: string; locale: Locale }) {
         onSuccess: () => {
           const fingerprint = getFingerprint();
           if (fingerprint) identifyVisitor(fingerprint);
-          trackEvent("vote-submitted", { teamId, channel: channel ?? "unknown" });
+          trackEvent("vote-submitted", { teamId, teamName, channel: channel ?? "unknown" });
         },
         onError: (err) => {
           setErrorMsg(getErrorMessage(err) ?? m.vote_error_generic({}, { locale }));

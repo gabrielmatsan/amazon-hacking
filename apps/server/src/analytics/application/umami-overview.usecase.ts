@@ -57,6 +57,17 @@ export const umamiOverviewOutput = t.Object({
   os: t.Array(metricRow),
   devices: t.Array(metricRow),
   events: t.Array(metricRow),
+  regions: t.Array(metricRow),
+  cities: t.Array(metricRow),
+  languages: t.Array(metricRow),
+  conversionByTeam: t.Array(
+    t.Object({
+      team: t.String(),
+      views: t.Number(),
+      votes: t.Number(),
+      rate: t.Number(),
+    }),
+  ),
   webVitals: t.Object({
     lcp: t.Number(),
     inp: t.Number(),
@@ -98,6 +109,7 @@ type RawPerformance = {
 type RawUtmRow = { utm: string; views: number };
 type RawUtm = { utm_source?: RawUtmRow[]; utm_medium?: RawUtmRow[]; utm_campaign?: RawUtmRow[] };
 type RawFunnelStep = { value: string; visitors: number; dropoff: number | null; remaining: number };
+type RawEventValue = { value: string; total: number };
 
 const num = (value: unknown): number => (typeof value === "number" ? value : 0);
 
@@ -154,6 +166,26 @@ function toFunnel(raw: RawFunnelStep[] | undefined) {
   }));
 }
 
+// Joins per-team views (solution-viewed) and votes (vote-submitted), both keyed by
+// the teamName carried in the event data, into a conversion table.
+function toConversionByTeam(views: RawEventValue[] | undefined, votes: RawEventValue[] | undefined) {
+  const byTeam = new Map<string, { team: string; views: number; votes: number }>();
+
+  for (const row of views ?? []) {
+    byTeam.set(row.value, { team: row.value, views: num(row.total), votes: 0 });
+  }
+  for (const row of votes ?? []) {
+    const existing = byTeam.get(row.value) ?? { team: row.value, views: 0, votes: 0 };
+    existing.votes = num(row.total);
+    byTeam.set(row.value, existing);
+  }
+
+  return [...byTeam.values()]
+    .map((entry) => ({ ...entry, rate: entry.views > 0 ? entry.votes / entry.views : 0 }))
+    .sort((a, b) => b.votes - a.votes)
+    .slice(0, 12);
+}
+
 // ----------------------------------------------------------------------------
 // Use case
 // ----------------------------------------------------------------------------
@@ -166,6 +198,16 @@ async function fetchOverview(range: UmamiRange, endAt: number): Promise<UmamiOve
   const base = { startAt, endAt };
   const metric = (type: string) =>
     umamiGet<RawMetric[]>(`/websites/${websiteId}/metrics`, { ...base, type, limit: 8 });
+  const teamEventValues = (event: string) =>
+    safe(
+      () =>
+        umamiGet<RawEventValue[]>(`/websites/${websiteId}/event-data/values`, {
+          ...base,
+          event,
+          propertyName: "teamName",
+        }),
+      undefined,
+    );
 
   const reportRange = { startDate: isoFromMs(startAt), endDate: isoFromMs(endAt), timezone: env.UMAMI_TIMEZONE };
 
@@ -175,6 +217,9 @@ async function fetchOverview(range: UmamiRange, endAt: number): Promise<UmamiOve
     topPages,
     referrers,
     countries,
+    regions,
+    cities,
+    languages,
     browsers,
     os,
     devices,
@@ -182,6 +227,8 @@ async function fetchOverview(range: UmamiRange, endAt: number): Promise<UmamiOve
     performance,
     utm,
     funnel,
+    teamViews,
+    teamVotes,
   ] = await Promise.all([
     umamiGet<RawStats>(`/websites/${websiteId}/stats`, { ...base, compare: "prev" }),
     umamiGet<RawPageviews>(`/websites/${websiteId}/pageviews`, {
@@ -192,6 +239,9 @@ async function fetchOverview(range: UmamiRange, endAt: number): Promise<UmamiOve
     metric("path"),
     metric("referrer"),
     metric("country"),
+    metric("region"),
+    metric("city"),
+    metric("language"),
     metric("browser"),
     metric("os"),
     metric("device"),
@@ -234,6 +284,8 @@ async function fetchOverview(range: UmamiRange, endAt: number): Promise<UmamiOve
         }),
       undefined,
     ),
+    teamEventValues("solution-viewed"),
+    teamEventValues("vote-submitted"),
   ]);
 
   const sessionsByTime = new Map(pageviews.sessions.map((point) => [point.x, num(point.y)]));
@@ -254,6 +306,10 @@ async function fetchOverview(range: UmamiRange, endAt: number): Promise<UmamiOve
     os: toMetricRows(os),
     devices: toMetricRows(devices),
     events: toMetricRows(events),
+    regions: toMetricRows(regions),
+    cities: toMetricRows(cities),
+    languages: toMetricRows(languages),
+    conversionByTeam: toConversionByTeam(teamViews, teamVotes),
     webVitals: toWebVitals(performance),
     utm: {
       source: toUtmRows(utm?.utm_source),
