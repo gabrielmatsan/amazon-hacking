@@ -14,6 +14,9 @@ export type RawUtmRow = { utm: string; views: number };
 export type RawUtm = { utm_source?: RawUtmRow[]; utm_medium?: RawUtmRow[]; utm_campaign?: RawUtmRow[] };
 export type RawFunnelStep = { value: string; visitors: number; dropoff: number | null; remaining: number | null };
 export type RawEventValue = { value: string; total: number };
+export type RawGoal = { num?: number; total?: number };
+export type RawJourney = { items?: (string | null)[]; count?: number };
+export type RawRetentionRow = { day?: number; percentage?: number };
 
 // Umami is inconsistent: session detail returns counts as strings ("4") while the
 // list returns numbers (4). Coerce both; anything non-numeric falls back to 0.
@@ -81,4 +84,35 @@ export function toConversionByTeam(views: RawEventValue[] | undefined, votes: Ra
     .map((entry) => ({ ...entry, rate: entry.views > 0 ? entry.votes / entry.views : 0 }))
     .sort((a, b) => b.votes - a.votes)
     .slice(0, 12);
+}
+
+export function toGoal(raw: RawGoal | undefined, target: number) {
+  return { num: num(raw?.num), total: num(raw?.total), target };
+}
+
+export function toJourneys(raw: RawJourney[] | undefined) {
+  return (raw ?? [])
+    .map((journey) => ({
+      path: (journey.items ?? []).filter((step): step is string => Boolean(step)),
+      count: num(journey.count),
+    }))
+    .filter((journey) => journey.path.length > 0)
+    .slice(0, 8);
+}
+
+// Retention comes per-cohort-per-day; average the percentage across cohorts for
+// each day offset to get a single retention curve (day 0 = 100%).
+export function toRetention(raw: RawRetentionRow[] | undefined) {
+  const byDay = new Map<number, { sum: number; n: number }>();
+  for (const row of raw ?? []) {
+    const day = num(row.day);
+    const agg = byDay.get(day) ?? { sum: 0, n: 0 };
+    agg.sum += num(row.percentage);
+    agg.n += 1;
+    byDay.set(day, agg);
+  }
+  return [...byDay.entries()]
+    .map(([day, { sum, n }]) => ({ day, percentage: n > 0 ? sum / n : 0 }))
+    .sort((a, b) => a.day - b.day)
+    .slice(0, 8);
 }

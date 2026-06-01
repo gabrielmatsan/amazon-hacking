@@ -152,6 +152,14 @@ voting flow in `components/solutions/team-detail.tsx`:
 | `winner-video-play` | winner video opens | `{ winnerId, year }` |
 | `solutions-search` | gallery search (debounced) | `{ length, hasResults }` |
 | `cta-click` | key CTA clicked (declarative `data-umami-event`) | `{ target }` |
+| `solution-shared` | share button used on a solution | `{ teamId, method, utm_source, utm_campaign, withIdentity }` |
+| `vote-confirmed` | **server-side** — vote persisted in a backend tx | `{ teamId, channel, status }` |
+
+`solution-shared` is fired by the share button (`components/solutions/share-solution.tsx`),
+which builds a UTM-tagged link to the solution (generic default, customizable fields,
+optional `utm_content=email` opt-in). `vote-confirmed` is sent from the backend via
+`shared/infra/umami/umami-track.ts` (`POST /api/send`, fire-and-forget) — the source of
+truth incl. valid/flagged status, which the browser can't know.
 
 `section-viewed` is fired by `components/site/track-section.tsx` (IntersectionObserver,
 once). CTAs use Umami's declarative `data-umami-event` / `data-umami-event-*` attributes.
