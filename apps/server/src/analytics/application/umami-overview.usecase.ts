@@ -7,15 +7,21 @@ import {
   num,
   toConversionByTeam,
   toFunnel,
+  toGoal,
+  toJourneys,
   toMetricRows,
+  toRetention,
   toTotals,
   toUtmRows,
   toWebVitals,
   type RawEventValue,
   type RawFunnelStep,
+  type RawGoal,
+  type RawJourney,
   type RawMetric,
   type RawPageviews,
   type RawPerformance,
+  type RawRetentionRow,
   type RawStats,
   type RawUtm,
 } from "./umami-overview.mappers";
@@ -106,6 +112,9 @@ export const umamiOverviewOutput = t.Object({
       remaining: t.Number(),
     }),
   ),
+  goal: t.Object({ num: t.Number(), total: t.Number(), target: t.Number() }),
+  journeys: t.Array(t.Object({ path: t.Array(t.String()), count: t.Number() })),
+  retention: t.Array(t.Object({ day: t.Number(), percentage: t.Number() })),
 });
 
 export type UmamiOverviewOutput = Static<typeof umamiOverviewOutput>;
@@ -171,6 +180,9 @@ async function fetchOverview(range: UmamiRange, endAt: number): Promise<UmamiOve
     funnel,
     teamViews,
     teamVotes,
+    goal,
+    journeys,
+    retention,
   ] = await Promise.all([
     umamiGet<RawStats>(`/websites/${websiteId}/stats`, { ...base, compare: "prev" }),
     umamiGet<RawPageviews>(`/websites/${websiteId}/pageviews`, {
@@ -231,6 +243,39 @@ async function fetchOverview(range: UmamiRange, endAt: number): Promise<UmamiOve
     ),
     teamEventValues("solution-viewed"),
     teamEventValues("vote-submitted"),
+    safe(
+      "goal",
+      () =>
+        umamiPost<RawGoal>("/reports/goal", {
+          websiteId,
+          type: "goal",
+          filters: {},
+          parameters: { ...reportRange, type: "event", value: "vote-submitted" },
+        }),
+      undefined,
+    ),
+    safe(
+      "journey",
+      () =>
+        umamiPost<RawJourney[]>("/reports/journey", {
+          websiteId,
+          type: "journey",
+          filters: {},
+          parameters: { ...reportRange, steps: 4, startStep: "/" },
+        }),
+      undefined,
+    ),
+    safe(
+      "retention",
+      () =>
+        umamiPost<RawRetentionRow[]>("/reports/retention", {
+          websiteId,
+          type: "retention",
+          filters: {},
+          parameters: reportRange,
+        }),
+      undefined,
+    ),
   ]);
 
   const sessionsByTime = new Map(pageviews.sessions.map((point) => [point.x, num(point.y)]));
@@ -262,6 +307,9 @@ async function fetchOverview(range: UmamiRange, endAt: number): Promise<UmamiOve
       campaign: toUtmRows(utm?.utm_campaign),
     },
     funnel: toFunnel(funnel),
+    goal: toGoal(goal, env.UMAMI_VOTE_GOAL),
+    journeys: toJourneys(journeys),
+    retention: toRetention(retention),
   };
 }
 

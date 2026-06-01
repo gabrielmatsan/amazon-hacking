@@ -9,6 +9,8 @@ import {
   getVisitorsAnalytics,
   getUmamiOverview,
   getUmamiRealtime,
+  getUmamiSessions,
+  getUmamiSession,
   getFlaggedVotes,
   approveVote,
   invalidateVote,
@@ -85,6 +87,24 @@ export function useUmamiRealtime() {
     queryKey: ["admin", "analytics", "umami", "realtime"],
     queryFn: getUmamiRealtime,
     refetchInterval: 30 * 1000,
+    retry: false,
+  });
+}
+
+export function useUmamiSessions(range: UmamiRange, page: number, search: string) {
+  return useQuery({
+    queryKey: ["admin", "analytics", "umami", "sessions", range, page, search],
+    queryFn: () => getUmamiSessions(range, page, search || undefined),
+    staleTime: 60 * 1000,
+    retry: false,
+  });
+}
+
+export function useUmamiSession(sessionId: string | null, range: UmamiRange) {
+  return useQuery({
+    queryKey: ["admin", "analytics", "umami", "session", sessionId, range],
+    queryFn: () => getUmamiSession(sessionId as string, range),
+    enabled: !!sessionId,
     retry: false,
   });
 }

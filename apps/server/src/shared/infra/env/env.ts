@@ -93,6 +93,7 @@ const envSchema = z.object({
   UMAMI_TIMEZONE: z.string().default("America/Belem"),
   UMAMI_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(43200),
   UMAMI_OVERVIEW_CACHE_SECONDS: z.coerce.number().int().positive().default(300),
+  UMAMI_VOTE_GOAL: z.coerce.number().int().positive().default(500),
 });
 
 const parsedEnv = envSchema.parse(process.env);

@@ -11,6 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import { useUmamiOverview, useUmamiRealtime } from "@/hooks/use-admin-teams";
+import { UmamiSessions } from "./admin-umami-sessions";
 import type {
   UmamiMetricRow,
   UmamiOverview,
@@ -228,6 +229,80 @@ function WebVitals({ vitals }: { vitals: UmamiOverview["webVitals"] }) {
   );
 }
 
+function VoteGoal({ goal }: { goal: UmamiOverview["goal"] }) {
+  if (goal.target <= 0) return null;
+  const pct = Math.min(100, (goal.num / goal.target) * 100);
+  return (
+    <div className="mt-8">
+      <h2 className="text-sm font-semibold text-neutral-900">Meta de votos</h2>
+      <div className="mt-3 rounded-xl border border-neutral-200 bg-white p-4">
+        <div className="flex items-baseline justify-between">
+          <span className="text-2xl font-semibold tabular-nums text-neutral-900">
+            {formatNumber(goal.num)}{" "}
+            <span className="text-base font-normal text-neutral-400">/ {formatNumber(goal.target)}</span>
+          </span>
+          <span className="text-sm font-medium tabular-nums text-secondary-100">{pct.toFixed(0)}%</span>
+        </div>
+        <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-neutral-100">
+          <div className="h-full rounded-full bg-secondary-100" style={{ width: `${Math.max(1, pct)}%` }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Journeys({ journeys }: { journeys: UmamiOverview["journeys"] }) {
+  if (journeys.length === 0) return null;
+  return (
+    <div className="mt-8">
+      <h2 className="text-sm font-semibold text-neutral-900">Caminhos mais comuns</h2>
+      <div className="mt-3 overflow-hidden rounded-xl border border-neutral-200 bg-white">
+        <ul className="divide-y divide-neutral-100">
+          {journeys.map((journey, i) => (
+            <li key={i} className="flex items-center gap-3 px-4 py-2.5">
+              <span className="flex flex-1 flex-wrap items-center gap-1 text-xs text-neutral-700">
+                {journey.path.map((step, j) => (
+                  <span key={j} className="flex items-center gap-1">
+                    {j > 0 ? <span className="text-neutral-300">→</span> : null}
+                    <span className="rounded bg-neutral-100 px-1.5 py-0.5">{step}</span>
+                  </span>
+                ))}
+              </span>
+              <span className="shrink-0 text-sm font-medium tabular-nums text-neutral-900">
+                {formatNumber(journey.count)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function Retention({ rows }: { rows: UmamiOverview["retention"] }) {
+  if (rows.length <= 1) return null;
+  return (
+    <div className="mt-8">
+      <h2 className="text-sm font-semibold text-neutral-900">Retenção</h2>
+      <p className="mt-0.5 text-xs text-neutral-400">% de visitantes que retornam, por dia após a 1ª visita.</p>
+      <div className="mt-3 flex gap-2 overflow-x-auto rounded-xl border border-neutral-200 bg-white p-4">
+        {rows.map((row) => (
+          <div key={row.day} className="flex w-14 shrink-0 flex-col items-center gap-1">
+            <div className="flex h-24 w-full items-end overflow-hidden rounded bg-neutral-100">
+              <div
+                className="w-full rounded bg-primary-100/70"
+                style={{ height: `${Math.max(2, Math.min(100, row.percentage))}%` }}
+              />
+            </div>
+            <span className="text-[11px] tabular-nums text-neutral-500">{row.percentage.toFixed(0)}%</span>
+            <span className="text-[10px] text-neutral-400">d{row.day}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ConversionByTeam({ rows }: { rows: UmamiOverview["conversionByTeam"] }) {
   if (rows.length === 0) return null;
   const maxVotes = Math.max(1, ...rows.map((r) => r.votes));
@@ -430,6 +505,7 @@ export function AdminUmami() {
             </div>
           </div>
 
+          <VoteGoal goal={data.goal} />
           <VoteFunnel steps={data.funnel} />
 
           <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -454,6 +530,8 @@ export function AdminUmami() {
           </div>
 
           <ConversionByTeam rows={data.conversionByTeam} />
+          <Journeys journeys={data.journeys} />
+          <Retention rows={data.retention} />
 
           <WebVitals vitals={data.webVitals} />
           <Campaigns utm={data.utm} />
@@ -465,6 +543,8 @@ export function AdminUmami() {
               emptyLabel="Nenhum evento registrado no período."
             />
           </div>
+
+          <UmamiSessions range={range} />
         </>
       )}
     </div>
