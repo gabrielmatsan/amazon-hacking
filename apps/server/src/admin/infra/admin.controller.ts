@@ -17,6 +17,8 @@ import { flaggedVotesOutput, listFlaggedVotesUseCase } from "@/votes/application
 import { approveVoteUseCase, invalidateVoteUseCase } from "@/votes/application/moderate-vote.usecase";
 import { votesDashboardOutput, votesDashboardUseCase } from "@/votes/application/votes-dashboard.usecase";
 import { visitorsAnalyticsOutput, visitorsAnalyticsUseCase } from "@/analytics/application/visitors-analytics.usecase";
+import { umamiOverviewOutput, umamiOverviewUseCase, umamiRange } from "@/analytics/application/umami-overview.usecase";
+import { umamiRealtimeOutput, umamiRealtimeUseCase } from "@/analytics/application/umami-realtime.usecase";
 import { createAdminTeamUseCase } from "../../teams/applications/create-admin-team.usecase";
 import { updateTeamUseCase } from "../../teams/applications/update-team.usecase";
 import { createAdminTeamBody, teamAuditLogType, teamType, updateTeamBody } from "../../teams/domain/teams.type";
@@ -152,6 +154,31 @@ export const adminController = createController({ prefix: "/admin", normalize: f
       403: errorResponse,
     },
     detail: { tags: ["Admin", "Analytics"], summary: "Cloudflare unique visitors (admin only)" },
+  })
+  .get("/analytics/umami/overview", async ({ query }) => {
+    const overview = await umamiOverviewUseCase(query.range ?? "7d");
+    return { data: overview };
+  }, {
+    query: t.Object({ range: t.Optional(umamiRange) }),
+    response: {
+      200: t.Object({ data: umamiOverviewOutput }),
+      400: errorResponse,
+      401: errorResponse,
+      403: errorResponse,
+    },
+    detail: { tags: ["Admin", "Analytics"], summary: "Umami overview (admin only)" },
+  })
+  .get("/analytics/umami/realtime", async () => {
+    const realtime = await umamiRealtimeUseCase();
+    return { data: realtime };
+  }, {
+    response: {
+      200: t.Object({ data: umamiRealtimeOutput }),
+      400: errorResponse,
+      401: errorResponse,
+      403: errorResponse,
+    },
+    detail: { tags: ["Admin", "Analytics"], summary: "Umami realtime active visitors (admin only)" },
   })
   .get("/votes/flagged", async ({ query }) => {
     const data = await listFlaggedVotesUseCase(

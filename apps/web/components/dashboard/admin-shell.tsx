@@ -99,13 +99,24 @@ export function AdminShell({
           <a
             href={`/${base}admin/analytics`}
             className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
-              pathname.includes("/admin/analytics")
+              pathname.endsWith("/admin/analytics") || pathname.endsWith("/admin/analytics/")
                 ? "bg-neutral-100 text-neutral-900"
                 : "text-neutral-600 hover:bg-neutral-100"
             }`}
           >
             <UsersIcon className="size-4 shrink-0 stroke-neutral-500" />
             Visitantes
+          </a>
+          <a
+            href={`/${base}admin/analytics/umami`}
+            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
+              pathname.includes("/admin/analytics/umami")
+                ? "bg-neutral-100 text-neutral-900"
+                : "text-neutral-600 hover:bg-neutral-100"
+            }`}
+          >
+            <BarChart3Icon className="size-4 shrink-0 stroke-neutral-500" />
+            Análise Umami
           </a>
           <a
             href={`/${base}admin/flagged`}

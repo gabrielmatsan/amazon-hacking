@@ -74,6 +74,48 @@ export async function getVisitorsAnalytics() {
   return data.data;
 }
 
+export type UmamiRange = "24h" | "7d" | "30d" | "90d";
+
+export type UmamiMetricRow = { name: string; value: number };
+
+export type UmamiTotals = {
+  pageviews: number;
+  visitors: number;
+  visits: number;
+  bounces: number;
+  totaltime: number;
+};
+
+export type UmamiOverview = {
+  range: { key: UmamiRange; startAt: number; endAt: number };
+  stats: UmamiTotals & { comparison?: UmamiTotals };
+  series: Array<{ t: string; pageviews: number; sessions: number }>;
+  topPages: UmamiMetricRow[];
+  referrers: UmamiMetricRow[];
+  countries: UmamiMetricRow[];
+  browsers: UmamiMetricRow[];
+  os: UmamiMetricRow[];
+  devices: UmamiMetricRow[];
+  events: UmamiMetricRow[];
+};
+
+export async function getUmamiOverview(range: UmamiRange) {
+  const { data } = await api.get<{ data: UmamiOverview }>(
+    "/admin/analytics/umami/overview",
+    { params: { range } },
+  );
+  return data.data;
+}
+
+export type UmamiRealtime = { online: number };
+
+export async function getUmamiRealtime() {
+  const { data } = await api.get<{ data: UmamiRealtime }>(
+    "/admin/analytics/umami/realtime",
+  );
+  return data.data;
+}
+
 export type FlaggedVote = {
   id: string;
   status: string;
