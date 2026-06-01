@@ -15,6 +15,7 @@ import { useTeamBySlug } from "@/hooks/use-teams";
 import { useMyVote, useRequestVoteToken, useVoteForTeam } from "@/hooks/use-votes";
 import { useFingerprint } from "@/hooks/use-fingerprint";
 import { trackEvent, identifyVisitor } from "@/lib/analytics/umami";
+import { ShareSolution } from "./share-solution";
 import { getGoogleLoginUrl } from "@/lib/api/auth";
 import type { SolutionPillar, VoteChannel } from "@/lib/api/types";
 import { AxiosError } from "axios";
@@ -142,6 +143,14 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
         </div>
       </div>
 
+      <ShareSolution
+        slug={slug}
+        teamId={team.id}
+        teamName={team.name}
+        voterEmail={user?.email}
+        locale={locale}
+      />
+
       <VideoSection
         videoUrl={team.videoUrl}
         secondaryVideoUrl={team.secondaryVideoUrl}
@@ -212,7 +221,13 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
             </div>
           )
         ) : isLoggedIn ? (
-          <VoteFlow teamId={team.id} teamName={team.name} locale={locale} />
+          <VoteFlow
+            teamId={team.id}
+            teamName={team.name}
+            voterEmail={user?.email}
+            voterName={user?.name}
+            locale={locale}
+          />
         ) : (
           <>
             <p className="mt-3 text-sm text-neutrals-500">
@@ -237,7 +252,19 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
   );
 }
 
-function VoteFlow({ teamId, teamName, locale }: { teamId: string; teamName: string; locale: Locale }) {
+function VoteFlow({
+  teamId,
+  teamName,
+  voterEmail,
+  voterName,
+  locale,
+}: {
+  teamId: string;
+  teamName: string;
+  voterEmail?: string;
+  voterName?: string;
+  locale: Locale;
+}) {
   const [step, setStep] = useState<"phone" | "code">("phone");
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
@@ -283,7 +310,14 @@ function VoteFlow({ teamId, teamName, locale }: { teamId: string; teamName: stri
       {
         onSuccess: () => {
           const fingerprint = getFingerprint();
-          if (fingerprint) identifyVisitor(fingerprint);
+          // Prefer the authenticated voter's email as the Distinct ID (stable across
+          // devices); fall back to the fingerprint. Email/name are the voter's own
+          // PII, attached so admins can trace a vote to a real identity for fraud review.
+          if (voterEmail) {
+            identifyVisitor(voterEmail, { name: voterName, fingerprint: fingerprint ?? undefined });
+          } else if (fingerprint) {
+            identifyVisitor(fingerprint);
+          }
           trackEvent("vote-submitted", { teamId, teamName, channel: channel ?? "unknown" });
         },
         onError: (err) => {

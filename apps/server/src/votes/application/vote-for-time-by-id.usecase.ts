@@ -15,6 +15,7 @@ import { t, type Static } from "elysia";
 import { ConfigRepository } from "@/config/infra/config.repository";
 import { logger } from "@/shared/infra/observability";
 import { proxyApiClient, type ProxyCheckIpResult } from "@/shared/infra/proxy-api/proxy-api-client";
+import { trackServerEvent } from "@/shared/infra/umami/umami-track";
 import { VotesRepository } from "../infra/votes.repository";
 
 export const voteForTimeByIdInput = t.Object({
@@ -107,7 +108,7 @@ export const voteForTimeByIdUseCase = async (input: VoteForTimeByIdInput) => {
     proxyCheck: proxyCheckResult,
   };
 
-  return db.transaction(async (tx) => {
+  const result = await db.transaction(async (tx) => {
     await VoteTokensRepository.markAsUsed(validToken.id, tx);
 
     const vote = await VotesRepository.create(
@@ -130,4 +131,14 @@ export const voteForTimeByIdUseCase = async (input: VoteForTimeByIdInput) => {
 
     return { message: "Vote created successfully" };
   });
+
+  // Server-side confirmation event — the browser fires `vote-submitted`, this is the
+  // backend's source of truth (incl. the valid/flagged status). Fire-and-forget.
+  void trackServerEvent("vote-confirmed", {
+    teamId: input.teamId,
+    channel: validToken.channel ?? "whatsapp",
+    status: voteStatus,
+  });
+
+  return result;
 };

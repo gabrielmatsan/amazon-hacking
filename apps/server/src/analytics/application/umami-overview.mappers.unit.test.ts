@@ -1,13 +1,30 @@
 import { describe, expect, it } from "bun:test";
 
 import {
+  num,
   toConversionByTeam,
   toFunnel,
+  toGoal,
+  toJourneys,
   toMetricRows,
+  toRetention,
   toTotals,
   toUtmRows,
   toWebVitals,
 } from "./umami-overview.mappers";
+
+describe("num", () => {
+  it("coerces the numeric strings Umami returns in session detail", () => {
+    expect(num("4")).toBe(4);
+    expect(num("380")).toBe(380);
+  });
+
+  it("falls back to zero for null, undefined and non-numeric values", () => {
+    expect(num(null)).toBe(0);
+    expect(num(undefined)).toBe(0);
+    expect(num("abc")).toBe(0);
+  });
+});
 
 describe("toTotals", () => {
   it("reads the five totals from a stats payload", () => {
@@ -104,5 +121,39 @@ describe("toConversionByTeam", () => {
 
   it("handles both inputs being undefined", () => {
     expect(toConversionByTeam(undefined, undefined)).toEqual([]);
+  });
+});
+
+describe("toGoal", () => {
+  it("carries num/total and attaches the configured target", () => {
+    expect(toGoal({ num: 320, total: 500 }, 500)).toEqual({ num: 320, total: 500, target: 500 });
+  });
+
+  it("defaults missing counts to zero", () => {
+    expect(toGoal(undefined, 500)).toEqual({ num: 0, total: 0, target: 500 });
+  });
+});
+
+describe("toJourneys", () => {
+  it("strips trailing nulls from each path and drops empty paths", () => {
+    const raw = [
+      { items: ["/", "/solucoes", "vote-submitted", null], count: 918 },
+      { items: [null, null], count: 4 },
+    ];
+    expect(toJourneys(raw)).toEqual([{ path: ["/", "/solucoes", "vote-submitted"], count: 918 }]);
+  });
+});
+
+describe("toRetention", () => {
+  it("averages percentage across cohorts per day offset and sorts by day", () => {
+    const raw = [
+      { day: 0, percentage: 100 },
+      { day: 1, percentage: 10 },
+      { day: 1, percentage: 20 },
+    ];
+    expect(toRetention(raw)).toEqual([
+      { day: 0, percentage: 100 },
+      { day: 1, percentage: 15 },
+    ]);
   });
 });

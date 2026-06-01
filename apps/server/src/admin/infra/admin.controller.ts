@@ -19,6 +19,13 @@ import { votesDashboardOutput, votesDashboardUseCase } from "@/votes/application
 import { visitorsAnalyticsOutput, visitorsAnalyticsUseCase } from "@/analytics/application/visitors-analytics.usecase";
 import { umamiOverviewOutput, umamiOverviewUseCase, umamiRange } from "@/analytics/application/umami-overview.usecase";
 import { umamiRealtimeOutput, umamiRealtimeUseCase } from "@/analytics/application/umami-realtime.usecase";
+import {
+  sessionDetailOutput,
+  sessionsListOutput,
+  sessionsListQuery,
+  umamiSessionDetailUseCase,
+  umamiSessionsListUseCase,
+} from "@/analytics/application/umami-sessions.usecase";
 import { createAdminTeamUseCase } from "../../teams/applications/create-admin-team.usecase";
 import { updateTeamUseCase } from "../../teams/applications/update-team.usecase";
 import { createAdminTeamBody, teamAuditLogType, teamType, updateTeamBody } from "../../teams/domain/teams.type";
@@ -179,6 +186,37 @@ export const adminController = createController({ prefix: "/admin", normalize: f
       403: errorResponse,
     },
     detail: { tags: ["Admin", "Analytics"], summary: "Umami realtime active visitors (admin only)" },
+  })
+  .get("/analytics/umami/sessions", async ({ query }) => {
+    const sessions = await umamiSessionsListUseCase(
+      query.range ?? "7d",
+      query.page ?? 1,
+      query.search,
+    );
+    return { data: sessions };
+  }, {
+    query: sessionsListQuery,
+    response: {
+      200: t.Object({ data: sessionsListOutput }),
+      400: errorResponse,
+      401: errorResponse,
+      403: errorResponse,
+    },
+    detail: { tags: ["Admin", "Analytics"], summary: "Umami sessions list (admin only)" },
+  })
+  .get("/analytics/umami/sessions/:sessionId", async ({ params, query }) => {
+    const detail = await umamiSessionDetailUseCase(params.sessionId, query.range ?? "7d");
+    return { data: detail };
+  }, {
+    params: t.Object({ sessionId: t.String() }),
+    query: t.Object({ range: t.Optional(umamiRange) }),
+    response: {
+      200: t.Object({ data: sessionDetailOutput }),
+      400: errorResponse,
+      401: errorResponse,
+      403: errorResponse,
+    },
+    detail: { tags: ["Admin", "Analytics"], summary: "Umami session detail (admin only)" },
   })
   .get("/votes/flagged", async ({ query }) => {
     const data = await listFlaggedVotesUseCase(
