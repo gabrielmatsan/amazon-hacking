@@ -23,9 +23,11 @@ const anchors = [
 export function Header({
   locale,
   variant = "home",
+  theme = "dark",
 }: {
   locale: Locale;
   variant?: "home" | "inner";
+  theme?: "dark" | "blue";
 }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -63,16 +65,21 @@ export function Header({
   };
   const solutionsLabel = m.nav_solutions({}, { locale });
   const backHomeLabel = m.nav_back_home({}, { locale });
-  const solid = isInner || scrolled;
+  const isBlue = theme === "blue";
+  // The blue theme always renders solid so the brand-blue bar stays visible over
+  // light-background pages (e.g. the solution detail page) instead of going transparent.
+  const solid = isInner || scrolled || isBlue;
+  const openBg = isBlue ? "bg-primary-100" : "bg-neutrals-700";
+  const solidBg = isBlue ? "bg-primary-100/95" : "bg-neutrals-700/95";
 
   return (
     <header
       className={cn(
         "fixed inset-x-0 top-0 z-50 rounded-b-[30px] transition-colors duration-500",
         open
-          ? "bg-neutrals-700 shadow-lg"
+          ? cn(openBg, "shadow-lg")
           : solid
-            ? "bg-neutrals-700/95 backdrop-blur-sm shadow-lg"
+            ? cn(solidBg, "backdrop-blur-sm shadow-lg")
             : "bg-transparent",
       )}
     >
