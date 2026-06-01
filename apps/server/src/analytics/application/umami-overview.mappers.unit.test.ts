@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 
 import {
+  num,
   toConversionByTeam,
   toFunnel,
   toMetricRows,
@@ -8,6 +9,19 @@ import {
   toUtmRows,
   toWebVitals,
 } from "./umami-overview.mappers";
+
+describe("num", () => {
+  it("coerces the numeric strings Umami returns in session detail", () => {
+    expect(num("4")).toBe(4);
+    expect(num("380")).toBe(380);
+  });
+
+  it("falls back to zero for null, undefined and non-numeric values", () => {
+    expect(num(null)).toBe(0);
+    expect(num(undefined)).toBe(0);
+    expect(num("abc")).toBe(0);
+  });
+});
 
 describe("toTotals", () => {
   it("reads the five totals from a stats payload", () => {

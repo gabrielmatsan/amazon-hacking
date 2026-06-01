@@ -123,6 +123,57 @@ export async function getUmamiRealtime() {
   return data.data;
 }
 
+export type UmamiSessionRow = {
+  id: string;
+  browser: string;
+  os: string;
+  device: string;
+  country: string;
+  city: string;
+  firstAt: string;
+  lastAt: string;
+  visits: number;
+  views: number;
+};
+
+export type UmamiSessionsList = { count: number; page: number; items: UmamiSessionRow[] };
+
+export async function getUmamiSessions(range: UmamiRange, page: number, search?: string) {
+  const { data } = await api.get<{ data: UmamiSessionsList }>(
+    "/admin/analytics/umami/sessions",
+    { params: { range, page, ...(search ? { search } : {}) } },
+  );
+  return data.data;
+}
+
+export type UmamiSessionDetail = {
+  session: {
+    id: string;
+    distinctId: string;
+    browser: string;
+    os: string;
+    device: string;
+    country: string;
+    city: string;
+    firstAt: string;
+    lastAt: string;
+    visits: number;
+    views: number;
+    events: number;
+    totaltime: number;
+  };
+  activity: Array<{ createdAt: string; urlPath: string; eventType: number; eventName: string }>;
+  properties: Array<{ key: string; value: string }>;
+};
+
+export async function getUmamiSession(sessionId: string, range: UmamiRange) {
+  const { data } = await api.get<{ data: UmamiSessionDetail }>(
+    `/admin/analytics/umami/sessions/${sessionId}`,
+    { params: { range } },
+  );
+  return data.data;
+}
+
 export type FlaggedVote = {
   id: string;
   status: string;

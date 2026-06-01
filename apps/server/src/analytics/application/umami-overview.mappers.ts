@@ -15,7 +15,12 @@ export type RawUtm = { utm_source?: RawUtmRow[]; utm_medium?: RawUtmRow[]; utm_c
 export type RawFunnelStep = { value: string; visitors: number; dropoff: number | null; remaining: number | null };
 export type RawEventValue = { value: string; total: number };
 
-export const num = (value: unknown): number => (typeof value === "number" ? value : 0);
+// Umami is inconsistent: session detail returns counts as strings ("4") while the
+// list returns numbers (4). Coerce both; anything non-numeric falls back to 0.
+export const num = (value: unknown): number => {
+  const n = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(n) ? n : 0;
+};
 
 export function toTotals(raw: Record<string, number> | undefined) {
   return {
