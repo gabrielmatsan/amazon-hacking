@@ -77,6 +77,11 @@ const envSchema = z.object({
 
   // Cloudflare Turnstile
   TURNSTILE_SECRET_KEY: z.string().min(1),
+
+  // Cloudflare Analytics (GraphQL Analytics API — zone unique visitors)
+  CLOUDFLARE_API_TOKEN: z.string().optional(),
+  CLOUDFLARE_ZONE_ID: z.string().optional(),
+  CLOUDFLARE_ANALYTICS_DAYS: z.coerce.number().int().positive().max(366).default(7),
 });
 
 const parsedEnv = envSchema.parse(process.env);

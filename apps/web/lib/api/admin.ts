@@ -60,6 +60,20 @@ export async function getVotesDashboard() {
   return data.data;
 }
 
+export type VisitorsAnalytics = {
+  range: { since: string; until: string; days: number };
+  uniqueVisitors: number;
+  totalRequests: number;
+  series: Array<{ date: string; uniques: number; requests: number }>;
+};
+
+export async function getVisitorsAnalytics() {
+  const { data } = await api.get<{ data: VisitorsAnalytics }>(
+    "/admin/analytics/visitors",
+  );
+  return data.data;
+}
+
 export type FlaggedVote = {
   id: string;
   status: string;

@@ -6,6 +6,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { YouTubeEmbed } from "@next/third-parties/google";
 import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import { m } from "@/lib/paraglide/messages";
 import type { Locale } from "@/lib/paraglide/runtime";
 import { useAuth } from "@/hooks/use-auth";
@@ -282,17 +284,17 @@ function VoteFlow({ teamId, locale }: { teamId: string; locale: Locale }) {
           {m.vote_phone_label({}, { locale })}
         </label>
         <div className="mt-2 flex gap-2">
-          <input
-            type="tel"
+          <PhoneInput
+            international
+            defaultCountry="BR"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(value) => setPhone(value ?? "")}
             placeholder={m.vote_phone_placeholder({}, { locale })}
-            required
-            className="w-full max-w-xs rounded-xl border border-neutrals-200 px-4 py-2.5 text-sm text-black outline-none focus:border-primary-100 focus:ring-1 focus:ring-primary-100"
+            className="w-full max-w-xs rounded-xl border border-neutrals-200 px-4 py-2.5 text-sm text-black focus-within:border-primary-100 focus-within:ring-1 focus-within:ring-primary-100 [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:text-black [&_.PhoneInputInput]:outline-none"
           />
           <button
             type="submit"
-            disabled={requestToken.isPending || phone.length < 6 || !turnstileToken}
+            disabled={requestToken.isPending || !phone || !isValidPhoneNumber(phone) || !turnstileToken}
             className="shrink-0 rounded-xl bg-primary-100 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-200 disabled:opacity-50"
           >
             {requestToken.isPending

@@ -16,6 +16,7 @@ import { checkVotesOutput, checkVotesUseCase } from "@/votes/application/check-v
 import { flaggedVotesOutput, listFlaggedVotesUseCase } from "@/votes/application/list-flagged-votes.usecase";
 import { approveVoteUseCase, invalidateVoteUseCase } from "@/votes/application/moderate-vote.usecase";
 import { votesDashboardOutput, votesDashboardUseCase } from "@/votes/application/votes-dashboard.usecase";
+import { visitorsAnalyticsOutput, visitorsAnalyticsUseCase } from "@/analytics/application/visitors-analytics.usecase";
 import { createAdminTeamUseCase } from "../../teams/applications/create-admin-team.usecase";
 import { updateTeamUseCase } from "../../teams/applications/update-team.usecase";
 import { createAdminTeamBody, teamAuditLogType, teamType, updateTeamBody } from "../../teams/domain/teams.type";
@@ -139,6 +140,18 @@ export const adminController = createController({ prefix: "/admin", normalize: f
       403: errorResponse,
     },
     detail: { tags: ["Admin", "Votes"], summary: "Votes dashboard (admin only)" },
+  })
+  .get("/analytics/visitors", async () => {
+    const analytics = await visitorsAnalyticsUseCase();
+    return { data: analytics };
+  }, {
+    response: {
+      200: t.Object({ data: visitorsAnalyticsOutput }),
+      400: errorResponse,
+      401: errorResponse,
+      403: errorResponse,
+    },
+    detail: { tags: ["Admin", "Analytics"], summary: "Cloudflare unique visitors (admin only)" },
   })
   .get("/votes/flagged", async ({ query }) => {
     const data = await listFlaggedVotesUseCase(
