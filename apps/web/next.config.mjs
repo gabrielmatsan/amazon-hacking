@@ -30,6 +30,7 @@ const nextConfig = {
       { source: "/admin", destination: "/pt-br/admin" },
       { source: "/admin/votes", destination: "/pt-br/admin/votes" },
       { source: "/admin/analytics", destination: "/pt-br/admin/analytics" },
+      { source: "/admin/analytics/umami", destination: "/pt-br/admin/analytics/umami" },
       { source: "/admin/flagged", destination: "/pt-br/admin/flagged" },
       { source: "/admin/config", destination: "/pt-br/admin/config" },
       { source: "/admin/create-team", destination: "/pt-br/admin/create-team" },
