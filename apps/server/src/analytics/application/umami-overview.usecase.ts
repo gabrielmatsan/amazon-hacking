@@ -2,6 +2,23 @@ import { t, type Static } from "elysia";
 import { env } from "@/shared/infra/env/env";
 import { cacheFirst } from "@/shared/infra/databases/redis";
 import { umamiGet, umamiPost, umamiWebsiteId } from "@/shared/infra/umami/umami-client";
+import { loggers } from "@/shared/infra/observability/logger";
+import {
+  num,
+  toConversionByTeam,
+  toFunnel,
+  toMetricRows,
+  toTotals,
+  toUtmRows,
+  toWebVitals,
+  type RawEventValue,
+  type RawFunnelStep,
+  type RawMetric,
+  type RawPageviews,
+  type RawPerformance,
+  type RawStats,
+  type RawUtm,
+} from "./umami-overview.mappers";
 
 const FUNNEL_WINDOW_DAYS = 30;
 
@@ -93,97 +110,21 @@ export const umamiOverviewOutput = t.Object({
 
 export type UmamiOverviewOutput = Static<typeof umamiOverviewOutput>;
 
-// ----------------------------------------------------------------------------
-// Umami response shapes (only the fields we read)
-// ----------------------------------------------------------------------------
-
-type RawStats = Record<string, number> & { comparison?: Record<string, number> };
-type RawSeriesPoint = { x: string; y: number };
-type RawPageviews = { pageviews: RawSeriesPoint[]; sessions: RawSeriesPoint[] };
-type RawMetric = { x: string | null; y: number };
-
-type RawPercentile = { p75?: number };
-type RawPerformance = {
-  summary?: { lcp?: RawPercentile; inp?: RawPercentile; cls?: RawPercentile; fcp?: RawPercentile; ttfb?: RawPercentile; count?: number };
-};
-type RawUtmRow = { utm: string; views: number };
-type RawUtm = { utm_source?: RawUtmRow[]; utm_medium?: RawUtmRow[]; utm_campaign?: RawUtmRow[] };
-type RawFunnelStep = { value: string; visitors: number; dropoff: number | null; remaining: number };
-type RawEventValue = { value: string; total: number };
-
-const num = (value: unknown): number => (typeof value === "number" ? value : 0);
-
 const isoFromMs = (ms: number): string => new Date(ms).toISOString();
 
 // Reports may not exist yet (no Web Vitals collected, no UTM traffic, events not
-// fired). A failed optional report must not sink the whole overview.
-async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+// fired). A failed optional report must not sink the whole overview — but it is
+// logged so a genuine outage is visible instead of silently empty.
+async function safe<T>(label: string, fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
     return await fn();
-  } catch {
+  } catch (error) {
+    loggers.api.warn(
+      { report: label, error: error instanceof Error ? error.message : String(error) },
+      "Umami report failed; using empty fallback",
+    );
     return fallback;
   }
-}
-
-function toTotals(raw: Record<string, number> | undefined) {
-  return {
-    pageviews: num(raw?.pageviews),
-    visitors: num(raw?.visitors),
-    visits: num(raw?.visits),
-    bounces: num(raw?.bounces),
-    totaltime: num(raw?.totaltime),
-  };
-}
-
-function toMetricRows(raw: RawMetric[]): Array<{ name: string; value: number }> {
-  return raw
-    .filter((row) => row.x !== null && row.x !== "")
-    .map((row) => ({ name: row.x as string, value: num(row.y) }));
-}
-
-function toWebVitals(raw: RawPerformance | undefined) {
-  const s = raw?.summary;
-  return {
-    lcp: num(s?.lcp?.p75),
-    inp: num(s?.inp?.p75),
-    cls: num(s?.cls?.p75),
-    fcp: num(s?.fcp?.p75),
-    ttfb: num(s?.ttfb?.p75),
-    count: num(s?.count),
-  };
-}
-
-function toUtmRows(raw: RawUtmRow[] | undefined): Array<{ name: string; value: number }> {
-  return (raw ?? []).map((row) => ({ name: row.utm, value: num(row.views) }));
-}
-
-function toFunnel(raw: RawFunnelStep[] | undefined) {
-  return (raw ?? []).map((step) => ({
-    value: step.value,
-    visitors: num(step.visitors),
-    dropoff: typeof step.dropoff === "number" ? step.dropoff : 0,
-    remaining: num(step.remaining),
-  }));
-}
-
-// Joins per-team views (solution-viewed) and votes (vote-submitted), both keyed by
-// the teamName carried in the event data, into a conversion table.
-function toConversionByTeam(views: RawEventValue[] | undefined, votes: RawEventValue[] | undefined) {
-  const byTeam = new Map<string, { team: string; views: number; votes: number }>();
-
-  for (const row of views ?? []) {
-    byTeam.set(row.value, { team: row.value, views: num(row.total), votes: 0 });
-  }
-  for (const row of votes ?? []) {
-    const existing = byTeam.get(row.value) ?? { team: row.value, views: 0, votes: 0 };
-    existing.votes = num(row.total);
-    byTeam.set(row.value, existing);
-  }
-
-  return [...byTeam.values()]
-    .map((entry) => ({ ...entry, rate: entry.views > 0 ? entry.votes / entry.views : 0 }))
-    .sort((a, b) => b.votes - a.votes)
-    .slice(0, 12);
 }
 
 // ----------------------------------------------------------------------------
@@ -200,6 +141,7 @@ async function fetchOverview(range: UmamiRange, endAt: number): Promise<UmamiOve
     umamiGet<RawMetric[]>(`/websites/${websiteId}/metrics`, { ...base, type, limit: 8 });
   const teamEventValues = (event: string) =>
     safe(
+      `event-values:${event}`,
       () =>
         umamiGet<RawEventValue[]>(`/websites/${websiteId}/event-data/values`, {
           ...base,
@@ -247,6 +189,7 @@ async function fetchOverview(range: UmamiRange, endAt: number): Promise<UmamiOve
     metric("device"),
     metric("event"),
     safe(
+      "performance",
       () =>
         umamiPost<RawPerformance>("/reports/performance", {
           websiteId,
@@ -257,6 +200,7 @@ async function fetchOverview(range: UmamiRange, endAt: number): Promise<UmamiOve
       undefined,
     ),
     safe(
+      "utm",
       () =>
         umamiPost<RawUtm>("/reports/utm", {
           websiteId,
@@ -267,6 +211,7 @@ async function fetchOverview(range: UmamiRange, endAt: number): Promise<UmamiOve
       undefined,
     ),
     safe(
+      "funnel",
       () =>
         umamiPost<RawFunnelStep[]>("/reports/funnel", {
           websiteId,
