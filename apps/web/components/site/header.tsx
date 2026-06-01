@@ -23,11 +23,9 @@ const anchors = [
 export function Header({
   locale,
   variant = "home",
-  theme = "dark",
 }: {
   locale: Locale;
   variant?: "home" | "inner";
-  theme?: "dark" | "blue";
 }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -65,50 +63,45 @@ export function Header({
   };
   const solutionsLabel = m.nav_solutions({}, { locale });
   const backHomeLabel = m.nav_back_home({}, { locale });
-  const isBlue = theme === "blue";
-  // The blue theme always renders solid so the brand-blue bar stays visible over
-  // light-background pages (e.g. the solution detail page) instead of going transparent.
-  const solid = isInner || scrolled || isBlue;
-  const openBg = isBlue ? "bg-primary-100" : "bg-neutrals-700";
-  const solidBg = isBlue ? "bg-primary-100/95" : "bg-neutrals-700/95";
+  const solid = isInner || scrolled;
 
   return (
     <header
       className={cn(
         "fixed inset-x-0 top-0 z-50 rounded-b-[30px] transition-colors duration-500",
         open
-          ? cn(openBg, "shadow-lg")
+          ? "bg-neutrals-700 shadow-lg"
           : solid
-            ? cn(solidBg, "backdrop-blur-sm shadow-lg")
+            ? "bg-neutrals-700/95 backdrop-blur-sm shadow-lg"
             : "bg-transparent",
       )}
     >
       <div className="mx-auto flex h-20 max-w-screen-2xl items-center justify-between px-6 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:px-12">
-        <Link
-          href={localizeHref("/")}
-          aria-label="Amazon Hacking"
-          className="justify-self-start"
-        >
-          <Image
-            src="/illustrations/logo-amazon-hacking-white.svg"
-            alt="Amazon Hacking"
-            width={150}
-            height={56}
-            priority
-            className="h-10 w-auto md:h-12"
-          />
-        </Link>
+        <div className="flex items-center gap-3 justify-self-start md:gap-4">
+          <Link href={localizeHref("/")} aria-label="Amazon Hacking">
+            <Image
+              src="/illustrations/logo-amazon-hacking-white.svg"
+              alt="Amazon Hacking"
+              width={150}
+              height={56}
+              priority
+              className="h-10 w-auto md:h-12"
+            />
+          </Link>
 
-        <nav aria-label="Principal" className="hidden justify-self-center lg:block">
-          {isInner ? (
+          {isInner && (
             <Link
               href={localizeHref("/")}
-              className="inline-flex items-center gap-2 text-sm font-bold tracking-wide text-white uppercase opacity-90 transition hover:opacity-100"
+              className="hidden items-center gap-2 border-l border-white/20 pl-3 text-sm font-bold tracking-wide text-white uppercase opacity-90 transition hover:opacity-100 md:pl-4 lg:inline-flex"
             >
               <BackArrow />
               {backHomeLabel}
             </Link>
-          ) : (
+          )}
+        </div>
+
+        <nav aria-label="Principal" className="hidden justify-self-center lg:block">
+          {!isInner && (
             <ul className="flex items-center gap-8 text-sm font-bold tracking-wide text-white uppercase">
               {anchors.map((item) => (
                 <li key={item.href}>
