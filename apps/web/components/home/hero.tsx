@@ -78,6 +78,8 @@ export function Hero({ locale }: { locale: Locale }) {
           >
             <Link
               href="#moju"
+              data-umami-event="cta-click"
+              data-umami-event-target="hero-primary"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-bold text-primary-100 transition hover:bg-white/90"
             >
               {m.hero_cta_primary({}, { locale })}
@@ -85,6 +87,8 @@ export function Hero({ locale }: { locale: Locale }) {
             </Link>
             <Link
               href="#vencedores"
+              data-umami-event="cta-click"
+              data-umami-event-target="hero-winners"
               className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-white/40 px-7 py-3.5 text-sm font-bold text-white transition hover:border-white"
             >
               {m.hero_cta_secondary({}, { locale })}
