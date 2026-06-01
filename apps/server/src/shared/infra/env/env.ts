@@ -82,6 +82,17 @@ const envSchema = z.object({
   CLOUDFLARE_API_TOKEN: z.string().optional(),
   CLOUDFLARE_ZONE_ID: z.string().optional(),
   CLOUDFLARE_ANALYTICS_DAYS: z.coerce.number().int().positive().max(366).default(7),
+
+  // Umami Analytics (self-hosted) — admin dashboard data source.
+  // All optional: when unset, the Umami endpoints return a "not configured" error
+  // and the dashboard renders an empty state (same pattern as Cloudflare above).
+  UMAMI_API_URL: z.string().url().optional(),
+  UMAMI_USERNAME: z.string().optional(),
+  UMAMI_PASSWORD: z.string().optional(),
+  UMAMI_WEBSITE_ID: z.string().optional(),
+  UMAMI_TIMEZONE: z.string().default("America/Belem"),
+  UMAMI_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(43200),
+  UMAMI_OVERVIEW_CACHE_SECONDS: z.coerce.number().int().positive().default(300),
 });
 
 const parsedEnv = envSchema.parse(process.env);
