@@ -1,7 +1,26 @@
 import { t, type Static } from "elysia";
 import { env } from "@/shared/infra/env/env";
 import { cacheFirst } from "@/shared/infra/databases/redis";
-import { umamiGet, umamiWebsiteId } from "@/shared/infra/umami/umami-client";
+import { umamiGet, umamiPost, umamiWebsiteId } from "@/shared/infra/umami/umami-client";
+import { loggers } from "@/shared/infra/observability/logger";
+import {
+  num,
+  toConversionByTeam,
+  toFunnel,
+  toMetricRows,
+  toTotals,
+  toUtmRows,
+  toWebVitals,
+  type RawEventValue,
+  type RawFunnelStep,
+  type RawMetric,
+  type RawPageviews,
+  type RawPerformance,
+  type RawStats,
+  type RawUtm,
+} from "./umami-overview.mappers";
+
+const FUNNEL_WINDOW_DAYS = 30;
 
 // ----------------------------------------------------------------------------
 // Range
@@ -55,35 +74,57 @@ export const umamiOverviewOutput = t.Object({
   os: t.Array(metricRow),
   devices: t.Array(metricRow),
   events: t.Array(metricRow),
+  regions: t.Array(metricRow),
+  cities: t.Array(metricRow),
+  languages: t.Array(metricRow),
+  conversionByTeam: t.Array(
+    t.Object({
+      team: t.String(),
+      views: t.Number(),
+      votes: t.Number(),
+      rate: t.Number(),
+    }),
+  ),
+  webVitals: t.Object({
+    lcp: t.Number(),
+    inp: t.Number(),
+    cls: t.Number(),
+    fcp: t.Number(),
+    ttfb: t.Number(),
+    count: t.Number(),
+  }),
+  utm: t.Object({
+    source: t.Array(metricRow),
+    medium: t.Array(metricRow),
+    campaign: t.Array(metricRow),
+  }),
+  funnel: t.Array(
+    t.Object({
+      value: t.String(),
+      visitors: t.Number(),
+      dropoff: t.Number(),
+      remaining: t.Number(),
+    }),
+  ),
 });
 
 export type UmamiOverviewOutput = Static<typeof umamiOverviewOutput>;
 
-// ----------------------------------------------------------------------------
-// Umami response shapes (only the fields we read)
-// ----------------------------------------------------------------------------
+const isoFromMs = (ms: number): string => new Date(ms).toISOString();
 
-type RawStats = Record<string, number> & { comparison?: Record<string, number> };
-type RawSeriesPoint = { x: string; y: number };
-type RawPageviews = { pageviews: RawSeriesPoint[]; sessions: RawSeriesPoint[] };
-type RawMetric = { x: string | null; y: number };
-
-const num = (value: unknown): number => (typeof value === "number" ? value : 0);
-
-function toTotals(raw: Record<string, number> | undefined) {
-  return {
-    pageviews: num(raw?.pageviews),
-    visitors: num(raw?.visitors),
-    visits: num(raw?.visits),
-    bounces: num(raw?.bounces),
-    totaltime: num(raw?.totaltime),
-  };
-}
-
-function toMetricRows(raw: RawMetric[]): Array<{ name: string; value: number }> {
-  return raw
-    .filter((row) => row.x !== null && row.x !== "")
-    .map((row) => ({ name: row.x as string, value: num(row.y) }));
+// Reports may not exist yet (no Web Vitals collected, no UTM traffic, events not
+// fired). A failed optional report must not sink the whole overview — but it is
+// logged so a genuine outage is visible instead of silently empty.
+async function safe<T>(label: string, fn: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await fn();
+  } catch (error) {
+    loggers.api.warn(
+      { report: label, error: error instanceof Error ? error.message : String(error) },
+      "Umami report failed; using empty fallback",
+    );
+    return fallback;
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -98,6 +139,19 @@ async function fetchOverview(range: UmamiRange, endAt: number): Promise<UmamiOve
   const base = { startAt, endAt };
   const metric = (type: string) =>
     umamiGet<RawMetric[]>(`/websites/${websiteId}/metrics`, { ...base, type, limit: 8 });
+  const teamEventValues = (event: string) =>
+    safe(
+      `event-values:${event}`,
+      () =>
+        umamiGet<RawEventValue[]>(`/websites/${websiteId}/event-data/values`, {
+          ...base,
+          event,
+          propertyName: "teamName",
+        }),
+      undefined,
+    );
+
+  const reportRange = { startDate: isoFromMs(startAt), endDate: isoFromMs(endAt), timezone: env.UMAMI_TIMEZONE };
 
   const [
     stats,
@@ -105,10 +159,18 @@ async function fetchOverview(range: UmamiRange, endAt: number): Promise<UmamiOve
     topPages,
     referrers,
     countries,
+    regions,
+    cities,
+    languages,
     browsers,
     os,
     devices,
     events,
+    performance,
+    utm,
+    funnel,
+    teamViews,
+    teamVotes,
   ] = await Promise.all([
     umamiGet<RawStats>(`/websites/${websiteId}/stats`, { ...base, compare: "prev" }),
     umamiGet<RawPageviews>(`/websites/${websiteId}/pageviews`, {
@@ -119,10 +181,56 @@ async function fetchOverview(range: UmamiRange, endAt: number): Promise<UmamiOve
     metric("path"),
     metric("referrer"),
     metric("country"),
+    metric("region"),
+    metric("city"),
+    metric("language"),
     metric("browser"),
     metric("os"),
     metric("device"),
     metric("event"),
+    safe(
+      "performance",
+      () =>
+        umamiPost<RawPerformance>("/reports/performance", {
+          websiteId,
+          type: "performance",
+          filters: {},
+          parameters: reportRange,
+        }),
+      undefined,
+    ),
+    safe(
+      "utm",
+      () =>
+        umamiPost<RawUtm>("/reports/utm", {
+          websiteId,
+          type: "utm",
+          filters: {},
+          parameters: { startDate: reportRange.startDate, endDate: reportRange.endDate },
+        }),
+      undefined,
+    ),
+    safe(
+      "funnel",
+      () =>
+        umamiPost<RawFunnelStep[]>("/reports/funnel", {
+          websiteId,
+          type: "funnel",
+          filters: {},
+          parameters: {
+            ...reportRange,
+            steps: [
+              { type: "event", value: "solution-viewed" },
+              { type: "event", value: "vote-token-requested" },
+              { type: "event", value: "vote-submitted" },
+            ],
+            window: FUNNEL_WINDOW_DAYS,
+          },
+        }),
+      undefined,
+    ),
+    teamEventValues("solution-viewed"),
+    teamEventValues("vote-submitted"),
   ]);
 
   const sessionsByTime = new Map(pageviews.sessions.map((point) => [point.x, num(point.y)]));
@@ -143,6 +251,17 @@ async function fetchOverview(range: UmamiRange, endAt: number): Promise<UmamiOve
     os: toMetricRows(os),
     devices: toMetricRows(devices),
     events: toMetricRows(events),
+    regions: toMetricRows(regions),
+    cities: toMetricRows(cities),
+    languages: toMetricRows(languages),
+    conversionByTeam: toConversionByTeam(teamViews, teamVotes),
+    webVitals: toWebVitals(performance),
+    utm: {
+      source: toUtmRows(utm?.utm_source),
+      medium: toUtmRows(utm?.utm_medium),
+      campaign: toUtmRows(utm?.utm_campaign),
+    },
+    funnel: toFunnel(funnel),
   };
 }
 

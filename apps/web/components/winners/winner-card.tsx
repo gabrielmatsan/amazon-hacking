@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import type { Locale } from "@/lib/paraglide/runtime";
 import type { Winner } from "@/lib/content/types";
+import { trackEvent } from "@/lib/analytics/umami";
 
 const prizeLabels: Record<string, Record<Locale, string>> = {
   champion: { "pt-br": "Campeão", en: "Champion", es: "Campeón" },
@@ -77,7 +78,10 @@ export function WinnerCard({ winner, locale }: { winner: Winner; locale: Locale 
           {winner.videoUrl && (
             <button
               type="button"
-              onClick={() => setOpen(true)}
+              onClick={() => {
+                trackEvent("winner-video-play", { winnerId: winner.id, year: winner.year });
+                setOpen(true);
+              }}
               className="mt-auto inline-flex w-fit items-center gap-2 rounded-full bg-primary-100 px-5 py-2.5 text-xs font-bold text-white transition hover:bg-primary-200"
             >
               <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden>

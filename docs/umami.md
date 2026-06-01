@@ -95,15 +95,21 @@ UMAMI_OVERVIEW_CACHE_SECONDS=300   # 5min overview cache
 ```
 GET /admin/analytics/umami/overview?range=24h|7d|30d|90d
     → { data: { range, stats{+comparison}, series[], topPages[], referrers[],
-                 countries[], browsers[], os[], devices[], events[] } }
+                 countries[], regions[], cities[], languages[],
+                 browsers[], os[], devices[], events[],
+                 conversionByTeam[{team,views,votes,rate}],
+                 webVitals{lcp,inp,cls,fcp,ttfb,count}, utm{source,medium,campaign},
+                 funnel[{value,visitors,dropoff,remaining}] } }
 
 GET /admin/analytics/umami/realtime
     → { data: { online: number } }
 ```
 
 `overview` fans out (in parallel) to: `/stats?compare=prev`, `/pageviews`,
-`/metrics?type=path|referrer|country|browser|os|device|event`. `realtime` calls
-`/websites/:id/active`.
+`/metrics?type=path|referrer|country|browser|os|device|event`, and the Reports API
+(`POST /reports/performance`, `/reports/utm`, `/reports/funnel`). The three report calls
+are wrapped in `safe()` — a missing/empty report degrades to zeros, never a 500.
+`realtime` calls `/websites/:id/active`.
 
 ---
 
@@ -117,6 +123,44 @@ GET /admin/analytics/umami/realtime
 
 Range toggle `24h / 7d / 30d / 90d` (default 7 d); stat cards show `compare=prev` deltas.
 The admin area is Portuguese-only (hardcoded strings, no i18n — matches `AdminVisitors`).
+
+---
+
+## 3b. Vote tracking & session linking
+
+`lib/analytics/umami.ts` wraps the global tracker type-safely (`trackEvent`,
+`identifyVisitor` — no-ops on server or when the tracker is absent). Wired into the
+voting flow in `components/solutions/team-detail.tsx`:
+
+| Event | When | Data |
+| --- | --- | --- |
+| `solution-viewed` | team detail opens | `{ teamId }` |
+| `vote-token-requested` | token sent | `{ channel }` |
+| `vote-token-failed` | token/vote error | `{ step, reason }` |
+| `vote-submitted` | vote succeeds | `{ teamId, channel }` |
+| `section-viewed` | home section enters viewport | `{ section }` |
+| `winner-video-play` | winner video opens | `{ winnerId, year }` |
+| `solutions-search` | gallery search (debounced) | `{ length, hasResults }` |
+| `cta-click` | key CTA clicked (declarative `data-umami-event`) | `{ target }` |
+
+`section-viewed` is fired by `components/site/track-section.tsx` (IntersectionObserver,
+once). CTAs use Umami's declarative `data-umami-event` / `data-umami-event-*` attributes.
+`solution-viewed` and `vote-submitted` also carry `teamName`, which powers the
+**conversion-by-team** table (views→votes joined by team name, no DB join needed).
+
+**Fraud forensics.** `/admin/flagged` shows a "Ver sessão no Umami" link per vote
+(`lib/analytics/umami-links.ts` → `umamiSessionUrl(fingerprint)`), deep-linking to the
+session(s) for that Distinct ID so an admin can inspect the journey and replay.
+
+**Vote ↔ session link.** On a successful vote we call
+`identifyVisitor(fingerprint)` (the FingerprintJS `visitorId`). Umami binds that
+**Distinct ID** to the cookieless session, so:
+
+- In Umami → **Sessions**, search the fingerprint to replay the journey that led to a vote.
+- The vote DB record already stores the same `fingerprint`, so a flagged vote
+  cross-references to its Umami session with no extra backend plumbing.
+
+Funnel to build in Umami: `solution-viewed` → `vote-token-requested` → `vote-submitted`.
 
 ---
 

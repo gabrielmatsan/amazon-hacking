@@ -19,11 +19,15 @@ export function UmamiScript() {
   const maskLevel = process.env.NEXT_PUBLIC_UMAMI_RECORDER_MASK_LEVEL ?? "moderate";
   const maxDuration = process.env.NEXT_PUBLIC_UMAMI_RECORDER_MAX_DURATION ?? "300000";
 
+  // Core Web Vitals collection (LCP/INP/CLS); on by default, opt out with "false".
+  const performanceEnabled = process.env.NEXT_PUBLIC_UMAMI_PERFORMANCE !== "false";
+
   return (
     <>
       <Script
         src={src}
         data-website-id={websiteId}
+        data-performance={performanceEnabled ? "true" : "false"}
         strategy="afterInteractive"
         defer
       />
