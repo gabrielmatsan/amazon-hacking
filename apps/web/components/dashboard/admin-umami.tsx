@@ -227,6 +227,41 @@ function WebVitals({ vitals }: { vitals: UmamiOverview["webVitals"] }) {
   );
 }
 
+function ConversionByTeam({ rows }: { rows: UmamiOverview["conversionByTeam"] }) {
+  if (rows.length === 0) return null;
+  const maxVotes = Math.max(1, ...rows.map((r) => r.votes));
+  return (
+    <div className="mt-8">
+      <h2 className="text-sm font-semibold text-neutral-900">Conversão por equipe</h2>
+      <p className="mt-0.5 text-xs text-neutral-400">Visitas na solução → votos (via eventos).</p>
+      <div className="mt-3 overflow-hidden rounded-xl border border-neutral-200 bg-white">
+        <div className="grid grid-cols-[1fr_auto_auto_auto] gap-x-4 border-b border-neutral-100 px-4 py-2 text-[11px] font-medium text-neutral-400">
+          <span>Equipe</span>
+          <span className="text-right tabular-nums">Views</span>
+          <span className="text-right tabular-nums">Votos</span>
+          <span className="text-right tabular-nums">Conv.</span>
+        </div>
+        <ul className="divide-y divide-neutral-100">
+          {rows.map((row) => (
+            <li key={row.team} className="relative grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-4 px-4 py-2.5">
+              <div
+                className="absolute inset-y-0 left-0 bg-secondary-100/5"
+                style={{ width: `${(row.votes / maxVotes) * 100}%` }}
+              />
+              <span className="relative z-10 truncate text-sm text-neutral-700">{row.team}</span>
+              <span className="relative z-10 text-right text-sm tabular-nums text-neutral-500">{formatNumber(row.views)}</span>
+              <span className="relative z-10 text-right text-sm font-medium tabular-nums text-neutral-900">{formatNumber(row.votes)}</span>
+              <span className="relative z-10 text-right text-sm font-medium tabular-nums text-secondary-100">
+                {(row.rate * 100).toFixed(0)}%
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 function Campaigns({ utm }: { utm: UmamiOverview["utm"] }) {
   if (utm.source.length === 0 && utm.medium.length === 0 && utm.campaign.length === 0) return null;
   return (
@@ -409,10 +444,15 @@ export function AdminUmami() {
               rows={data.countries}
               renderName={(name) => `${countryFlag(name)} ${name}`.trim()}
             />
+            <RankedList title="Cidades" rows={data.cities} />
+            <RankedList title="Regiões" rows={data.regions} />
+            <RankedList title="Idioma do navegador" rows={data.languages} />
             <RankedList title="Navegadores" rows={data.browsers} />
             <RankedList title="Sistemas operacionais" rows={data.os} />
             <RankedList title="Dispositivos" rows={data.devices} />
           </div>
+
+          <ConversionByTeam rows={data.conversionByTeam} />
 
           <WebVitals vitals={data.webVitals} />
           <Campaigns utm={data.utm} />
