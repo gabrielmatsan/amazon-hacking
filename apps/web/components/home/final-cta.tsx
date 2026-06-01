@@ -13,6 +13,8 @@ export function FinalCta() {
         </p>
         <a
           href="mailto:amazon.hacking@cesupa.br"
+          data-umami-event="cta-click"
+          data-umami-event-target="final-email"
           className="mt-10 inline-flex items-center gap-2 rounded-full bg-primary-100 px-8 py-4 text-sm font-bold text-white transition hover:bg-primary-200"
         >
           {m.cta_final_button()}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -13,6 +13,8 @@ import type { Locale } from "@/lib/paraglide/runtime";
 import { useAuth } from "@/hooks/use-auth";
 import { useTeamBySlug } from "@/hooks/use-teams";
 import { useMyVote, useRequestVoteToken, useVoteForTeam } from "@/hooks/use-votes";
+import { useFingerprint } from "@/hooks/use-fingerprint";
+import { trackEvent, identifyVisitor } from "@/lib/analytics/umami";
 import { getGoogleLoginUrl } from "@/lib/api/auth";
 import type { SolutionPillar, VoteChannel } from "@/lib/api/types";
 import { AxiosError } from "axios";
@@ -75,6 +77,12 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
   const hasVoted = !!myVote;
   const votedForThisTeam = hasVoted && myVote.teamId === team?.id;
   const loginUrl = getGoogleLoginUrl(pathname);
+
+  const teamId = team?.id;
+  const teamName = team?.name;
+  useEffect(() => {
+    if (teamId) trackEvent("solution-viewed", { teamId, teamName });
+  }, [teamId, teamName]);
 
   if (isLoading) {
     return (
@@ -204,7 +212,7 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
             </div>
           )
         ) : isLoggedIn ? (
-          <VoteFlow teamId={team.id} locale={locale} />
+          <VoteFlow teamId={team.id} teamName={team.name} locale={locale} />
         ) : (
           <>
             <p className="mt-3 text-sm text-neutrals-500">
@@ -229,7 +237,7 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
   );
 }
 
-function VoteFlow({ teamId, locale }: { teamId: string; locale: Locale }) {
+function VoteFlow({ teamId, teamName, locale }: { teamId: string; teamName: string; locale: Locale }) {
   const [step, setStep] = useState<"phone" | "code">("phone");
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
@@ -240,6 +248,7 @@ function VoteFlow({ teamId, locale }: { teamId: string; locale: Locale }) {
 
   const requestToken = useRequestVoteToken();
   const vote = useVoteForTeam();
+  const getFingerprint = useFingerprint();
 
   const handleRequestToken = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -254,11 +263,13 @@ function VoteFlow({ teamId, locale }: { teamId: string; locale: Locale }) {
       onSuccess: (data) => {
         setChannel(data.channel);
         setStep("code");
+        trackEvent("vote-token-requested", { channel: data.channel });
       },
       onError: (err) => {
         setErrorMsg(getErrorMessage(err) ?? m.vote_error_generic({}, { locale }));
         turnstileRef.current?.reset();
         setTurnstileToken(null);
+        trackEvent("vote-token-failed", { step: "token", reason: getErrorMessage(err) ?? "unknown" });
       },
     });
   };
@@ -270,8 +281,14 @@ function VoteFlow({ teamId, locale }: { teamId: string; locale: Locale }) {
     vote.mutate(
       { teamId, token: code },
       {
+        onSuccess: () => {
+          const fingerprint = getFingerprint();
+          if (fingerprint) identifyVisitor(fingerprint);
+          trackEvent("vote-submitted", { teamId, teamName, channel: channel ?? "unknown" });
+        },
         onError: (err) => {
           setErrorMsg(getErrorMessage(err) ?? m.vote_error_generic({}, { locale }));
+          trackEvent("vote-token-failed", { step: "vote", reason: getErrorMessage(err) ?? "unknown" });
         },
       },
     );

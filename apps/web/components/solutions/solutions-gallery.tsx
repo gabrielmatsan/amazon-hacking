@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { m } from "@/lib/paraglide/messages";
+import { trackEvent } from "@/lib/analytics/umami";
 import type { Locale } from "@/lib/paraglide/runtime";
 import { useTeamGroups } from "@/hooks/use-teams";
 import type { SolutionPillar, TeamListItem } from "@/lib/api/types";
@@ -86,6 +87,16 @@ export function SolutionsGallery({ locale }: { locale: Locale }) {
       }))
       .filter((g) => g.teams.length > 0);
   }, [groups, activePillar, query]);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) return;
+    const timer = setTimeout(() => {
+      const resultCount = filteredGroups.reduce((sum, g) => sum + g.teams.length, 0);
+      trackEvent("solutions-search", { length: q.length, hasResults: resultCount > 0 });
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [query, filteredGroups]);
 
   if (isLoading) {
     return (

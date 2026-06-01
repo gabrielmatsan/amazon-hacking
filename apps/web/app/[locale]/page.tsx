@@ -12,6 +12,7 @@ import { WinnersSection } from "@/components/home/winners-section";
 import { PrizesSection } from "@/components/home/prizes";
 import { PartnersGrid } from "@/components/home/partners-grid";
 import { FinalCta } from "@/components/home/final-cta";
+import { TrackSection } from "@/components/site/track-section";
 import { edition2026 } from "@/lib/content/editions";
 import { setRequestLocale } from "@/lib/i18n";
 
@@ -43,11 +44,19 @@ export default async function HomePage({
         <EixosGrid />
         <EditionsTimeline />
         <WaveDivider from="#ffffff" to="#00335b" />
-        <WinnersSection />
+        <TrackSection name="winners">
+          <WinnersSection />
+        </TrackSection>
         <WaveDivider from="#00335b" to="#ffffff" />
-        <PrizesSection />
-        <PartnersGrid />
-        <FinalCta />
+        <TrackSection name="prizes">
+          <PrizesSection />
+        </TrackSection>
+        <TrackSection name="partners">
+          <PartnersGrid />
+        </TrackSection>
+        <TrackSection name="final-cta">
+          <FinalCta />
+        </TrackSection>
       </main>
       <Footer />
       <CookieBanner locale={resolved} />

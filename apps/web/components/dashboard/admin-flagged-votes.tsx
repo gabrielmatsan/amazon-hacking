@@ -6,6 +6,7 @@ import {
   XIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  SearchIcon,
 } from "lucide-react";
 import {
   useFlaggedVotes,
@@ -13,6 +14,7 @@ import {
   useInvalidateVote,
 } from "@/hooks/use-admin-teams";
 import type { FlaggedVote } from "@/lib/api/admin";
+import { umamiSessionUrl } from "@/lib/analytics/umami-links";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleString("pt-BR", {
@@ -120,6 +122,7 @@ function VoteCard({
   invalidating: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const sessionUrl = umamiSessionUrl(vote.fingerprint);
 
   return (
     <div className="rounded-xl border border-amber-200 bg-white">
@@ -174,6 +177,18 @@ function VoteCard({
         <InfoCell label="Fingerprint" value={vote.fingerprint ?? "—"} mono />
         <InfoCell label="User Agent" value={vote.userAgent ?? "—"} truncated className="col-span-2 sm:col-span-1" />
       </div>
+
+      {sessionUrl ? (
+        <a
+          href={sessionUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center justify-center gap-1.5 border-t border-neutral-950/5 px-4 py-2 text-xs font-medium text-primary-100 hover:bg-primary-100/5"
+        >
+          <SearchIcon className="size-3.5 shrink-0" />
+          Ver sessão no Umami (jornada + replay)
+        </a>
+      ) : null}
 
       {/* Expandable metadata */}
       <button

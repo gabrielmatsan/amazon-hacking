@@ -42,6 +42,8 @@ export function TucupyCta({ locale }: { locale: Locale }) {
                 href="https://www.tucupy.com"
                 target="_blank"
                 rel="noreferrer"
+                data-umami-event="cta-click"
+                data-umami-event-target="tucupy-site"
                 className="rounded-full bg-[#FEBE01] px-6 py-3 text-sm font-bold text-[#191919] shadow-sm transition hover:bg-[#e0a800]"
               >
                 {m.tucupy_cta_primary({}, { locale })}
@@ -50,6 +52,8 @@ export function TucupyCta({ locale }: { locale: Locale }) {
                 href="https://www.instagram.com/tucupytecnologia"
                 target="_blank"
                 rel="noreferrer"
+                data-umami-event="cta-click"
+                data-umami-event-target="tucupy-instagram"
                 className="text-sm font-semibold text-white transition hover:text-white/70"
               >
                 {m.tucupy_cta_secondary({}, { locale })} <span aria-hidden>→</span>

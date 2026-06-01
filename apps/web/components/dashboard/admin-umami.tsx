@@ -13,6 +13,7 @@ import {
 import { useUmamiOverview, useUmamiRealtime } from "@/hooks/use-admin-teams";
 import type {
   UmamiMetricRow,
+  UmamiOverview,
   UmamiRange,
   UmamiTotals,
 } from "@/lib/api/admin";
@@ -37,7 +38,8 @@ function bounceRate(stats: UmamiTotals): number {
 }
 
 function formatAxisTime(iso: string, range: UmamiRange): string {
-  const date = new Date(iso);
+  // Umami returns "YYYY-MM-DD HH:mm:ss" (space). Safari rejects that — normalize to ISO.
+  const date = new Date(iso.includes("T") ? iso : iso.replace(" ", "T"));
   if (range === "24h") {
     return date.toLocaleTimeString("pt-BR", { hour: "2-digit", timeZone: "America/Belem" });
   }
@@ -135,6 +137,139 @@ function RankedList({
           </ul>
         )}
       </div>
+    </div>
+  );
+}
+
+const FUNNEL_LABELS: Record<string, string> = {
+  "solution-viewed": "Viu solução",
+  "vote-token-requested": "Pediu código",
+  "vote-submitted": "Votou",
+};
+
+function VoteFunnel({ steps }: { steps: UmamiOverview["funnel"] }) {
+  if (steps.length === 0) return null;
+  return (
+    <div className="mt-8">
+      <h2 className="text-sm font-semibold text-neutral-900">Funil de voto</h2>
+      <div className="mt-3 space-y-2 rounded-xl border border-neutral-200 bg-white p-4">
+        {steps.map((step, i) => (
+          <div key={step.value}>
+            <div className="flex items-baseline justify-between text-sm">
+              <span className="text-neutral-700">{FUNNEL_LABELS[step.value] ?? step.value}</span>
+              <span className="tabular-nums font-medium text-neutral-900">
+                {formatNumber(step.visitors)}
+                {i > 0 && step.dropoff > 0 ? (
+                  <span className="ml-2 text-xs font-normal text-red-600">
+                    ↓ {(step.dropoff * 100).toFixed(0)}%
+                  </span>
+                ) : null}
+              </span>
+            </div>
+            <div className="mt-1 h-2 overflow-hidden rounded-full bg-neutral-100">
+              <div
+                className="h-full rounded-full bg-primary-100"
+                style={{ width: `${Math.max(2, step.remaining * 100)}%` }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const VITAL_THRESHOLDS: Record<string, { good: number; poor: number; unit: "ms" | "score" }> = {
+  LCP: { good: 2500, poor: 4000, unit: "ms" },
+  INP: { good: 200, poor: 500, unit: "ms" },
+  CLS: { good: 0.1, poor: 0.25, unit: "score" },
+  FCP: { good: 1800, poor: 3000, unit: "ms" },
+  TTFB: { good: 800, poor: 1800, unit: "ms" },
+};
+
+function formatVital(value: number, unit: "ms" | "score"): string {
+  if (unit === "score") return value.toFixed(3);
+  return value >= 1000 ? `${(value / 1000).toFixed(2)}s` : `${Math.round(value)}ms`;
+}
+
+function vitalColor(label: string, value: number): string {
+  const t = VITAL_THRESHOLDS[label];
+  if (!t || value === 0) return "text-neutral-900";
+  if (value <= t.good) return "text-secondary-100";
+  if (value >= t.poor) return "text-red-600";
+  return "text-amber-600";
+}
+
+function WebVitals({ vitals }: { vitals: UmamiOverview["webVitals"] }) {
+  if (vitals.count === 0) return null;
+  const entries: Array<{ label: string; value: number }> = [
+    { label: "LCP", value: vitals.lcp },
+    { label: "INP", value: vitals.inp },
+    { label: "CLS", value: vitals.cls },
+    { label: "FCP", value: vitals.fcp },
+    { label: "TTFB", value: vitals.ttfb },
+  ];
+  return (
+    <div className="mt-8">
+      <h2 className="text-sm font-semibold text-neutral-900">
+        Core Web Vitals <span className="font-normal text-neutral-400">(p75 · {formatNumber(vitals.count)} amostras)</span>
+      </h2>
+      <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-5">
+        {entries.map(({ label, value }) => (
+          <div key={label} className="rounded-xl border border-neutral-950/10 bg-white px-4 py-4">
+            <p className="text-xs font-medium text-neutral-500">{label}</p>
+            <p className={`mt-1 text-xl font-semibold tabular-nums ${vitalColor(label, value)}`}>
+              {formatVital(value, VITAL_THRESHOLDS[label]?.unit ?? "ms")}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ConversionByTeam({ rows }: { rows: UmamiOverview["conversionByTeam"] }) {
+  if (rows.length === 0) return null;
+  const maxVotes = Math.max(1, ...rows.map((r) => r.votes));
+  return (
+    <div className="mt-8">
+      <h2 className="text-sm font-semibold text-neutral-900">Conversão por equipe</h2>
+      <p className="mt-0.5 text-xs text-neutral-400">Visitas na solução → votos (via eventos).</p>
+      <div className="mt-3 overflow-hidden rounded-xl border border-neutral-200 bg-white">
+        <div className="grid grid-cols-[1fr_auto_auto_auto] gap-x-4 border-b border-neutral-100 px-4 py-2 text-[11px] font-medium text-neutral-400">
+          <span>Equipe</span>
+          <span className="text-right tabular-nums">Views</span>
+          <span className="text-right tabular-nums">Votos</span>
+          <span className="text-right tabular-nums">Conv.</span>
+        </div>
+        <ul className="divide-y divide-neutral-100">
+          {rows.map((row) => (
+            <li key={row.team} className="relative grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-4 px-4 py-2.5">
+              <div
+                className="absolute inset-y-0 left-0 bg-secondary-100/5"
+                style={{ width: `${(row.votes / maxVotes) * 100}%` }}
+              />
+              <span className="relative z-10 truncate text-sm text-neutral-700">{row.team}</span>
+              <span className="relative z-10 text-right text-sm tabular-nums text-neutral-500">{formatNumber(row.views)}</span>
+              <span className="relative z-10 text-right text-sm font-medium tabular-nums text-neutral-900">{formatNumber(row.votes)}</span>
+              <span className="relative z-10 text-right text-sm font-medium tabular-nums text-secondary-100">
+                {(row.rate * 100).toFixed(0)}%
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function Campaigns({ utm }: { utm: UmamiOverview["utm"] }) {
+  if (utm.source.length === 0 && utm.medium.length === 0 && utm.campaign.length === 0) return null;
+  return (
+    <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <RankedList title="UTM source" rows={utm.source} />
+      <RankedList title="UTM medium" rows={utm.medium} />
+      <RankedList title="UTM campaign" rows={utm.campaign} />
     </div>
   );
 }
@@ -295,6 +430,8 @@ export function AdminUmami() {
             </div>
           </div>
 
+          <VoteFunnel steps={data.funnel} />
+
           <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
             <RankedList title="Páginas mais vistas" rows={data.topPages} />
             <RankedList
@@ -308,10 +445,18 @@ export function AdminUmami() {
               rows={data.countries}
               renderName={(name) => `${countryFlag(name)} ${name}`.trim()}
             />
+            <RankedList title="Cidades" rows={data.cities} />
+            <RankedList title="Regiões" rows={data.regions} />
+            <RankedList title="Idioma do navegador" rows={data.languages} />
             <RankedList title="Navegadores" rows={data.browsers} />
             <RankedList title="Sistemas operacionais" rows={data.os} />
             <RankedList title="Dispositivos" rows={data.devices} />
           </div>
+
+          <ConversionByTeam rows={data.conversionByTeam} />
+
+          <WebVitals vitals={data.webVitals} />
+          <Campaigns utm={data.utm} />
 
           <div className="mt-8">
             <RankedList
