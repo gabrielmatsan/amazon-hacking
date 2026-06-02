@@ -5,7 +5,7 @@ import { TrophyIcon, CheckIcon, CopyIcon } from "lucide-react";
 import type { Locale } from "@/lib/paraglide/runtime";
 import { SITE_URL } from "@/lib/site";
 import { useAuth } from "@/hooks/use-auth";
-import { useTorcida } from "@/hooks/use-votes";
+import { useSupportersLeaderboard } from "@/hooks/use-votes";
 import { trackEvent } from "@/lib/analytics/umami";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
@@ -49,9 +49,9 @@ const LABELS = {
   },
 };
 
-export function MinhaTorcida({ locale }: { locale: Locale }) {
+export function MySupporters({ locale }: { locale: Locale }) {
   const { data: user } = useAuth();
-  const { data, isLoading } = useTorcida();
+  const { data, isLoading } = useSupportersLeaderboard();
   const [copied, setCopied] = useState(false);
   const labels = LABELS[locale];
 
@@ -61,7 +61,7 @@ export function MinhaTorcida({ locale }: { locale: Locale }) {
 
   const link = user ? `${SITE_URL}/solucoes?ref=${user.id}` : null;
 
-  const fireShare = (method: string) => trackEvent("torcida-shared", { method });
+  const fireShare = (method: string) => trackEvent("supporter-link-shared", { method });
 
   const copy = async () => {
     if (!link) return;

@@ -152,21 +152,22 @@ voting flow in `components/solutions/team-detail.tsx`:
 | `winner-video-play` | winner video opens | `{ winnerId, year }` |
 | `solutions-search` | gallery search (debounced) | `{ length, hasResults }` |
 | `cta-click` | key CTA clicked (declarative `data-umami-event`) | `{ target }` |
-| `solution-shared` | share button used on a solution | `{ teamId, method, utm_source, utm_campaign, withIdentity }` |
+| `solution-shared` | share button used on a solution | `{ teamId, method, utm_source, utm_campaign, markAsMe }` |
 | `vote-confirmed` | **server-side** — vote persisted in a backend tx | `{ teamId, channel, status }` |
 
-**"Minha torcida" (supporter leaderboard).** Supporters share a personal link carrying
-`?ref=<userId>` (added automatically to logged-in shares + the dedicated link in
-`minha-torcida.tsx`). `captureRefFromUrl()` persists the ref on `/solucoes` entry; the
-`vote-submitted` event then carries `ref`, so Umami groups votes-brought per supporter via
-`event-data/values?event=vote-submitted&propertyName=ref`. The `GET /votes/torcida`
-endpoint (`torcida.usecase.ts`) ranks refs, resolves the top-3 names from the DB, and
+**Supporter leaderboard ("Minha torcida" in the UI).** Supporters share a personal link
+carrying `?ref=<userId>` — added by default to logged-in shares ("Mark as my referral",
+on by default, opaque user id, no PII) and in the dedicated `my-supporters.tsx` card.
+`captureRefFromUrl()` (`lib/analytics/referral.ts`) persists the ref on `/solucoes` entry;
+the `vote-submitted` event then carries `ref`, so Umami groups votes-brought per supporter
+via `event-data/values?event=vote-submitted&propertyName=ref`. The `GET /votes/supporters`
+endpoint (`supporters.usecase.ts`) ranks refs, resolves the top-3 names from the DB, and
 returns **only the podium (1st/2nd/3rd) + the caller's position — never the raw counts**.
-`torcida-shared` tracks shares of the personal link.
+`supporter-link-shared` tracks shares of the personal link.
 
 `solution-shared` is fired by the share button (`components/solutions/share-solution.tsx`),
-which builds a UTM-tagged link to the solution (generic default, customizable fields,
-optional `utm_content=email` opt-in). `vote-confirmed` is sent from the backend via
+which builds a UTM-tagged link to the solution (generic default, customizable fields, and
+the default-on `ref=<userId>` referral marker). `vote-confirmed` is sent from the backend via
 `shared/infra/umami/umami-track.ts` (`POST /api/send`, fire-and-forget) — the source of
 truth incl. valid/flagged status, which the browser can't know.
 

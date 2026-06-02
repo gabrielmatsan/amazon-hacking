@@ -13,14 +13,15 @@ type ShareSolutionProps = {
   teamId: string;
   teamName: string;
   locale: Locale;
-  voterEmail?: string;
   voterId?: string;
 };
 
-export function ShareSolution({ slug, teamId, teamName, locale, voterEmail, voterId }: ShareSolutionProps) {
+export function ShareSolution({ slug, teamId, teamName, locale, voterId }: ShareSolutionProps) {
   const [open, setOpen] = useState(false);
   const [custom, setCustom] = useState(false);
-  const [withIdentity, setWithIdentity] = useState(false);
+  // Default ON for logged-in users: mark the link as the sharer's so the votes it
+  // brings credit them on the supporter leaderboard. Uses the opaque user id (no PII).
+  const [markAsMe, setMarkAsMe] = useState(true);
   const [utm, setUtm] = useState({ ...DEFAULT_UTM, content: "" });
   const [copied, setCopied] = useState(false);
 
@@ -30,10 +31,9 @@ export function ShareSolution({ slug, teamId, teamName, locale, voterEmail, vote
   params.set("utm_source", (custom ? utm.source : DEFAULT_UTM.source).trim() || "compartilhamento");
   params.set("utm_medium", (custom ? utm.medium : DEFAULT_UTM.medium).trim() || "referral");
   params.set("utm_campaign", (custom ? utm.campaign : DEFAULT_UTM.campaign).trim() || "solucoes-2026");
-  const content = withIdentity && voterEmail ? voterEmail : custom ? utm.content.trim() : "";
+  const content = custom ? utm.content.trim() : "";
   if (content) params.set("utm_content", content);
-  // Credit the logged-in sharer for the votes their link brings ("Minha torcida").
-  if (voterId) params.set("ref", voterId);
+  if (markAsMe && voterId) params.set("ref", voterId);
 
   const url = `${SITE_URL}${basePath}?${params.toString()}`;
 
@@ -43,7 +43,7 @@ export function ShareSolution({ slug, teamId, teamName, locale, voterEmail, vote
       method,
       utm_source: params.get("utm_source") ?? "",
       utm_campaign: params.get("utm_campaign") ?? "",
-      withIdentity,
+      markAsMe: markAsMe && !!voterId,
     });
 
   const copy = async () => {
@@ -67,9 +67,9 @@ export function ShareSolution({ slug, teamId, teamName, locale, voterEmail, vote
 
   const canNativeShare = typeof navigator !== "undefined" && !!navigator.share;
   const labels = {
-    "pt-br": { share: "Compartilhar", customize: "Personalizar UTM", identity: "Incluir meu e-mail no link", copy: "Copiar link", copied: "Copiado!" },
-    en: { share: "Share", customize: "Customize UTM", identity: "Include my email in the link", copy: "Copy link", copied: "Copied!" },
-    es: { share: "Compartir", customize: "Personalizar UTM", identity: "Incluir mi correo en el enlace", copy: "Copiar enlace", copied: "¡Copiado!" },
+    "pt-br": { share: "Compartilhar", customize: "Personalizar UTM", identity: "Marcar como minha indicação", identityHint: "Os votos deste link contam para você no pódio.", copy: "Copiar link", copied: "Copiado!" },
+    en: { share: "Share", customize: "Customize UTM", identity: "Mark as my referral", identityHint: "Votes from this link count toward you on the podium.", copy: "Copy link", copied: "Copied!" },
+    es: { share: "Compartir", customize: "Personalizar UTM", identity: "Marcar como mi referido", identityHint: "Los votos de este enlace cuentan para ti en el podio.", copy: "Copiar enlace", copied: "¡Copiado!" },
   }[locale];
 
   return (
@@ -143,19 +143,17 @@ export function ShareSolution({ slug, teamId, teamName, locale, voterEmail, vote
             </div>
           ) : null}
 
-          {voterEmail ? (
+          {voterId ? (
             <label className="mt-3 flex items-start gap-2 text-xs text-neutrals-600">
               <input
                 type="checkbox"
-                checked={withIdentity}
-                onChange={(e) => setWithIdentity(e.target.checked)}
+                checked={markAsMe}
+                onChange={(e) => setMarkAsMe(e.target.checked)}
                 className="mt-0.5"
               />
               <span>
                 {labels.identity}
-                <span className="block text-[11px] text-neutrals-400">
-                  Seu e-mail ficará visível para quem abrir o link (atribuição de indicação).
-                </span>
+                <span className="block text-[11px] text-neutrals-400">{labels.identityHint}</span>
               </span>
             </label>
           ) : null}
