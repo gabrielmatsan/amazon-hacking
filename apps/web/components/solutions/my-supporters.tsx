@@ -24,7 +24,7 @@ type Copy = {
 
 function buildCopy(locale: Locale, project?: string): Copy {
   if (project) {
-    return {
+    const projectCopy: Record<Locale, Copy> = {
       "pt-br": {
         title: `Quem mais mobiliza votos para ${project}`,
         subtitle: "Compartilhe o link desta solução. Quem trouxer mais gente pra votar lidera o pódio.",
@@ -58,10 +58,11 @@ function buildCopy(locale: Locale, project?: string): Copy {
         climb: "Comparte tu enlace y toma el podio.",
         loginHint: "Inicia sesión para generar tu enlace y competir por el podio.",
       },
-    }[locale];
+    };
+    return projectCopy[locale];
   }
 
-  return {
+  const globalCopy: Record<Locale, Copy> = {
     "pt-br": {
       title: "Maiores mobilizadores do Amazon Hacking",
       subtitle: "Compartilhe seu link e veja quem traz mais gente para votar no evento.",
@@ -95,7 +96,8 @@ function buildCopy(locale: Locale, project?: string): Copy {
       climb: "Comparte tu enlace y sube en el ranking.",
       loginHint: "Inicia sesión para generar tu enlace y competir en el ranking.",
     },
-  }[locale];
+  };
+  return globalCopy[locale];
 }
 
 export function MySupporters({
