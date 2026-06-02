@@ -14,10 +14,12 @@ type ShareSolutionProps = {
   teamName: string;
   locale: Locale;
   voterId?: string;
+  defaultOpen?: boolean;
+  message?: string;
 };
 
-export function ShareSolution({ slug, teamId, teamName, locale, voterId }: ShareSolutionProps) {
-  const [open, setOpen] = useState(false);
+export function ShareSolution({ slug, teamId, teamName, locale, voterId, defaultOpen = false, message }: ShareSolutionProps) {
+  const [open, setOpen] = useState(defaultOpen);
   const [custom, setCustom] = useState(false);
   // Default ON for logged-in users: mark the link as the sharer's so the votes it
   // brings credit them on the supporter leaderboard. Uses the opaque user id (no PII).
@@ -53,15 +55,17 @@ export function ShareSolution({ slug, teamId, teamName, locale, voterId }: Share
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const shareText = message ?? teamName;
+
   const shareWhatsApp = () => {
     fireShare("whatsapp");
-    window.open(`https://wa.me/?text=${encodeURIComponent(`${teamName} — ${url}`)}`, "_blank", "noopener");
+    window.open(`https://wa.me/?text=${encodeURIComponent(`${shareText} ${url}`)}`, "_blank", "noopener");
   };
 
   const shareNative = async () => {
     if (typeof navigator !== "undefined" && navigator.share) {
       fireShare("native");
-      await navigator.share({ title: teamName, url }).catch(() => undefined);
+      await navigator.share({ title: teamName, text: shareText, url }).catch(() => undefined);
     }
   };
 
