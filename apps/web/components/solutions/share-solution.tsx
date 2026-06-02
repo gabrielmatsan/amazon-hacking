@@ -14,9 +14,10 @@ type ShareSolutionProps = {
   teamName: string;
   locale: Locale;
   voterEmail?: string;
+  voterId?: string;
 };
 
-export function ShareSolution({ slug, teamId, teamName, locale, voterEmail }: ShareSolutionProps) {
+export function ShareSolution({ slug, teamId, teamName, locale, voterEmail, voterId }: ShareSolutionProps) {
   const [open, setOpen] = useState(false);
   const [custom, setCustom] = useState(false);
   const [withIdentity, setWithIdentity] = useState(false);
@@ -31,6 +32,8 @@ export function ShareSolution({ slug, teamId, teamName, locale, voterEmail }: Sh
   params.set("utm_campaign", (custom ? utm.campaign : DEFAULT_UTM.campaign).trim() || "solucoes-2026");
   const content = withIdentity && voterEmail ? voterEmail : custom ? utm.content.trim() : "";
   if (content) params.set("utm_content", content);
+  // Credit the logged-in sharer for the votes their link brings ("Minha torcida").
+  if (voterId) params.set("ref", voterId);
 
   const url = `${SITE_URL}${basePath}?${params.toString()}`;
 

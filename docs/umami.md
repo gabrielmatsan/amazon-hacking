@@ -155,6 +155,15 @@ voting flow in `components/solutions/team-detail.tsx`:
 | `solution-shared` | share button used on a solution | `{ teamId, method, utm_source, utm_campaign, withIdentity }` |
 | `vote-confirmed` | **server-side** — vote persisted in a backend tx | `{ teamId, channel, status }` |
 
+**"Minha torcida" (supporter leaderboard).** Supporters share a personal link carrying
+`?ref=<userId>` (added automatically to logged-in shares + the dedicated link in
+`minha-torcida.tsx`). `captureRefFromUrl()` persists the ref on `/solucoes` entry; the
+`vote-submitted` event then carries `ref`, so Umami groups votes-brought per supporter via
+`event-data/values?event=vote-submitted&propertyName=ref`. The `GET /votes/torcida`
+endpoint (`torcida.usecase.ts`) ranks refs, resolves the top-3 names from the DB, and
+returns **only the podium (1st/2nd/3rd) + the caller's position — never the raw counts**.
+`torcida-shared` tracks shares of the personal link.
+
 `solution-shared` is fired by the share button (`components/solutions/share-solution.tsx`),
 which builds a UTM-tagged link to the solution (generic default, customizable fields,
 optional `utm_content=email` opt-in). `vote-confirmed` is sent from the backend via
