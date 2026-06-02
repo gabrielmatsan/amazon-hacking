@@ -8,7 +8,7 @@ import { getIpLocation } from "@/shared/utils/get-ip-location";
 import { t } from "elysia";
 import { rateLimit } from "elysia-rate-limit";
 import { voteForTimeByIdInput, voteForTimeByIdUseCase } from "../application/vote-for-time-by-id.usecase";
-import { torcidaOutput, torcidaUseCase } from "../application/torcida.usecase";
+import { supportersLeaderboardOutput, supportersLeaderboardUseCase } from "../application/supporters.usecase";
 import { VotesRepository } from "./votes.repository";
 
 export const votesController = createController({ prefix: "/votes", normalize: false })
@@ -64,14 +64,14 @@ export const votesController = createController({ prefix: "/votes", normalize: f
     },
     detail: { tags: ["Votes"], summary: "Get current user vote" },
   })
-  .get("/torcida", async ({ validateToken, request }) => {
+  .get("/supporters", async ({ validateToken, request }) => {
     // Public podium; the caller's own position is included when authenticated.
     const user = await validateToken(request);
-    const data = await torcidaUseCase(user?.id ?? null);
+    const data = await supportersLeaderboardUseCase(user?.id ?? null);
     return { data };
   }, {
     response: {
-      200: t.Object({ data: torcidaOutput }),
+      200: t.Object({ data: supportersLeaderboardOutput }),
     },
     detail: { tags: ["Votes"], summary: "Supporter leaderboard (top 3, no counts)" },
   })

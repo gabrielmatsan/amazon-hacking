@@ -3,20 +3,20 @@ import { umamiGet, umamiWebsiteId } from "@/shared/infra/umami/umami-client";
 import { num } from "@/analytics/application/umami-overview.mappers";
 import { UsersRepository } from "@/users/infra/users.repository";
 
-// "Minha torcida": supporters share a personal link carrying ref=<userId>. Votes
+// "My supporters": supporters share a personal link carrying ref=<userId>. Votes
 // from those links fire `vote-submitted` with a `ref` property, so Umami groups
 // votes-brought per supporter. We only ever expose the podium (1st/2nd/3rd) and
 // the caller's own position — never the raw counts.
 
 const WINDOW_MS = 180 * 24 * 60 * 60 * 1000; // whole campaign window
 
-export const torcidaOutput = t.Object({
+export const supportersLeaderboardOutput = t.Object({
   podium: t.Array(t.Object({ position: t.Number(), name: t.String() })),
   myPosition: t.Union([t.Number(), t.Null()]),
   participating: t.Boolean(),
 });
 
-export type TorcidaOutput = Static<typeof torcidaOutput>;
+export type SupportersLeaderboardOutput = Static<typeof supportersLeaderboardOutput>;
 
 type RankedRef = { ref: string; total: number };
 
@@ -42,7 +42,7 @@ async function rankedRefs(): Promise<RankedRef[]> {
     .sort((a, b) => b.total - a.total);
 }
 
-export async function torcidaUseCase(userId: string | null): Promise<TorcidaOutput> {
+export async function supportersLeaderboardUseCase(userId: string | null): Promise<SupportersLeaderboardOutput> {
   let ranked: RankedRef[];
   try {
     ranked = await rankedRefs();

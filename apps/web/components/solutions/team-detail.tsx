@@ -15,7 +15,7 @@ import { useTeamBySlug } from "@/hooks/use-teams";
 import { useMyVote, useRequestVoteToken, useVoteForTeam } from "@/hooks/use-votes";
 import { useFingerprint } from "@/hooks/use-fingerprint";
 import { trackEvent, identifyVisitor } from "@/lib/analytics/umami";
-import { captureRefFromUrl, getStoredRef } from "@/lib/analytics/torcida";
+import { captureRefFromUrl, getStoredRef } from "@/lib/analytics/referral";
 import { ShareSolution } from "./share-solution";
 import { getGoogleLoginUrl } from "@/lib/api/auth";
 import type { SolutionPillar, VoteChannel } from "@/lib/api/types";
@@ -151,7 +151,6 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
         slug={slug}
         teamId={team.id}
         teamName={team.name}
-        voterEmail={user?.email}
         voterId={user?.id}
         locale={locale}
       />

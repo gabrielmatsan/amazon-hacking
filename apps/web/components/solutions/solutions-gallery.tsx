@@ -5,8 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { m } from "@/lib/paraglide/messages";
 import { trackEvent } from "@/lib/analytics/umami";
-import { captureRefFromUrl } from "@/lib/analytics/torcida";
-import { MinhaTorcida } from "./minha-torcida";
+import { captureRefFromUrl } from "@/lib/analytics/referral";
+import { MySupporters } from "./my-supporters";
 import type { Locale } from "@/lib/paraglide/runtime";
 import { useTeamGroups } from "@/hooks/use-teams";
 import type { SolutionPillar, TeamListItem } from "@/lib/api/types";
@@ -123,7 +123,7 @@ export function SolutionsGallery({ locale }: { locale: Locale }) {
   return (
     <div className="w-full">
       <div className="mx-auto mb-10 max-w-3xl">
-        <MinhaTorcida locale={locale} />
+        <MySupporters locale={locale} />
       </div>
 
       {/* Controls */}

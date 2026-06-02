@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { getMyVote, getTorcida, requestVoteToken } from "@/lib/api/votes";
+import { getMyVote, getSupportersLeaderboard, requestVoteToken } from "@/lib/api/votes";
 import { useFingerprint } from "./use-fingerprint";
 
 export function useMyVote() {
@@ -13,10 +13,10 @@ export function useMyVote() {
   });
 }
 
-export function useTorcida() {
+export function useSupportersLeaderboard() {
   return useQuery({
-    queryKey: ["votes", "torcida"],
-    queryFn: getTorcida,
+    queryKey: ["votes", "supporters"],
+    queryFn: getSupportersLeaderboard,
     staleTime: 60 * 1000,
     retry: false,
   });
