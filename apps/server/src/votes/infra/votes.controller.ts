@@ -64,12 +64,14 @@ export const votesController = createController({ prefix: "/votes", normalize: f
     },
     detail: { tags: ["Votes"], summary: "Get current user vote" },
   })
-  .get("/supporters", async ({ validateToken, request }) => {
+  .get("/supporters", async ({ validateToken, request, query }) => {
     // Public podium; the caller's own position is included when authenticated.
+    // With ?slug, the board is scoped to that solution; otherwise hackathon-wide.
     const user = await validateToken(request);
-    const data = await supportersLeaderboardUseCase(user?.id ?? null);
+    const data = await supportersLeaderboardUseCase(user?.id ?? null, query.slug);
     return { data };
   }, {
+    query: t.Object({ slug: t.Optional(t.String()) }),
     response: {
       200: t.Object({ data: supportersLeaderboardOutput }),
     },

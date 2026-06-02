@@ -20,6 +20,7 @@ import { fireConfetti } from "@/lib/confetti";
 import { ShareSolution } from "./share-solution";
 import { VoteReceipt } from "./vote-receipt";
 import { LiveViewers } from "./live-viewers";
+import { MySupporters } from "./my-supporters";
 import { getGoogleLoginUrl } from "@/lib/api/auth";
 import type { SolutionPillar, VoteChannel } from "@/lib/api/types";
 import { AxiosError } from "axios";
@@ -253,6 +254,10 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
             </a>
           </>
         )}
+      </div>
+
+      <div className="mt-8">
+        <MySupporters slug={slug} projectName={team.name} locale={locale} />
       </div>
     </div>
   );

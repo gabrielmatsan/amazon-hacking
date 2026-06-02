@@ -26,14 +26,22 @@ function firstName(name: string): string {
   return trimmed.split(/\s+/)[0];
 }
 
-async function rankedRefs(): Promise<RankedRef[]> {
+async function rankedRefs(slug?: string): Promise<RankedRef[]> {
   const websiteId = umamiWebsiteId();
   const endAt = Date.now();
   const startAt = endAt - WINDOW_MS;
 
+  // With a slug, scope to votes cast on that solution's page; without, it's the
+  // hackathon-wide board. The vote-submitted event fires on /solucoes/:slug.
   const rows = await umamiGet<Array<{ value: string; total: number }>>(
     `/websites/${websiteId}/event-data/values`,
-    { startAt, endAt, event: "vote-submitted", propertyName: "ref" },
+    {
+      startAt,
+      endAt,
+      event: "vote-submitted",
+      propertyName: "ref",
+      ...(slug ? { path: `/solucoes/${slug}` } : {}),
+    },
   );
 
   return (rows ?? [])
@@ -42,10 +50,13 @@ async function rankedRefs(): Promise<RankedRef[]> {
     .sort((a, b) => b.total - a.total);
 }
 
-export async function supportersLeaderboardUseCase(userId: string | null): Promise<SupportersLeaderboardOutput> {
+export async function supportersLeaderboardUseCase(
+  userId: string | null,
+  slug?: string,
+): Promise<SupportersLeaderboardOutput> {
   let ranked: RankedRef[];
   try {
-    ranked = await rankedRefs();
+    ranked = await rankedRefs(slug);
   } catch {
     // Umami not configured / unreachable — degrade to an empty board.
     return { podium: [], myPosition: null, participating: false };
