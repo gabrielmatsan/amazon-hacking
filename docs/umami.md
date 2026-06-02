@@ -165,6 +165,11 @@ endpoint (`supporters.usecase.ts`) ranks refs, resolves the top-3 names from the
 returns **only the podium (1st/2nd/3rd) + the caller's position — never the raw counts**.
 `supporter-link-shared` tracks shares of the personal link.
 
+**Shareable vote receipt + confetti.** After voting, `vote-receipt.tsx` shows a celebratory
+"Apoiei a solução X!" card with a pre-opened share (UTM + default `ref`, so the voter
+becomes a promoter and the votes they bring count on their podium). `lib/confetti.ts` fires
+a dependency-free canvas burst at the moment of the vote (in `VoteFlow`'s success handler).
+
 `solution-shared` is fired by the share button (`components/solutions/share-solution.tsx`),
 which builds a UTM-tagged link to the solution (generic default, customizable fields, and
 the default-on `ref=<userId>` referral marker). `vote-confirmed` is sent from the backend via
