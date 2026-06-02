@@ -165,6 +165,23 @@ endpoint (`supporters.usecase.ts`) ranks refs, resolves the top-3 names from the
 returns **only the podium (1st/2nd/3rd) + the caller's position — never the raw counts**.
 `supporter-link-shared` tracks shares of the personal link.
 
+**Live viewers per solution.** `GET /teams/live-viewers` (public, `live-viewers.usecase.ts`)
+reads Umami's realtime URL breakdown, maps `/solucoes/:slug` paths → counts (summing locale
+variants), and caches ~15s in Redis so a burst of page loads is one upstream fetch. The
+`live-viewers.tsx` component polls it (~20s) and shows "N pessoas vendo agora" per solution
+(hidden under 2). Best-effort: any Umami hiccup degrades to an empty map, never an error.
+
+**Social sharing.** The share panel has an editable message (nice localized default) and
+buttons for WhatsApp, X, Facebook, and Instagram **Stories** — the latter renders a
+1080×1920 branded card on a canvas (`lib/story-sticker.ts`) and shares it via the Web Share
+API (files) so it can post straight to a Story on mobile, or downloads it as a fallback.
+Per-method `solution-shared` events (`method` = whatsapp/x/facebook/instagram-stories/…).
+
+**Per-solution SEO + OG image.** `/solucoes/[slug]` now has `generateMetadata` (server-fetches
+the team for title/description/canonical/hreflang) and a dynamic `opengraph-image.tsx`
+(`next/og`, edge) rendering a branded card with the solution name — so Facebook/X/WhatsApp
+unfurl a real preview per solution.
+
 **Shareable vote receipt + confetti.** After voting, `vote-receipt.tsx` shows a celebratory
 "Apoiei a solução X!" card with a pre-opened share (UTM + default `ref`, so the voter
 becomes a promoter and the votes they bring count on their podium). `lib/confetti.ts` fires

@@ -1,12 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { ShareIcon, CheckIcon, CopyIcon, SlidersHorizontalIcon } from "lucide-react";
+import { ShareIcon, CheckIcon, CopyIcon, SlidersHorizontalIcon, InstagramIcon } from "lucide-react";
 import type { Locale } from "@/lib/paraglide/runtime";
 import { SITE_URL } from "@/lib/site";
 import { trackEvent } from "@/lib/analytics/umami";
+import { shareStorySticker } from "@/lib/story-sticker";
 
 const DEFAULT_UTM = { source: "compartilhamento", medium: "referral", campaign: "solucoes-2026" };
+
+const DEFAULT_MESSAGE: Record<Locale, (team: string) => string> = {
+  "pt-br": (team) => `Vote na solução ${team} no Amazon Hacking 2026! 🌱`,
+  en: (team) => `Vote for ${team} at Amazon Hacking 2026! 🌱`,
+  es: (team) => `¡Vota por la solución ${team} en Amazon Hacking 2026! 🌱`,
+};
 
 type ShareSolutionProps = {
   slug: string;
@@ -25,6 +32,7 @@ export function ShareSolution({ slug, teamId, teamName, locale, voterId, default
   // brings credit them on the supporter leaderboard. Uses the opaque user id (no PII).
   const [markAsMe, setMarkAsMe] = useState(true);
   const [utm, setUtm] = useState({ ...DEFAULT_UTM, content: "" });
+  const [shareMessage, setShareMessage] = useState(message ?? DEFAULT_MESSAGE[locale](teamName));
   const [copied, setCopied] = useState(false);
 
   const basePath = `${locale === "pt-br" ? "" : `/${locale}`}/solucoes/${slug}`;
@@ -55,11 +63,28 @@ export function ShareSolution({ slug, teamId, teamName, locale, voterId, default
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const shareText = message ?? teamName;
+  const shareText = shareMessage.trim() || teamName;
+
+  const openShare = (href: string) => window.open(href, "_blank", "noopener");
 
   const shareWhatsApp = () => {
     fireShare("whatsapp");
-    window.open(`https://wa.me/?text=${encodeURIComponent(`${shareText} ${url}`)}`, "_blank", "noopener");
+    openShare(`https://wa.me/?text=${encodeURIComponent(`${shareText} ${url}`)}`);
+  };
+
+  const shareX = () => {
+    fireShare("x");
+    openShare(`https://x.com/intent/post?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(url)}`);
+  };
+
+  const shareFacebook = () => {
+    fireShare("facebook");
+    openShare(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`);
+  };
+
+  const shareStories = async () => {
+    fireShare("instagram-stories");
+    await shareStorySticker({ teamName, url, locale });
   };
 
   const shareNative = async () => {
@@ -71,9 +96,9 @@ export function ShareSolution({ slug, teamId, teamName, locale, voterId, default
 
   const canNativeShare = typeof navigator !== "undefined" && !!navigator.share;
   const labels = {
-    "pt-br": { share: "Compartilhar", customize: "Personalizar UTM", identity: "Marcar como minha indicação", identityHint: "Os votos deste link contam para você no pódio.", copy: "Copiar link", copied: "Copiado!" },
-    en: { share: "Share", customize: "Customize UTM", identity: "Mark as my referral", identityHint: "Votes from this link count toward you on the podium.", copy: "Copy link", copied: "Copied!" },
-    es: { share: "Compartir", customize: "Personalizar UTM", identity: "Marcar como mi referido", identityHint: "Los votos de este enlace cuentan para ti en el podio.", copy: "Copiar enlace", copied: "¡Copiado!" },
+    "pt-br": { share: "Compartilhar", customize: "Personalizar UTM", identity: "Marcar como minha indicação", identityHint: "Os votos deste link contam para você no pódio.", copy: "Copiar link", copied: "Copiado!", message: "Sua mensagem", stories: "Stories" },
+    en: { share: "Share", customize: "Customize UTM", identity: "Mark as my referral", identityHint: "Votes from this link count toward you on the podium.", copy: "Copy link", copied: "Copied!", message: "Your message", stories: "Stories" },
+    es: { share: "Compartir", customize: "Personalizar UTM", identity: "Marcar como mi referido", identityHint: "Los votos de este enlace cuentan para ti en el podio.", copy: "Copiar enlace", copied: "¡Copiado!", message: "Tu mensaje", stories: "Stories" },
   }[locale];
 
   return (
@@ -89,7 +114,17 @@ export function ShareSolution({ slug, teamId, teamName, locale, voterId, default
 
       {open ? (
         <div className="mt-3 max-w-md rounded-2xl border border-neutrals-200 bg-white p-4 shadow-sm">
-          <div className="flex items-center gap-2 rounded-xl border border-neutrals-200 bg-neutrals-100/60 px-3 py-2">
+          <label className="block text-[11px] font-medium text-neutrals-500">
+            {labels.message}
+            <textarea
+              value={shareMessage}
+              onChange={(e) => setShareMessage(e.target.value)}
+              rows={2}
+              className="mt-1 w-full resize-none rounded-xl border border-neutrals-200 px-3 py-2 text-xs text-neutrals-800 outline-none focus:border-primary-100"
+            />
+          </label>
+
+          <div className="mt-3 flex items-center gap-2 rounded-xl border border-neutrals-200 bg-neutrals-100/60 px-3 py-2">
             <span className="flex-1 truncate font-mono text-xs text-neutrals-600">{url}</span>
             <button
               type="button"
@@ -108,6 +143,28 @@ export function ShareSolution({ slug, teamId, teamName, locale, voterId, default
               className="rounded-lg bg-[#25D366] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
             >
               WhatsApp
+            </button>
+            <button
+              type="button"
+              onClick={shareX}
+              className="rounded-lg bg-black px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+            >
+              X
+            </button>
+            <button
+              type="button"
+              onClick={shareFacebook}
+              className="rounded-lg bg-[#1877F2] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+            >
+              Facebook
+            </button>
+            <button
+              type="button"
+              onClick={shareStories}
+              className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-tr from-[#feda75] via-[#d62976] to-[#962fbf] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+            >
+              <InstagramIcon className="size-3.5" />
+              {labels.stories}
             </button>
             {canNativeShare ? (
               <button

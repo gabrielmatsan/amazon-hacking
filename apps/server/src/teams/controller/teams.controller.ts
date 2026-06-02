@@ -6,8 +6,18 @@ import { getTeamBySlug } from "../applications/get-team-by-slug.usecase";
 import { getTeam } from "../applications/get-team.usecase";
 import { listTeams, teamListGroupSchema } from "../applications/list-teams.usecase";
 import { teamType } from "../domain/teams.type";
+import { liveViewersOutput, liveViewersUseCase } from "@/analytics/application/live-viewers.usecase";
 
 export const teamsController = createController({ prefix: "/teams" })
+  .get("/live-viewers", async () => {
+    const data = await liveViewersUseCase();
+    return { data };
+  }, {
+    response: {
+      200: t.Object({ data: liveViewersOutput }),
+    },
+    detail: { tags: ["Teams", "Analytics"], summary: "Live viewers per solution (public)" },
+  })
   .get("/", async () => {
     const data = await listTeams();
     return { data };
