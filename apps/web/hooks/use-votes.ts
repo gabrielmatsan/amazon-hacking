@@ -13,10 +13,10 @@ export function useMyVote() {
   });
 }
 
-export function useSupportersLeaderboard() {
+export function useSupportersLeaderboard(slug?: string) {
   return useQuery({
-    queryKey: ["votes", "supporters"],
-    queryFn: getSupportersLeaderboard,
+    queryKey: ["votes", "supporters", slug ?? "global"],
+    queryFn: () => getSupportersLeaderboard(slug),
     staleTime: 60 * 1000,
     retry: false,
   });
