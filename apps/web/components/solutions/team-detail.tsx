@@ -15,7 +15,10 @@ import { useTeamBySlug } from "@/hooks/use-teams";
 import { useMyVote, useRequestVoteToken, useVoteForTeam } from "@/hooks/use-votes";
 import { useFingerprint } from "@/hooks/use-fingerprint";
 import { trackEvent, identifyVisitor } from "@/lib/analytics/umami";
+import { captureRefFromUrl, getStoredRef } from "@/lib/analytics/referral";
+import { fireConfetti } from "@/lib/confetti";
 import { ShareSolution } from "./share-solution";
+import { VoteReceipt } from "./vote-receipt";
 import { getGoogleLoginUrl } from "@/lib/api/auth";
 import type { SolutionPillar, VoteChannel } from "@/lib/api/types";
 import { AxiosError } from "axios";
@@ -82,6 +85,9 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
   const teamId = team?.id;
   const teamName = team?.name;
   useEffect(() => {
+    captureRefFromUrl();
+  }, []);
+  useEffect(() => {
     if (teamId) trackEvent("solution-viewed", { teamId, teamName });
   }, [teamId, teamName]);
 
@@ -147,7 +153,7 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
         slug={slug}
         teamId={team.id}
         teamName={team.name}
-        voterEmail={user?.email}
+        voterId={user?.id}
         locale={locale}
       />
 
@@ -204,17 +210,13 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
           <div className="mt-5 size-6 animate-spin rounded-full border-2 border-primary-100/30 border-t-primary-100" />
         ) : hasVoted ? (
           votedForThisTeam ? (
-            <>
-              <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-secondary-100 px-5 py-3 text-sm font-semibold text-white">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-                  <path d="M3 8.5l3.5 3.5L13 4.5" stroke="currentColor" strokeWidth="2" />
-                </svg>
-                {m.vote_voted({}, { locale })}
-              </div>
-              <p className="mt-3 text-xs text-neutrals-400">
-                {m.vote_thanks({}, { locale })}
-              </p>
-            </>
+            <VoteReceipt
+              teamId={team.id}
+              teamName={team.name}
+              slug={slug}
+              voterId={user?.id}
+              locale={locale}
+            />
           ) : (
             <div className="mt-5 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4 text-sm text-amber-800">
               {m.vote_already_voted_other({}, { locale })}
@@ -309,6 +311,7 @@ function VoteFlow({
       { teamId, token: code },
       {
         onSuccess: () => {
+          fireConfetti();
           const fingerprint = getFingerprint();
           // Prefer the authenticated voter's email as the Distinct ID (stable across
           // devices); fall back to the fingerprint. Email/name are the voter's own
@@ -318,7 +321,13 @@ function VoteFlow({
           } else if (fingerprint) {
             identifyVisitor(fingerprint);
           }
-          trackEvent("vote-submitted", { teamId, teamName, channel: channel ?? "unknown" });
+          const ref = getStoredRef();
+          trackEvent("vote-submitted", {
+            teamId,
+            teamName,
+            channel: channel ?? "unknown",
+            ...(ref ? { ref } : {}),
+          });
         },
         onError: (err) => {
           setErrorMsg(getErrorMessage(err) ?? m.vote_error_generic({}, { locale }));
