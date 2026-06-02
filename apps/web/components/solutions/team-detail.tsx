@@ -19,6 +19,7 @@ import { captureRefFromUrl, getStoredRef } from "@/lib/analytics/referral";
 import { fireConfetti } from "@/lib/confetti";
 import { ShareSolution } from "./share-solution";
 import { VoteReceipt } from "./vote-receipt";
+import { LiveViewers } from "./live-viewers";
 import { getGoogleLoginUrl } from "@/lib/api/auth";
 import type { SolutionPillar, VoteChannel } from "@/lib/api/types";
 import { AxiosError } from "axios";
@@ -146,6 +147,9 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-black text-balance md:text-4xl">
             {team.name}
           </h1>
+          <div className="mt-3">
+            <LiveViewers slug={slug} locale={locale} />
+          </div>
         </div>
       </div>
 
