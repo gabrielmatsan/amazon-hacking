@@ -21,7 +21,9 @@ export type SupportersLeaderboard = {
   participating: boolean;
 };
 
-export async function getSupportersLeaderboard() {
-  const { data } = await api.get<{ data: SupportersLeaderboard }>("/votes/supporters");
+export async function getSupportersLeaderboard(slug?: string) {
+  const { data } = await api.get<{ data: SupportersLeaderboard }>("/votes/supporters", {
+    params: slug ? { slug } : undefined,
+  });
   return data.data;
 }

@@ -1,7 +1,17 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { listTeams, getTeamBySlug } from "@/lib/api/teams";
+import { listTeams, getTeamBySlug, getLiveViewers } from "@/lib/api/teams";
+
+export function useLiveViewers() {
+  return useQuery({
+    queryKey: ["teams", "live-viewers"],
+    queryFn: getLiveViewers,
+    refetchInterval: 20 * 1000,
+    refetchOnWindowFocus: true,
+    retry: false,
+  });
+}
 
 export function useTeamGroups() {
   return useQuery({
