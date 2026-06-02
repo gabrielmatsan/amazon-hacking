@@ -2,13 +2,22 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { getMyVote, requestVoteToken } from "@/lib/api/votes";
+import { getMyVote, getTorcida, requestVoteToken } from "@/lib/api/votes";
 import { useFingerprint } from "./use-fingerprint";
 
 export function useMyVote() {
   return useQuery({
     queryKey: ["votes", "me"],
     queryFn: getMyVote,
+    retry: false,
+  });
+}
+
+export function useTorcida() {
+  return useQuery({
+    queryKey: ["votes", "torcida"],
+    queryFn: getTorcida,
+    staleTime: 60 * 1000,
     retry: false,
   });
 }

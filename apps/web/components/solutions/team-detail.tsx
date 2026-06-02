@@ -15,6 +15,7 @@ import { useTeamBySlug } from "@/hooks/use-teams";
 import { useMyVote, useRequestVoteToken, useVoteForTeam } from "@/hooks/use-votes";
 import { useFingerprint } from "@/hooks/use-fingerprint";
 import { trackEvent, identifyVisitor } from "@/lib/analytics/umami";
+import { captureRefFromUrl, getStoredRef } from "@/lib/analytics/torcida";
 import { ShareSolution } from "./share-solution";
 import { getGoogleLoginUrl } from "@/lib/api/auth";
 import type { SolutionPillar, VoteChannel } from "@/lib/api/types";
@@ -82,6 +83,9 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
   const teamId = team?.id;
   const teamName = team?.name;
   useEffect(() => {
+    captureRefFromUrl();
+  }, []);
+  useEffect(() => {
     if (teamId) trackEvent("solution-viewed", { teamId, teamName });
   }, [teamId, teamName]);
 
@@ -148,6 +152,7 @@ export function TeamDetail({ slug, locale }: { slug: string; locale: Locale }) {
         teamId={team.id}
         teamName={team.name}
         voterEmail={user?.email}
+        voterId={user?.id}
         locale={locale}
       />
 
@@ -318,7 +323,13 @@ function VoteFlow({
           } else if (fingerprint) {
             identifyVisitor(fingerprint);
           }
-          trackEvent("vote-submitted", { teamId, teamName, channel: channel ?? "unknown" });
+          const ref = getStoredRef();
+          trackEvent("vote-submitted", {
+            teamId,
+            teamName,
+            channel: channel ?? "unknown",
+            ...(ref ? { ref } : {}),
+          });
         },
         onError: (err) => {
           setErrorMsg(getErrorMessage(err) ?? m.vote_error_generic({}, { locale }));

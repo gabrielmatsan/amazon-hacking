@@ -14,3 +14,14 @@ export async function requestVoteToken(phoneNumber: string, turnstileToken: stri
   });
   return data;
 }
+
+export type Torcida = {
+  podium: Array<{ position: number; name: string }>;
+  myPosition: number | null;
+  participating: boolean;
+};
+
+export async function getTorcida() {
+  const { data } = await api.get<{ data: Torcida }>("/votes/torcida");
+  return data.data;
+}
