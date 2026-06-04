@@ -1,5 +1,4 @@
-# Tucupy Template
-
+# Amazon Hacking
 Monorepo template com infraestrutura production-ready.
 
 ## Stack
