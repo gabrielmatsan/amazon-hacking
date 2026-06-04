@@ -4,6 +4,7 @@ import { Header } from "@/components/site/header";
 import { Footer } from "@/components/site/footer";
 import { WaveDivider } from "@/components/site/wave-divider";
 import { SolutionsGallery } from "@/components/solutions/solutions-gallery";
+import { FiuzaTribute } from "@/components/solutions/fiuza-tribute";
 import { TucupyCta } from "@/components/site/tucupy-cta";
 import { setRequestLocale } from "@/lib/i18n";
 import { pageMetadata, resolveLocale, solutionsCopy } from "@/lib/seo";
@@ -63,6 +64,9 @@ export default async function SolutionsPage({
           </div>
         </section>
         <WaveDivider from="#005194" to="#ffffff" />
+
+        {/* Conceição Fiúza de Melo tribute */}
+        <FiuzaTribute locale={resolved} />
 
         {/* Tucupy CTA */}
         <TucupyCta locale={resolved} />
