@@ -58,7 +58,13 @@ export function WinnersSection() {
           </Reveal>
         )}
 
-        <div className="mt-16 space-y-16">
+        <Reveal as="div" className="mt-20">
+          <span className="text-sm font-bold tracking-[0.16em] text-secondary-300 uppercase">
+            {m.winners_previous()}
+          </span>
+        </Reveal>
+
+        <div className="mt-8 space-y-16">
           {years.map((year) => {
             const yearWinners = winners.filter((winner) => winner.year === year);
             return (
