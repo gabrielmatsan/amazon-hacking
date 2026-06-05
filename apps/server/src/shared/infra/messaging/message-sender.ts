@@ -6,8 +6,20 @@ export interface SendOptions {
   code?: string;
 }
 
+// Which transport actually delivered the message. Distinguishes WhatsApp
+// (Arara/Evolution) from SMS (Vonage) so callers can surface it to the user.
+export type DeliveryChannel = "whatsapp" | "sms";
+
+export interface SendResult {
+  channel: DeliveryChannel;
+}
+
 export interface MessageSender {
-  send(phoneNumber: string, body: string, options?: SendOptions): Promise<void>;
+  send(
+    phoneNumber: string,
+    body: string,
+    options?: SendOptions,
+  ): Promise<SendResult>;
 }
 
 export class MessageSendError extends Error {

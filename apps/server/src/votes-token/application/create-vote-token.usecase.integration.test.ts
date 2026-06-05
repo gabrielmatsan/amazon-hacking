@@ -56,7 +56,7 @@ describe("createVoteTokenUseCase (integration)", () => {
 
   it("creates a token via whatsapp when sender succeeds", async () => {
     setMessageSenderForTests({
-      send: mock(() => Promise.resolve()),
+      send: mock(() => Promise.resolve({ channel: "whatsapp" as const })),
     });
 
     const user = await seedUser();
@@ -128,7 +128,7 @@ describe("createVoteTokenUseCase (integration)", () => {
 
   it("rejects when user already voted", async () => {
     setMessageSenderForTests({
-      send: mock(() => Promise.resolve()),
+      send: mock(() => Promise.resolve({ channel: "whatsapp" as const })),
     });
 
     const user = await seedUser();
@@ -152,7 +152,7 @@ describe("createVoteTokenUseCase (integration)", () => {
 
   it("rejects when phone number is already used by another vote", async () => {
     setMessageSenderForTests({
-      send: mock(() => Promise.resolve()),
+      send: mock(() => Promise.resolve({ channel: "whatsapp" as const })),
     });
 
     const user1 = await seedUser("User 1");

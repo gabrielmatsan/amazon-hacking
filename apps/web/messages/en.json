@@ -102,6 +102,7 @@
   "vote_phone_placeholder": "Phone number",
   "vote_phone_submit": "Send code",
   "vote_code_sent_whatsapp": "Code sent to your WhatsApp.",
+  "vote_code_sent_sms": "Code sent via SMS to your phone.",
   "vote_code_sent_email": "We couldn't send via WhatsApp. The code was sent to your email.",
   "vote_code_label": "Enter the 6-digit code",
   "vote_code_placeholder": "000000",

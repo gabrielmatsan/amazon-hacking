@@ -67,7 +67,7 @@ export type VoteResponse = {
   message: string;
 };
 
-export type VoteChannel = "whatsapp" | "email";
+export type VoteChannel = "whatsapp" | "sms" | "email";
 
 export type VoteTokenResponse = {
   message: string;
