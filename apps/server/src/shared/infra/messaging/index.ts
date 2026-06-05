@@ -19,12 +19,12 @@ export function getMessageSender(): MessageSender {
     // still falls back to email if every provider fails.
     cached = createFallbackSender([
       { name: "arara", sender: araraSender },
-      { name: "smsdev", sender: smsDevSender },
+      //{ name: "smsdev", sender: smsDevSender },
       { name: "vonage", sender: vonageSender },
     ]);
   } else if (env.MESSAGE_SENDER === "smsdev") {
     cached = createFallbackSender([
-      { name: "smsdev", sender: smsDevSender },
+      // { name: "smsdev", sender: smsDevSender },
       { name: "vonage", sender: vonageSender },
     ]);
   } else if (env.MESSAGE_SENDER === "vonage") {
@@ -40,6 +40,7 @@ export function setMessageSenderForTests(sender: MessageSender | null): void {
   cached = sender;
 }
 
-export type { MessageSender } from "./message-sender";
 export { MessageSendError } from "./message-sender";
+export type { MessageSender } from "./message-sender";
 export { sendEvolutionAlert };
+
