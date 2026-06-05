@@ -14,6 +14,11 @@ const prizeLabels: Record<string, Record<Locale, string>> = {
   community_choice: { "pt-br": "Prêmio Comunidade", en: "Community Choice", es: "Premio Comunidad" },
   technical: { "pt-br": "Prêmio Técnico", en: "Technical Award", es: "Premio Técnico" },
   innovation: { "pt-br": "Prêmio Inovação", en: "Innovation Award", es: "Premio Innovación" },
+  fiuza_melo: {
+    "pt-br": "Prêmio Fiúza de Melo",
+    en: "Fiúza de Melo Award",
+    es: "Premio Fiúza de Melo",
+  },
 };
 
 export function WinnerCard({ winner, locale }: { winner: Winner; locale: Locale }) {

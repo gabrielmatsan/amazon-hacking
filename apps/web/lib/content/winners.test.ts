@@ -28,8 +28,10 @@ describe("winners catalog", () => {
     }
   });
 
-  it("includes the full historic catalog (15 projects across 2022-2024)", () => {
-    expect(winners.length).toBe(15);
+  it("includes the full catalog (22 projects across 2022-2026)", () => {
+    expect(winners.length).toBe(22);
+    expect(winnersByYear(2026).length).toBe(4);
+    expect(winnersByYear(2025).length).toBe(3);
     expect(winnersByYear(2024).length).toBe(3);
     expect(winnersByYear(2023).length).toBe(6);
     expect(winnersByYear(2022).length).toBe(6);
