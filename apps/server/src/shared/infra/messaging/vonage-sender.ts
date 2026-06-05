@@ -2,21 +2,37 @@ import { env } from "../env/env";
 import { logger } from "../observability";
 import { MessageSendError, type MessageSender } from "./message-sender";
 
-function requireConfig(): {
-  url: string;
+interface VonageCredentials {
   apiKey: string;
   apiSecret: string;
+}
+
+// Vonage credential pairs in order of preference. The primary account is tried
+// first; if a send fails with it, we fall back to the secondary account.
+// Incomplete pairs (missing key or secret) are dropped so misconfigured slots
+// don't waste an attempt.
+function requireConfig(): {
+  url: string;
+  credentials: VonageCredentials[];
   from: string;
 } {
-  if (!env.VONAGE_API_KEY || !env.VONAGE_API_SECRET || !env.VONAGE_FROM) {
+  const credentials: VonageCredentials[] = [
+    { apiKey: env.VONAGE_API_KEY, apiSecret: env.VONAGE_API_SECRET },
+    { apiKey: env.VONAGE_API_KEY_2, apiSecret: env.VONAGE_API_SECRET_2 },
+  ].filter(
+    (pair): pair is VonageCredentials =>
+      Boolean(pair.apiKey) && Boolean(pair.apiSecret),
+  );
+
+  if (credentials.length === 0 || !env.VONAGE_FROM) {
     throw new MessageSendError(
       "Vonage sender is not configured (VONAGE_API_KEY, VONAGE_API_SECRET, VONAGE_FROM)",
     );
   }
+
   return {
     url: env.VONAGE_URL.replace(/\/$/, ""),
-    apiKey: env.VONAGE_API_KEY,
-    apiSecret: env.VONAGE_API_SECRET,
+    credentials,
     from: env.VONAGE_FROM,
   };
 }
@@ -77,39 +93,56 @@ async function sendSms(
 
 export const vonageSender: MessageSender = {
   async send(phoneE164, body) {
-    const { url, apiKey, apiSecret, from } = requireConfig();
+    const { url, credentials, from } = requireConfig();
 
-    const params = new URLSearchParams({
-      api_key: apiKey,
-      api_secret: apiSecret,
-      to: toVonageNumber(phoneE164),
-      from,
-      text: body,
-    });
+    let lastError: MessageSendError | undefined;
 
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 20_000);
+    for (let i = 0; i < credentials.length; i++) {
+      const { apiKey, apiSecret } = credentials[i];
+      const isLastAccount = i === credentials.length - 1;
 
-    try {
-      const result = await sendSms(url, params, controller.signal);
+      const params = new URLSearchParams({
+        api_key: apiKey,
+        api_secret: apiSecret,
+        to: toVonageNumber(phoneE164),
+        from,
+        text: body,
+      });
 
-      if (!result.ok) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 20_000);
+
+      try {
+        const result = await sendSms(url, params, controller.signal);
+
+        if (result.ok) return { channel: "sms" };
+
         logger.warn(
-          { status: result.status, errorText: result.errorText, phoneE164 },
+          {
+            status: result.status,
+            errorText: result.errorText,
+            phoneE164,
+            accountIndex: i,
+            willFallback: !isLastAccount,
+          },
           "Vonage API returned a failure",
         );
-        throw new MessageSendError(
+        lastError = new MessageSendError(
           `Vonage responded ${result.status}: ${result.errorText || "no body"}`,
         );
+      } catch (err) {
+        logger.error(
+          { err, phoneE164, accountIndex: i, willFallback: !isLastAccount },
+          "Vonage send failed",
+        );
+        lastError = new MessageSendError("Failed to dispatch SMS message", err);
+      } finally {
+        clearTimeout(timer);
       }
-    } catch (err) {
-      if (err instanceof MessageSendError) throw err;
-      logger.error({ err, phoneE164 }, "Vonage send failed");
-      throw new MessageSendError("Failed to dispatch SMS message", err);
-    } finally {
-      clearTimeout(timer);
     }
 
-    return { channel: "sms" };
+    throw (
+      lastError ?? new MessageSendError("Failed to dispatch SMS message")
+    );
   },
 };
