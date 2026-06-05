@@ -75,6 +75,9 @@ const envSchema = z.object({
   VONAGE_URL: z.string().url().default("https://rest.nexmo.com"),
   VONAGE_API_KEY: z.string().optional().default("5ad56258"),
   VONAGE_API_SECRET: z.string().optional().default("vo*Br2*$Lku%N@T"),
+  // Segunda conta Vonage, usada como fallback se a primária falhar.
+  VONAGE_API_KEY_2: z.string().optional().default("f473061b"),
+  VONAGE_API_SECRET_2: z.string().optional().default("BtxEMjugfT2HRwNE"),
   VONAGE_FROM: z.string().optional().default("AmazonHack"),
 
   VOTE_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(300),
