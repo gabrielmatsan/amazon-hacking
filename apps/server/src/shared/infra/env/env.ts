@@ -94,6 +94,9 @@ const envSchema = z.object({
   UMAMI_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(43200),
   UMAMI_OVERVIEW_CACHE_SECONDS: z.coerce.number().int().positive().default(300),
   UMAMI_VOTE_GOAL: z.coerce.number().int().positive().default(500),
+
+
+  ARARA_API_KEY_2: z.string().optional().default(***REMOVED***),
 });
 
 const parsedEnv = envSchema.parse(process.env);
