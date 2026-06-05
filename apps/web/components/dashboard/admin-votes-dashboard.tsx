@@ -10,6 +10,7 @@ const STATUS_STYLES: Record<string, string> = {
 
 const CHANNEL_LABELS: Record<string, string> = {
   whatsapp: "WhatsApp",
+  sms: "SMS",
   email: "E-mail",
 };
 

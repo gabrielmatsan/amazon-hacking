@@ -1,0 +1,1 @@
+ALTER TYPE "public"."vote_token_channel" ADD VALUE 'sms';

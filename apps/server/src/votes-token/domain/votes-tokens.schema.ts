@@ -20,6 +20,7 @@ export const voteTokenStatus = pgEnum("vote_token_status", [
 export const voteTokenChannel = pgEnum("vote_token_channel", [
   "whatsapp",
   "email",
+  "sms",
 ]);
 
 export const votesTokensSchema = pgTable(

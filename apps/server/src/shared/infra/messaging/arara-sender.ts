@@ -84,7 +84,7 @@ export const araraSender: MessageSender = {
           controller.signal,
         );
 
-        if (result.ok) return;
+        if (result.ok) return { channel: "whatsapp" };
 
         logger.warn(
           {

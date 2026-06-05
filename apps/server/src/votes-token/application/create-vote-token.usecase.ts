@@ -27,7 +27,7 @@ export const createVoteTokenInput = t.Object({
 
 type CreateVoteTokenInput = Static<typeof createVoteTokenInput>;
 
-export type VoteChannel = "whatsapp" | "email";
+export type VoteChannel = "whatsapp" | "sms" | "email";
 
 export interface CreateVoteTokenResult {
   message: string;
@@ -130,14 +130,17 @@ export async function createVoteTokenUseCase(
     await VoteTokensRepository.supersedePreviousValidByUser(userId, tx);
 
     try {
-      await sender.send(
+      const sendResult = await sender.send(
         phoneNumber,
         `Seu codigo de verificacao e ${code}. Expira em ${ttlMinutes} min.`,
         { code },
       );
 
+      // whatsapp (Arara/Evolution) or sms (Vonage fallback) — surfaced to the UI.
+      channel = sendResult.channel;
+
       await VoteTokensRepository.create(
-        { userId, phoneNumber, tokenHash, expiresAt, channel: "whatsapp", ipAddress: ipAddress ?? null },
+        { userId, phoneNumber, tokenHash, expiresAt, channel, ipAddress: ipAddress ?? null },
         tx,
       );
     } catch (err) {

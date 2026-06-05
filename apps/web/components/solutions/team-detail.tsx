@@ -394,7 +394,9 @@ function VoteFlow({
       <p className="text-sm font-medium text-black">
         {channel === "email"
           ? m.vote_code_sent_email({}, { locale })
-          : m.vote_code_sent_whatsapp({}, { locale })}
+          : channel === "sms"
+            ? m.vote_code_sent_sms({}, { locale })
+            : m.vote_code_sent_whatsapp({}, { locale })}
       </p>
       <label className="mt-3 text-sm text-neutrals-600">
         {m.vote_code_label({}, { locale })}

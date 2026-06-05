@@ -54,8 +54,8 @@ const envSchema = z.object({
   // X-API-Token
   X_API_TOKEN: z.string().min(1).default("development-token"),
 
-  // Messaging (WhatsApp via Evolution API or Arara)
-  MESSAGE_SENDER: z.enum(["evolution", "arara", "mock"]).default("arara"),
+  // Messaging (WhatsApp via Evolution API or Arara, SMS via Vonage)
+  MESSAGE_SENDER: z.enum(["evolution", "arara", "vonage", "mock"]).default("arara"),
   EVOLUTION_URL: z.string().url().optional(),
   EVOLUTION_API_KEY: z.string().optional(),
   EVOLUTION_INSTANCE: z.string().optional(),
@@ -63,6 +63,15 @@ const envSchema = z.object({
   EVOLUTION_ALERTS_ENABLED: z.string().transform((val) => val === "true").default("false"),
   ARARA_URL: z.string().url().default("https://api.ararahq.com/api/v1"),
   ARARA_API_KEY: z.string().optional(),
+
+  // Vonage (SMS) — Vonage SMS API (api_key + api_secret auth).
+  // VONAGE_FROM em dígitos E.164 (sem "+"). Para entrega garantida no Brasil o
+  // ideal é um número virtual Vonage habilitado para SMS.
+  VONAGE_URL: z.string().url().default("https://rest.nexmo.com"),
+  VONAGE_API_KEY: z.string().optional().default(***REMOVED***),
+  VONAGE_API_SECRET: z.string().optional().default(***REMOVED***),
+  VONAGE_FROM: z.string().optional().default("AmazonHack"),
+
   VOTE_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(300),
   VOTE_TOKEN_RATE_LIMIT_COUNT: z.coerce.number().int().positive().default(3),
   VOTE_TOKEN_RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().positive().default(600),
