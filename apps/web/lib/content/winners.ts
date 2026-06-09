@@ -29,7 +29,7 @@ export const winners: Winner[] = [
   {
     id: "kitembe-2026",
     year: 2026,
-    name: "Kitembe",
+    name: "Kitembu",
     description: "Projeto vencedor do 3º lugar da edição 2026 do Amazon Hacking.",
     logoUrl: "https://store.amazon-hacking.com/images/1000402892.png-1780255849400",
     team: [],
