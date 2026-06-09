@@ -56,7 +56,7 @@ describe("createVoteTokenUseCase (integration)", () => {
 
   it("creates a token via whatsapp when sender succeeds", async () => {
     setMessageSenderForTests({
-      send: mock(() => Promise.resolve()),
+      send: mock(() => Promise.resolve({ channel: "whatsapp" as const })),
     });
 
     const user = await seedUser();
@@ -74,6 +74,26 @@ describe("createVoteTokenUseCase (integration)", () => {
     expect(tokens).toHaveLength(1);
     expect(tokens[0].channel).toBe("whatsapp");
     expect(tokens[0].phoneNumber).toBe("+5591988887777");
+  });
+
+  it("records the sms channel when the sender delivers via SMS", async () => {
+    setMessageSenderForTests({
+      send: mock(() => Promise.resolve({ channel: "sms" as const })),
+    });
+
+    const user = await seedUser("SMS User");
+
+    const result = await createVoteTokenUseCase(user.id, {
+      phoneNumber: "+5591988883333",
+      turnstileToken: "test-token",
+    });
+
+    expect(result.channel).toBe("sms");
+
+    const tokens = await db.select().from(votesTokensSchema);
+    expect(tokens).toHaveLength(1);
+    expect(tokens[0].channel).toBe("sms");
+    expect(tokens[0].phoneNumber).toBe("+5591988883333");
   });
 
   it("falls back to email when whatsapp sender throws MessageSendError", async () => {
@@ -128,7 +148,7 @@ describe("createVoteTokenUseCase (integration)", () => {
 
   it("rejects when user already voted", async () => {
     setMessageSenderForTests({
-      send: mock(() => Promise.resolve()),
+      send: mock(() => Promise.resolve({ channel: "whatsapp" as const })),
     });
 
     const user = await seedUser();
@@ -152,7 +172,7 @@ describe("createVoteTokenUseCase (integration)", () => {
 
   it("rejects when phone number is already used by another vote", async () => {
     setMessageSenderForTests({
-      send: mock(() => Promise.resolve()),
+      send: mock(() => Promise.resolve({ channel: "whatsapp" as const })),
     });
 
     const user1 = await seedUser("User 1");

@@ -169,7 +169,7 @@ function VoteCard({
       <div className="grid grid-cols-2 gap-px border-t border-neutral-950/5 bg-neutral-950/5 sm:grid-cols-4">
         <InfoCell label="IP" value={vote.ipAddress ?? "—"} />
         <InfoCell label="País" value={vote.ipCountry ?? "—"} />
-        <InfoCell label="Canal" value={vote.channel === "whatsapp" ? "WhatsApp" : "E-mail"} />
+        <InfoCell label="Canal" value={vote.channel === "whatsapp" ? "WhatsApp" : vote.channel === "sms" ? "SMS" : "E-mail"} />
         <InfoCell label="Data" value={formatDate(vote.createdAt)} />
       </div>
       <div className="grid grid-cols-2 gap-px border-t border-neutral-950/5 bg-neutral-950/5 sm:grid-cols-3">

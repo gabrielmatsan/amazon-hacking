@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { m } from "@/lib/paraglide/messages";
 import { trackEvent } from "@/lib/analytics/umami";
+import { captureRefFromUrl } from "@/lib/analytics/referral";
+import { MySupporters } from "./my-supporters";
 import type { Locale } from "@/lib/paraglide/runtime";
 import { useTeamGroups } from "@/hooks/use-teams";
 import type { SolutionPillar, TeamListItem } from "@/lib/api/types";
@@ -98,6 +100,10 @@ export function SolutionsGallery({ locale }: { locale: Locale }) {
     return () => clearTimeout(timer);
   }, [query, filteredGroups]);
 
+  useEffect(() => {
+    captureRefFromUrl();
+  }, []);
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-20">
@@ -116,6 +122,10 @@ export function SolutionsGallery({ locale }: { locale: Locale }) {
 
   return (
     <div className="w-full">
+      <div className="mx-auto mb-10 max-w-3xl">
+        <MySupporters locale={locale} />
+      </div>
+
       {/* Controls */}
       <div className="flex flex-col items-center gap-6">
         {/* Search */}

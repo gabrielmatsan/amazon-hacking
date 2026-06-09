@@ -71,7 +71,7 @@ export const votesTokensController = createController({
         201: t.Object({
           message: t.String(),
           expiresAt: t.String(),
-          channel: t.Union([t.Literal("whatsapp"), t.Literal("email")]),
+          channel: t.Union([t.Literal("whatsapp"), t.Literal("sms"), t.Literal("email")]),
         }),
         400: errorResponse,
         401: errorResponse,

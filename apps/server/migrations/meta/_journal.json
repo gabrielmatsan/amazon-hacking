@@ -22,6 +22,13 @@
       "when": 1780154205786,
       "tag": "20260530151645_slimy_maestro",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1780652078774,
+      "tag": "20260605093438_great_enchantress",
+      "breakpoints": true
     }
   ]
 }

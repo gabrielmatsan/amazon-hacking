@@ -14,3 +14,16 @@ export async function requestVoteToken(phoneNumber: string, turnstileToken: stri
   });
   return data;
 }
+
+export type SupportersLeaderboard = {
+  podium: Array<{ position: number; name: string }>;
+  myPosition: number | null;
+  participating: boolean;
+};
+
+export async function getSupportersLeaderboard(slug?: string) {
+  const { data } = await api.get<{ data: SupportersLeaderboard }>("/votes/supporters", {
+    params: slug ? { slug } : undefined,
+  });
+  return data.data;
+}

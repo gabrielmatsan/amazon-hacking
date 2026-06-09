@@ -94,6 +94,8 @@ export const evolutionSender: MessageSender = {
     } finally {
       clearTimeout(timer);
     }
+
+    return { channel: "whatsapp" };
   },
 };
 

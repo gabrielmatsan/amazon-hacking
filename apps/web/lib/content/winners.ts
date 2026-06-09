@@ -7,6 +7,45 @@ const SCI = "Ciência da Computação";
 const names = (...list: string[]) => list.map((name) => ({ name }));
 
 export const winners: Winner[] = [
+  // ---------------------------------------------------------------- 2026
+  {
+    id: "veredas-2026",
+    year: 2026,
+    name: "Veredas",
+    description: "Projeto campeão da edição 2026 do Amazon Hacking.",
+    logoUrl: "https://store.amazon-hacking.com/images/cart%C3%A3o-de-visita-veredas.png-1780179774410",
+    team: [],
+    prizes: ["champion"],
+  },
+  {
+    id: "umani-2026",
+    year: 2026,
+    name: "Umani",
+    description: "Projeto vencedor do 2º lugar da edição 2026 do Amazon Hacking.",
+    logoUrl: "https://store.amazon-hacking.com/images/post1.png-1780160079460",
+    team: [],
+    prizes: ["second_place"],
+  },
+  {
+    id: "kitembe-2026",
+    year: 2026,
+    name: "Kitembu",
+    description: "Projeto vencedor do 3º lugar da edição 2026 do Amazon Hacking.",
+    logoUrl: "https://store.amazon-hacking.com/images/1000402892.png-1780255849400",
+    team: [],
+    prizes: ["third_place"],
+  },
+  {
+    id: "florestia-2026",
+    year: 2026,
+    name: "Florestia",
+    description:
+      "Projeto vencedor do Prêmio Conceição Fiúza de Melo na edição 2026 do Amazon Hacking, reconhecendo a solução que se destacou pela criatividade, impacto social e contribuição ao desenvolvimento da Amazônia.",
+    logoUrl: "https://store.amazon-hacking.com/images/generated-image-1.png-1780095152807",
+    team: [],
+    prizes: ["fiuza_melo"],
+  },
+
   // ---------------------------------------------------------------- 2025
   {
     id: "oketa-2025",

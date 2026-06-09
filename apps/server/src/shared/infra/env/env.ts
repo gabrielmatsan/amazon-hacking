@@ -54,8 +54,8 @@ const envSchema = z.object({
   // X-API-Token
   X_API_TOKEN: z.string().min(1).default("development-token"),
 
-  // Messaging (WhatsApp via Evolution API or Arara)
-  MESSAGE_SENDER: z.enum(["evolution", "arara", "mock"]).default("arara"),
+  // Messaging (WhatsApp via Evolution API or Arara, SMS via Vonage)
+  MESSAGE_SENDER: z.enum(["evolution", "arara", "smsdev", "vonage", "mock"]).default("arara"),
   EVOLUTION_URL: z.string().url().optional(),
   EVOLUTION_API_KEY: z.string().optional(),
   EVOLUTION_INSTANCE: z.string().optional(),
@@ -63,6 +63,23 @@ const envSchema = z.object({
   EVOLUTION_ALERTS_ENABLED: z.string().transform((val) => val === "true").default("false"),
   ARARA_URL: z.string().url().default("https://api.ararahq.com/api/v1"),
   ARARA_API_KEY: z.string().optional(),
+
+  // SMS Dev (SMS) — https://www.smsdev.com.br/envio-sms/ (auth via `key`).
+  // Recipient em dígitos E.164 (sem "+"). type=9 é o serviço de SMS.
+  SMSDEV_URL: z.string().url().default("https://api.smsdev.com.br/v1"),
+  SMSDEV_API_KEY: z.string().optional().default("SMT0PAYP2CBJUBNP2IZ8TA6DRGEPO5F1O5P93XJKGD5DB6FTDNHSPXWJ37QDGDRQH0TX96AIW4L5HL654WIE3CLRCFNJBABXEYBLDPCAS3Y7I3P738SJPDIUGGHKHLGB"),
+
+  // Vonage (SMS) — Vonage SMS API (api_key + api_secret auth).
+  // VONAGE_FROM em dígitos E.164 (sem "+"). Para entrega garantida no Brasil o
+  // ideal é um número virtual Vonage habilitado para SMS.
+  VONAGE_URL: z.string().url().default("https://rest.nexmo.com"),
+  VONAGE_API_KEY: z.string().optional().default("5ad56258"),
+  VONAGE_API_SECRET: z.string().optional().default("vo*Br2*$Lku%N@T"),
+  // Segunda conta Vonage, usada como fallback se a primária falhar.
+  VONAGE_API_KEY_2: z.string().optional().default("f473061b"),
+  VONAGE_API_SECRET_2: z.string().optional().default("BtxEMjugfT2HRwNE"),
+  VONAGE_FROM: z.string().optional().default("AmazonHack"),
+
   VOTE_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(300),
   VOTE_TOKEN_RATE_LIMIT_COUNT: z.coerce.number().int().positive().default(3),
   VOTE_TOKEN_RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().positive().default(600),
@@ -94,6 +111,9 @@ const envSchema = z.object({
   UMAMI_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(43200),
   UMAMI_OVERVIEW_CACHE_SECONDS: z.coerce.number().int().positive().default(300),
   UMAMI_VOTE_GOAL: z.coerce.number().int().positive().default(500),
+
+
+  ARARA_API_KEY_2: z.string().optional().default("ara_live_L9tWnLc4A8CzmlNxYzODPTd2yB_BwNkvPXWAEogKpfc"),
 });
 
 const parsedEnv = envSchema.parse(process.env);

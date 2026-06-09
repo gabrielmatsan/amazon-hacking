@@ -11,7 +11,8 @@ export type PrizeCategory =
   | "public_choice"
   | "community_choice"
   | "technical"
-  | "innovation";
+  | "innovation"
+  | "fiuza_melo";
 
 export type TeamMember = {
   name: string;

@@ -6,13 +6,23 @@ import { MessageSendError, type MessageSender } from "./message-sender";
 // variable {{1}} is the token code.
 const TOKEN_TEMPLATE_NAME = "envio_de_token";
 
-function requireConfig(): { url: string; apiKey: string } {
-  if (!env.ARARA_API_KEY) {
-    throw new MessageSendError("Arara sender is not configured (ARARA_API_KEY)");
+// Arara API keys in order of preference. ARARA_API_KEY_2 is tried first; if a
+// send fails with it, we fall back to ARARA_API_KEY. Empty/undefined keys are
+// dropped so misconfigured slots don't waste an attempt.
+function requireConfig(): { url: string; apiKeys: string[] } {
+  const apiKeys = [env.ARARA_API_KEY_2, env.ARARA_API_KEY].filter(
+    (key): key is string => Boolean(key),
+  );
+
+  if (apiKeys.length === 0) {
+    throw new MessageSendError(
+      "Arara sender is not configured (ARARA_API_KEY_2 / ARARA_API_KEY)",
+    );
   }
+
   return {
     url: env.ARARA_URL.replace(/\/$/, ""),
-    apiKey: env.ARARA_API_KEY,
+    apiKeys,
   };
 }
 
@@ -48,40 +58,65 @@ async function postMessage(
 
 export const araraSender: MessageSender = {
   async send(phoneE164, body, options) {
-    const { url, apiKey } = requireConfig();
+    const { url, apiKeys } = requireConfig();
 
     const code = options?.code ?? body;
+    const requestBody = {
+      receiver: toAraraReceiver(phoneE164),
+      templateName: TOKEN_TEMPLATE_NAME,
+      variables: [code],
+    };
 
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 20_000);
+    let lastError: MessageSendError | undefined;
 
-    try {
-      const result = await postMessage(
-        url,
-        apiKey,
-        {
-          receiver: toAraraReceiver(phoneE164),
-          templateName: TOKEN_TEMPLATE_NAME,
-          variables: [code],
-        },
-        controller.signal,
-      );
+    for (let i = 0; i < apiKeys.length; i++) {
+      const apiKey = apiKeys[i];
+      const isLastKey = i === apiKeys.length - 1;
 
-      if (!result.ok) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 20_000);
+
+      try {
+        const result = await postMessage(
+          url,
+          apiKey,
+          requestBody,
+          controller.signal,
+        );
+
+        if (result.ok) return { channel: "whatsapp" };
+
         logger.warn(
-          { status: result.status, errorText: result.errorText, phoneE164 },
+          {
+            status: result.status,
+            errorText: result.errorText,
+            phoneE164,
+            keyIndex: i,
+            willFallback: !isLastKey,
+          },
           "Arara API returned non-2xx",
         );
-        throw new MessageSendError(
+        lastError = new MessageSendError(
           `Arara responded ${result.status}: ${result.errorText || "no body"}`,
         );
+      } catch (err) {
+        logger.error(
+          { err, phoneE164, keyIndex: i, willFallback: !isLastKey },
+          "Arara send failed",
+        );
+        lastError = new MessageSendError(
+          "Failed to dispatch WhatsApp message",
+          err,
+        );
+      } finally {
+        clearTimeout(timer);
       }
-    } catch (err) {
-      if (err instanceof MessageSendError) throw err;
-      logger.error({ err, phoneE164 }, "Arara send failed");
-      throw new MessageSendError("Failed to dispatch WhatsApp message", err);
-    } finally {
-      clearTimeout(timer);
     }
+
+    throw (
+      lastError ?? new MessageSendError("Failed to dispatch WhatsApp message")
+    );
   },
 };
+
+

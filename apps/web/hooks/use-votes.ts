@@ -2,13 +2,22 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { getMyVote, requestVoteToken } from "@/lib/api/votes";
+import { getMyVote, getSupportersLeaderboard, requestVoteToken } from "@/lib/api/votes";
 import { useFingerprint } from "./use-fingerprint";
 
 export function useMyVote() {
   return useQuery({
     queryKey: ["votes", "me"],
     queryFn: getMyVote,
+    retry: false,
+  });
+}
+
+export function useSupportersLeaderboard(slug?: string) {
+  return useQuery({
+    queryKey: ["votes", "supporters", slug ?? "global"],
+    queryFn: () => getSupportersLeaderboard(slug),
+    staleTime: 60 * 1000,
     retry: false,
   });
 }
