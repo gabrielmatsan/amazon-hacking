@@ -67,17 +67,17 @@ const envSchema = z.object({
   // SMS Dev (SMS) — https://www.smsdev.com.br/envio-sms/ (auth via `key`).
   // Recipient em dígitos E.164 (sem "+"). type=9 é o serviço de SMS.
   SMSDEV_URL: z.string().url().default("https://api.smsdev.com.br/v1"),
-  SMSDEV_API_KEY: z.string().optional().default(***REMOVED***),
+  SMSDEV_API_KEY: z.string().optional(),
 
   // Vonage (SMS) — Vonage SMS API (api_key + api_secret auth).
   // VONAGE_FROM em dígitos E.164 (sem "+"). Para entrega garantida no Brasil o
   // ideal é um número virtual Vonage habilitado para SMS.
   VONAGE_URL: z.string().url().default("https://rest.nexmo.com"),
-  VONAGE_API_KEY: z.string().optional().default(***REMOVED***),
-  VONAGE_API_SECRET: z.string().optional().default(***REMOVED***),
+  VONAGE_API_KEY: z.string().optional(),
+  VONAGE_API_SECRET: z.string().optional(),
   // Segunda conta Vonage, usada como fallback se a primária falhar.
-  VONAGE_API_KEY_2: z.string().optional().default(***REMOVED***),
-  VONAGE_API_SECRET_2: z.string().optional().default(***REMOVED***),
+  VONAGE_API_KEY_2: z.string().optional(),
+  VONAGE_API_SECRET_2: z.string().optional(),
   VONAGE_FROM: z.string().optional().default("AmazonHack"),
 
   VOTE_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(300),
@@ -113,7 +113,7 @@ const envSchema = z.object({
   UMAMI_VOTE_GOAL: z.coerce.number().int().positive().default(500),
 
 
-  ARARA_API_KEY_2: z.string().optional().default(***REMOVED***),
+  ARARA_API_KEY_2: z.string().optional(),
 });
 
 const parsedEnv = envSchema.parse(process.env);
