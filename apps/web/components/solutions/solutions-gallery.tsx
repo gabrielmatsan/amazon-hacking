@@ -8,8 +8,19 @@ import { trackEvent } from "@/lib/analytics/umami";
 import { captureRefFromUrl } from "@/lib/analytics/referral";
 import { MySupporters } from "./my-supporters";
 import type { Locale } from "@/lib/paraglide/runtime";
-import { useTeamGroups } from "@/hooks/use-teams";
-import type { SolutionPillar, TeamListItem } from "@/lib/api/types";
+import { useTeamGroups, useTeamSearch } from "@/hooks/use-teams";
+import type { SolutionPillar, TeamListItem, TeamSearchItem } from "@/lib/api/types";
+
+const SEARCH_MIN_LENGTH = 2;
+
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delayMs);
+    return () => clearTimeout(timer);
+  }, [value, delayMs]);
+  return debounced;
+}
 
 const PILLAR_ORDER: SolutionPillar[] = [
   "verticalization",
@@ -68,6 +79,10 @@ export function SolutionsGallery({ locale }: { locale: Locale }) {
 
   const { data: groups, isLoading, error } = useTeamGroups();
 
+  const debouncedQuery = useDebouncedValue(query, 300);
+  const isSearching = debouncedQuery.trim().length >= SEARCH_MIN_LENGTH;
+  const { data: searchData, isFetching: isSearchFetching } = useTeamSearch(debouncedQuery);
+
   const availablePillars = useMemo(() => {
     if (!groups) return [];
     return groups
@@ -75,30 +90,29 @@ export function SolutionsGallery({ locale }: { locale: Locale }) {
       .sort((a, b) => PILLAR_ORDER.indexOf(a) - PILLAR_ORDER.indexOf(b));
   }, [groups]);
 
+  // Browse mode (no search): show the pillar-grouped gallery, filtered by the active pillar.
   const filteredGroups = useMemo(() => {
     if (!groups) return [];
-    const q = query.trim().toLowerCase();
-
     return groups
       .filter((g) => activePillar === "all" || g.solutionPillar === activePillar)
-      .map((g) => ({
-        ...g,
-        teams: q
-          ? g.teams.filter((t) => t.name.toLowerCase().includes(q))
-          : g.teams,
-      }))
       .filter((g) => g.teams.length > 0);
-  }, [groups, activePillar, query]);
+  }, [groups, activePillar]);
+
+  // Search mode: server-side ranked results (FTS + trigram), filtered by the active pillar.
+  const searchResults = useMemo(() => {
+    if (!searchData) return [];
+    return activePillar === "all"
+      ? searchData
+      : searchData.filter((t) => t.solutionPillar === activePillar);
+  }, [searchData, activePillar]);
 
   useEffect(() => {
-    const q = query.trim();
-    if (q.length < 2) return;
-    const timer = setTimeout(() => {
-      const resultCount = filteredGroups.reduce((sum, g) => sum + g.teams.length, 0);
-      trackEvent("solutions-search", { length: q.length, hasResults: resultCount > 0 });
-    }, 700);
-    return () => clearTimeout(timer);
-  }, [query, filteredGroups]);
+    if (!isSearching || isSearchFetching) return;
+    trackEvent("solutions-search", {
+      length: debouncedQuery.trim().length,
+      hasResults: searchResults.length > 0,
+    });
+  }, [isSearching, isSearchFetching, debouncedQuery, searchResults.length]);
 
   useEffect(() => {
     captureRefFromUrl();
@@ -182,8 +196,15 @@ export function SolutionsGallery({ locale }: { locale: Locale }) {
         )}
       </div>
 
-      {/* Grouped sections */}
-      {filteredGroups.length === 0 ? (
+      {/* Results */}
+      {isSearching ? (
+        <SearchResults
+          results={searchResults}
+          isFetching={isSearchFetching}
+          hasData={searchData !== undefined}
+          locale={locale}
+        />
+      ) : filteredGroups.length === 0 ? (
         <p className="mt-16 text-center text-white/80">
           {m.solutions_no_results({}, { locale })}
         </p>
@@ -222,6 +243,61 @@ export function SolutionsGallery({ locale }: { locale: Locale }) {
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+function SearchResults({
+  results,
+  isFetching,
+  hasData,
+  locale,
+}: {
+  results: TeamSearchItem[];
+  isFetching: boolean;
+  hasData: boolean;
+  locale: Locale;
+}) {
+  // First load for a new term: no previous results to show yet.
+  if (isFetching && !hasData) {
+    return (
+      <div className="flex justify-center py-20">
+        <div className="size-10 animate-spin rounded-full border-4 border-white/30 border-t-white" />
+      </div>
+    );
+  }
+
+  if (results.length === 0) {
+    return (
+      <p className="mt-16 text-center text-white/80">
+        {m.solutions_no_results({}, { locale })}
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-12">
+      <div className="mb-6 flex items-center gap-3">
+        <span className="text-sm text-white/50 tabular-nums">
+          {m.solutions_teams_count({ count: results.length }, { locale })}
+        </span>
+        {isFetching && (
+          <span className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" aria-hidden />
+        )}
+      </div>
+
+      <ul role="list" className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        {results.map((team) => (
+          <li key={team.id}>
+            <TeamCard
+              team={team}
+              pillar={team.solutionPillar}
+              colors={PILLAR_COLORS[team.solutionPillar]}
+              locale={locale}
+            />
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

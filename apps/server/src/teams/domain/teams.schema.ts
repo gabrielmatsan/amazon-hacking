@@ -36,6 +36,11 @@ export const teamsSchema = pgTable("teams", {
   createdBy: varchar("created_by", { length: 34 }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  // NOTA: a coluna gerada `search_vector` (tsvector) e os indices GIN de busca
+  // (FTS portugues + trigram) sao criados pela migration manual
+  // 20260616161714_team_search_engine e referenciados via SQL cru em
+  // TeamsRepository.search(). Nao estao mapeados aqui de proposito — use
+  // `db:migrate` (nunca `db:push`, que tentaria dropar a coluna).
 })
 
 export const teamAuditLogsSchema = pgTable("team_audit_logs", {

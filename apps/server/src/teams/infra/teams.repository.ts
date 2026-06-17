@@ -29,6 +29,14 @@ export type TeamListGroup = {
   teams: TeamListItem[];
 };
 
+export type TeamSearchItem = {
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl: string | null;
+  solutionPillar: SolutionPillar;
+};
+
 export const TeamsRepository = {
   async findBySlug(slug: string): Promise<Team | null> {
     const [team] = await db
@@ -58,6 +66,41 @@ export const TeamsRepository = {
       .orderBy(teamsSchema.solutionPillar);
 
     return teams;
+  },
+
+  /**
+   * Busca textual de teams ativos por relevancia.
+   *
+   * Motor: Postgres Full-Text Search (config "portuguese" + unaccent) com
+   * fallback de trigram (pg_trgm) para tolerar erros de digitacao no nome.
+   * Ordenacao: relevancia FTS (ts_rank) > similaridade trigram > mais recente.
+   *
+   * Depende da coluna gerada `search_vector` e dos indices GIN criados na
+   * migration 20260616161714_team_search_engine.
+   */
+  async search(term: string, limit = 20): Promise<TeamSearchItem[]> {
+    const result = await db.execute<TeamSearchItem>(sql`
+      SELECT
+        ${teamsSchema.id} AS "id",
+        ${teamsSchema.name} AS "name",
+        ${teamsSchema.slug} AS "slug",
+        ${teamsSchema.logoUrl} AS "logoUrl",
+        ${teamsSchema.solutionPillar} AS "solutionPillar"
+      FROM ${teamsSchema},
+        websearch_to_tsquery('portuguese', immutable_unaccent(${term})) AS query
+      WHERE ${teamsSchema.status} = 'active'
+        AND (
+          "teams"."search_vector" @@ query
+          OR immutable_unaccent(${teamsSchema.name}) % immutable_unaccent(${term})
+        )
+      ORDER BY
+        ts_rank("teams"."search_vector", query) DESC,
+        similarity(immutable_unaccent(${teamsSchema.name}), immutable_unaccent(${term})) DESC,
+        ${teamsSchema.createdAt} DESC
+      LIMIT ${limit}
+    `);
+
+    return result.rows;
   },
 
   async findBySlugActive(slug: string): Promise<Team | null> {
