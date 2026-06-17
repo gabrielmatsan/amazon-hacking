@@ -71,14 +71,32 @@ export const TeamsRepository = {
   /**
    * Busca textual de teams ativos por relevancia.
    *
-   * Motor: Postgres Full-Text Search (config "portuguese" + unaccent) com
-   * fallback de trigram (pg_trgm) para tolerar erros de digitacao no nome.
-   * Ordenacao: relevancia FTS (ts_rank) > similaridade trigram > mais recente.
+   * Motor (duas camadas, OR):
+   *  1. Full-Text Search ("portuguese" + unaccent) com PREFIX MATCHING — cada
+   *     lexema do termo vira prefixo de stem, bom para match exato, stemming e
+   *     autocomplete; alimenta o ranking principal (ts_rank).
+   *  2. Trigram ANCORADO NA RAIZ — rede de seguranca para o que o FTS perde
+   *     (plural/flexao que o stemmer corta diferente, ex: "rural"->"rurais", e
+   *     familia morfologica que o prefixo de stem nao alcanca, ex: "educacao"
+   *     achando "educativo"). Para nao trazer ruido (palavras que so colidem em
+   *     trigramas, ex: "educacao" ~ "Porto Digital"), exige DUAS condicoes:
+   *       a) word_similarity >= TRIGRAM_THRESHOLD (recall fuzzy), E
+   *       b) o texto conter os ROOT_ANCHOR_LEN primeiros chars do termo
+   *          (a raiz compartilhada — separa "educativo" real de colisao).
+   *     Os valores foram calibrados com dados reais: a familia educ- e os
+   *     plurais -al/-ais ficam acima de 0.5 e compartilham a raiz; o ruido
+   *     "-cao" (dedicacao, producao...) fica em 0.44 e nao compartilha a raiz.
+   *
+   * Ordenacao: relevancia FTS > similaridade trigram > mais recente.
    *
    * Depende da coluna gerada `search_vector` e dos indices GIN criados na
-   * migration 20260616161714_team_search_engine.
+   * migration 20260616161714_team_search_engine. O trigram/anchor sobre a
+   * descricao roda sem indice dedicado (seq scan) — irrelevante no volume atual.
    */
   async search(term: string, limit = 20): Promise<TeamSearchItem[]> {
+    const TRIGRAM_THRESHOLD = 0.5;
+    const ROOT_ANCHOR_LEN = 4;
+
     const result = await db.execute<TeamSearchItem>(sql`
       SELECT
         ${teamsSchema.id} AS "id",
@@ -87,15 +105,28 @@ export const TeamsRepository = {
         ${teamsSchema.logoUrl} AS "logoUrl",
         ${teamsSchema.solutionPillar} AS "solutionPillar"
       FROM ${teamsSchema},
-        websearch_to_tsquery('portuguese', immutable_unaccent(${term})) AS query
+        to_tsquery('portuguese', (
+          SELECT string_agg(lexeme || ':*', ' & ')
+          FROM unnest(to_tsvector('portuguese', immutable_unaccent(${term})))
+        )) AS query
       WHERE ${teamsSchema.status} = 'active'
         AND (
           "teams"."search_vector" @@ query
-          OR immutable_unaccent(${teamsSchema.name}) % immutable_unaccent(${term})
+          OR (
+            word_similarity(
+              immutable_unaccent(${term}),
+              immutable_unaccent(${teamsSchema.name} || ' ' || coalesce(${teamsSchema.description}, ''))
+            ) >= ${TRIGRAM_THRESHOLD}
+            AND immutable_unaccent(${teamsSchema.name} || ' ' || coalesce(${teamsSchema.description}, ''))
+              ILIKE '%' || left(immutable_unaccent(${term}), ${ROOT_ANCHOR_LEN}) || '%'
+          )
         )
       ORDER BY
         ts_rank("teams"."search_vector", query) DESC,
-        similarity(immutable_unaccent(${teamsSchema.name}), immutable_unaccent(${term})) DESC,
+        word_similarity(
+          immutable_unaccent(${term}),
+          immutable_unaccent(${teamsSchema.name} || ' ' || coalesce(${teamsSchema.description}, ''))
+        ) DESC,
         ${teamsSchema.createdAt} DESC
       LIMIT ${limit}
     `);
